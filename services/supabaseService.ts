@@ -657,6 +657,8 @@ export const getSuperAdminStats = async (): Promise<{
     totalDownloads: number;
     totalShares: number;
     totalGenerations: number;
+    totalUsers: number;
+    totalCustomPrompts: number;
     maleFavoriteStyle: string | null;
     femaleFavoriteStyle: string | null;
 }> => {
@@ -689,6 +691,8 @@ export const getSuperAdminStats = async (): Promise<{
         totalDownloads: data?.totalDownloads || 0,
         totalShares: data?.totalShares || 0,
         totalGenerations: data?.totalGenerations || 0,
+        totalUsers: data?.totalUsers || 0,
+        totalCustomPrompts: data?.totalCustomPrompts || 0,
         maleFavoriteStyle: data?.maleFavoriteStyle || null,
         femaleFavoriteStyle: data?.femaleFavoriteStyle || null,
     };
@@ -715,7 +719,7 @@ export const getAllUsersWithAnalytics = async (): Promise<any[]> => {
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at')
+        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no')
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -747,7 +751,7 @@ export const searchUsersWithAnalytics = async (query: string): Promise<any[]> =>
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at')
+        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no')
         .or(`email.ilike.%${query}%,full_name.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
         .order('created_at', { ascending: false });
 
@@ -757,4 +761,331 @@ export const searchUsersWithAnalytics = async (query: string): Promise<any[]> =>
     }
 
     return data || [];
+};
+
+// Get users who have custom prompts (super admin only)
+export const getUsersWithCustomPrompts = async (): Promise<{
+    id: string;
+    email: string;
+    full_name: string | null;
+    custom_prompt_count: number;
+}[]> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const { data, error } = await supabase
+        .from('users')
+        .select('id, email, full_name, custom_prompt_count')
+        .gt('custom_prompt_count', 0)
+        .order('custom_prompt_count', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching users with custom prompts:', error);
+        throw new Error(error.message);
+    }
+
+    return data || [];
+};
+
+// Get actual custom prompts for a specific user (super admin only)
+// Custom prompts are identified by style_name = 'AI Generated Style'
+export const getUserCustomPrompts = async (userId: string): Promise<{
+    id: number;
+    prompt: string;
+    created_at: string;
+    hairstyle_name: string | null;
+}[]> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const { data, error } = await supabase
+        .from('generations')
+        .select('id, prompt, created_at, hairstyle_name')
+        .eq('user_id', userId)
+        .eq('style_name', 'AI Generated Style')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching user custom prompts:', error);
+        throw new Error(error.message);
+    }
+
+    return data || [];
+};
+
+// ============================================
+// Weekly Analytics Functions (Super Admin)
+// ============================================
+
+export interface DailyCount {
+    date: string;      // e.g., "Mon", "Tue", etc.
+    fullDate: string;  // e.g., "2026-01-27"
+    count: number;
+}
+
+export interface MonthlyCount {
+    date: string;      // e.g., "Jan", "Feb", etc.
+    fullDate: string;  // e.g., "January 2026"
+    count: number;
+}
+
+// Helper to get day name from date
+const getDayName = (date: Date): string => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return days[date.getDay()];
+};
+
+// Helper to format date as YYYY-MM-DD
+const formatDate = (date: Date): string => {
+    return date.toISOString().split('T')[0];
+};
+
+// Get user registrations per day for last 7 days (super admin only)
+export const getWeeklyUserRegistrations = async (): Promise<DailyCount[]> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const result: DailyCount[] = [];
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    // Get data for each of the last 7 days
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const { count, error } = await supabase
+            .from('users')
+            .select('id', { count: 'exact' })
+            .gte('created_at', startOfDay.toISOString())
+            .lte('created_at', endOfDay.toISOString());
+
+        if (error) {
+            console.error('Error fetching weekly user registrations:', error);
+        }
+
+        result.push({
+            date: getDayName(date),
+            fullDate: formatDate(date),
+            count: count || 0,
+        });
+    }
+
+    return result;
+};
+
+// Get generations per day for last 7 days (super admin only)
+export const getWeeklyGenerations = async (): Promise<DailyCount[]> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const result: DailyCount[] = [];
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    // Get data for each of the last 7 days
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const { count, error } = await supabase
+            .from('generations')
+            .select('id', { count: 'exact' })
+            .gte('created_at', startOfDay.toISOString())
+            .lte('created_at', endOfDay.toISOString());
+
+        if (error) {
+            console.error('Error fetching weekly generations:', error);
+        }
+
+        result.push({
+            date: getDayName(date),
+            fullDate: formatDate(date),
+            count: count || 0,
+        });
+    }
+
+    return result;
+};
+
+// ============================================
+// Monthly Analytics Functions (Super Admin)
+// ============================================
+
+// Helper to get short month name from date
+const getShortMonthName = (date: Date): string => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[date.getMonth()];
+};
+
+// Helper to get full month name with year
+const getFullMonthName = (date: Date): string => {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+};
+
+// Get user registrations per month for last 6 months (super admin only)
+export const getMonthlyUserRegistrations = async (): Promise<MonthlyCount[]> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const result: MonthlyCount[] = [];
+    const today = new Date();
+
+    // Get data for each of the last 6 months
+    for (let i = 5; i >= 0; i--) {
+        const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+
+        const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+        const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+
+        const { count, error } = await supabase
+            .from('users')
+            .select('id', { count: 'exact' })
+            .gte('created_at', startOfMonth.toISOString())
+            .lte('created_at', endOfMonth.toISOString());
+
+        if (error) {
+            console.error('Error fetching monthly user registrations:', error);
+        }
+
+        result.push({
+            date: getShortMonthName(date),
+            fullDate: getFullMonthName(date),
+            count: count || 0,
+        });
+    }
+
+    return result;
+};
+
+// Get generations per month for last 6 months (super admin only)
+export const getMonthlyGenerations = async (): Promise<MonthlyCount[]> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const result: MonthlyCount[] = [];
+    const today = new Date();
+
+    // Get data for each of the last 6 months
+    for (let i = 5; i >= 0; i--) {
+        const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+
+        const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+        const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+
+        const { count, error } = await supabase
+            .from('generations')
+            .select('id', { count: 'exact' })
+            .gte('created_at', startOfMonth.toISOString())
+            .lte('created_at', endOfMonth.toISOString());
+
+        if (error) {
+            console.error('Error fetching monthly generations:', error);
+        }
+
+        result.push({
+            date: getShortMonthName(date),
+            fullDate: getFullMonthName(date),
+            count: count || 0,
+        });
+    }
+
+    return result;
 };

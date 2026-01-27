@@ -1,0 +1,137 @@
+import React, { useState } from 'react';
+import * as XLSX from 'xlsx';
+
+interface UserWithAnalytics {
+  id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  full_name?: string;
+  download_count: number;
+  share_count: number;
+  custom_prompt_count: number;
+  generation_count: number;
+  created_at: string;
+  sr_no?: number;
+}
+
+interface ExportModalProps {
+  users: UserWithAnalytics[];
+  onClose: () => void;
+  onError: (message: string) => void;
+}
+
+const ExportModal: React.FC<ExportModalProps> = ({ users, onClose, onError }) => {
+  const [exportStartDate, setExportStartDate] = useState('');
+  const [exportEndDate, setExportEndDate] = useState('');
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportUsers = async () => {
+    setExporting(true);
+    try {
+      // Filter users by date range
+      let dataToExport = users;
+
+      if (exportStartDate || exportEndDate) {
+        dataToExport = users.filter(u => {
+          const createdAt = new Date(u.created_at);
+          if (exportStartDate && createdAt < new Date(exportStartDate)) return false;
+          if (exportEndDate && createdAt > new Date(exportEndDate + 'T23:59:59')) return false;
+          return true;
+        });
+      }
+
+      // Build title based on date range
+      let titleText = 'Headz Users';
+      if (exportStartDate && exportEndDate) {
+        titleText = `Headz Users from ${exportStartDate} to ${exportEndDate}`;
+      } else if (exportStartDate) {
+        titleText = `Headz Users from ${exportStartDate}`;
+      } else if (exportEndDate) {
+        titleText = `Headz Users to ${exportEndDate}`;
+      }
+
+      // Create worksheet with title row first
+      const worksheet = XLSX.utils.aoa_to_sheet([[titleText]]);
+
+      // Add data starting from row 2 (origin: 1 means row index 1)
+      XLSX.utils.sheet_add_json(worksheet, dataToExport.map(u => ({
+        'Sr No.': u.sr_no ?? '-',
+        'Name': u.full_name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'No Name',
+        'Email': u.email,
+        'Downloads': u.download_count || 0,
+        'Shares': u.share_count || 0,
+        'Generations': u.generation_count || 0,
+        'Custom Prompts': u.custom_prompt_count || 0,
+        'Joined': u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'
+      })), { origin: 1 });
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+
+      // Generate filename with date range
+      const dateRange = exportStartDate && exportEndDate
+        ? `_${exportStartDate}_to_${exportEndDate}`
+        : '';
+      XLSX.writeFile(workbook, `headz_users${dateRange}.xlsx`);
+
+      onClose();
+    } catch (err) {
+      console.error('Export error:', err);
+      onError('Failed to export data');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-gray-800 rounded-xl p-6 w-full max-w-md border border-gray-700">
+        <h3 className="text-xl font-bold text-white mb-4">Export User Data</h3>
+
+        {/* Date Range Filters */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-gray-400 text-sm mb-2">From Date</label>
+            <input
+              type="date"
+              value={exportStartDate}
+              onChange={(e) => setExportStartDate(e.target.value)}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-400 text-sm mb-2">To Date</label>
+            <input
+              type="date"
+              value={exportEndDate}
+              onChange={(e) => setExportEndDate(e.target.value)}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+            />
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleExportUsers}
+            disabled={exporting}
+            className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-500 disabled:bg-green-800 text-white rounded-lg flex items-center justify-center space-x-2"
+          >
+            {exporting ? 'Exporting...' : 'Download Excel'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ExportModal;
+export type { ExportModalProps };

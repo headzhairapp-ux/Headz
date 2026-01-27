@@ -1,0 +1,49 @@
+import React, { useEffect, useRef } from 'react';
+
+const VideoPlayer: React.FC = () => {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    // Attempt to enter fullscreen when the component mounts
+    const enterFullscreen = () => {
+      if (iframeRef.current) {
+        if (iframeRef.current.requestFullscreen) {
+          iframeRef.current.requestFullscreen();
+        }
+      }
+    };
+
+    // Small delay to ensure the iframe is loaded
+    const timer = setTimeout(enterFullscreen, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="w-full h-screen">
+        <iframe
+          ref={iframeRef}
+          src="https://www.youtube.com/embed/LWHnzj2kESo?autoplay=1&mute=0&controls=1&fs=1&modestbranding=1&rel=0&iv_load_policy=3"
+          className="w-full h-full border-0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+          allowFullScreen
+          title="Headz International Demo Video"
+        />
+      </div>
+      
+      {/* Instructions */}
+      <div className="absolute top-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg">
+        <p className="text-sm">Press F11 or click the fullscreen button on the video player</p>
+        <button 
+          onClick={() => window.close()} 
+          className="mt-2 px-3 py-1 bg-gray-600 hover:bg-gray-500 rounded text-xs transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default VideoPlayer;

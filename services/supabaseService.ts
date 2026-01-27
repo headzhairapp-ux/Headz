@@ -1,0 +1,760 @@
+import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
+import { supabase as sharedSupabase } from '../lib/supabaseClient';
+
+const getSupabaseClient = (): SupabaseClient => {
+    return sharedSupabase;
+}
+
+// Utility to convert data URL to File object
+export const dataURLtoFile = (dataurl: string, filename: string): File => {
+    try {
+        if (!dataurl || typeof dataurl !== 'string') {
+            throw new Error("Invalid data URL: URL is null or not a string");
+        }
+
+        const arr = dataurl.split(',');
+        if (arr.length < 2) {
+            throw new Error("Invalid data URL format: missing data component");
+        }
+
+        const mimeMatch = arr[0].match(/:(.*?);/);
+        if (!mimeMatch || mimeMatch.length < 2) {
+            throw new Error("Could not determine MIME type from data URL");
+        }
+
+        const mime = mimeMatch[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+
+        while(n--){
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+
+        return new File([u8arr], filename, {type: mime});
+    } catch (error) {
+        console.error("Failed to convert data URL to file:", error);
+        console.error("Data URL preview:", dataurl ? dataurl.substring(0, 100) + "..." : "null");
+        throw new Error(`Failed to get data URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+}
+
+// Uploads a file to Supabase storage and returns the public URL
+export const uploadImage = async (file: File, sessionId: string): Promise<string> => {
+    const supabase = getSupabaseClient();
+    const fileName = `${sessionId}/${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+
+    console.log('Attempting to upload to images bucket:', fileName);
+
+    const { data, error } = await supabase.storage
+        .from('generated-images') // Using 'generated-images' bucket that actually exists
+        .upload(fileName, file);
+
+    if (error) {
+        console.error("Error uploading image to Supabase:", error);
+        console.log('Available buckets check needed');
+
+        // More specific error messages
+        if (error.message.includes('Bucket not found')) {
+            throw new Error("Storage bucket 'generated-images' was not found. Please create a public bucket named 'generated-images' in your Supabase Storage section.");
+        } else if (error.message.includes('Unauthorized') || error.message.includes('permission')) {
+            throw new Error("Storage permission denied. Please check that the 'generated-images' bucket is public or has proper RLS policies.");
+        }
+
+        throw new Error(`Storage error: ${error.message}`);
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from('generated-images').getPublicUrl(data.path);
+    return publicUrl;
+}
+
+interface GenerationData {
+    sessionId: string;
+    originalImageUrl: string;
+    styledImageUrl: string;
+    prompt: string;
+    styleName: string;
+    userId?: string;
+    hairstyleName?: string;
+    generatedImageUrl?: string;
+    seed?: number;
+    steps?: number;
+    guidanceScale?: number;
+    strength?: number;
+    status?: string;
+    isFavorite?: boolean;
+    isShared?: boolean;
+    metadata?: any;
+    gender?: 'male' | 'female';
+}
+
+// Saves generation data to the 'generations' table
+export const saveGeneration = async (data: GenerationData): Promise<void> => {
+    const supabase = getSupabaseClient();
+
+    // Get the current authenticated user from localStorage
+    let user = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            user = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    const insertData: any = {
+        session_id: data.sessionId,
+        original_image_url: data.originalImageUrl,
+        styled_image_url: data.styledImageUrl,
+        generated_image_url: data.generatedImageUrl || data.styledImageUrl,
+        prompt: data.prompt,
+        style_name: data.styleName,
+        hairstyle_name: data.hairstyleName || data.styleName,
+        seed: data.seed || null,
+        steps: data.steps || null,
+        guidance_scale: data.guidanceScale || null,
+        strength: data.strength || null,
+        status: data.status || 'completed',
+        is_favorite: data.isFavorite || false,
+        is_shared: data.isShared || false,
+        metadata: data.metadata || null,
+        gender: data.gender || null
+    };
+
+    // Add user_id if user is authenticated
+    if (user) {
+        insertData.user_id = user.id;
+    }
+
+    const { error } = await supabase.from('generations').insert(insertData);
+
+    if (error) {
+        console.error("Error saving generation to Supabase:", error);
+        throw new Error(error.message);
+    }
+}
+
+// Get user profile (using users table)
+export const getUserProfile = async (userId: string): Promise<any> => {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase
+        .from('users')
+        .select('id, email, first_name, last_name, full_name, email_verified, created_at, updated_at, last_login_at')
+        .eq('id', userId)
+        .single();
+
+    if (error) {
+        console.error("Error fetching user profile:", error);
+        return null;
+    }
+
+    return data;
+}
+
+// Get user's generation history for gallery
+export const getUserGenerations = async (userId: string): Promise<any[]> => {
+    const supabase = getSupabaseClient();
+
+    // Get the current authenticated user from localStorage to verify permissions
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || currentUser.id !== userId) {
+        throw new Error('Unauthorized access to user generations');
+    }
+
+    // Get all generations for the authenticated user
+    const { data, error } = await supabase
+        .from('generations')
+        .select('id, created_at, styled_image_url, generated_image_url, original_image_url, style_name, hairstyle_name, prompt, session_id, user_id, status, is_favorite, is_shared, metadata')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(100); // Limit to last 100 generations
+
+    if (error) {
+        console.error("Error fetching user generations:", error);
+        throw new Error(error.message);
+    }
+
+    return data || [];
+}
+
+// Admin-only functions
+// Get all users (admin only)
+export const getAllUsers = async (): Promise<any[]> => {
+    const supabase = getSupabaseClient();
+
+    // Verify admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_admin) {
+        throw new Error('Unauthorized: Admin privileges required');
+    }
+
+    const { data, error } = await supabase
+        .from('users')
+        .select('id, email, first_name, last_name, full_name, is_admin, email_verified, created_at, updated_at, last_login_at')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error("Error fetching all users:", error);
+        throw new Error(error.message);
+    }
+
+    return data || [];
+};
+
+// Toggle user admin status (admin only)
+export const toggleUserAdmin = async (userId: string, isAdmin: boolean): Promise<void> => {
+    const supabase = getSupabaseClient();
+
+    // Verify admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_admin) {
+        throw new Error('Unauthorized: Admin privileges required');
+    }
+
+    const { error } = await supabase
+        .from('users')
+        .update({
+            is_admin: isAdmin,
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+
+    if (error) {
+        console.error("Error updating user admin status:", error);
+        throw new Error(error.message);
+    }
+};
+
+// Get user generation count (admin only)
+export const getUserGenerationCount = async (userId: string): Promise<number> => {
+    const supabase = getSupabaseClient();
+
+    // Verify admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_admin) {
+        throw new Error('Unauthorized: Admin privileges required');
+    }
+
+    const { count, error } = await supabase
+        .from('generations')
+        .select('id', { count: 'exact' })
+        .eq('user_id', userId);
+
+    if (error) {
+        console.error("Error getting user generation count:", error);
+        throw new Error(error.message);
+    }
+
+    return count || 0;
+};
+
+// Get admin dashboard stats
+export const getAdminStats = async (): Promise<{
+    totalUsers: number;
+    totalAdmins: number;
+    totalGenerations: number;
+    recentUsers: number;
+}> => {
+    const supabase = getSupabaseClient();
+
+    // Verify admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_admin) {
+        throw new Error('Unauthorized: Admin privileges required');
+    }
+
+    // Get total users
+    const { count: totalUsers } = await supabase
+        .from('users')
+        .select('id', { count: 'exact' });
+
+    // Get total admins
+    const { count: totalAdmins } = await supabase
+        .from('users')
+        .select('id', { count: 'exact' })
+        .eq('is_admin', true);
+
+    // Get total generations
+    const { count: totalGenerations } = await supabase
+        .from('generations')
+        .select('id', { count: 'exact' });
+
+    // Get recent users (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const { count: recentUsers } = await supabase
+        .from('users')
+        .select('id', { count: 'exact' })
+        .gte('created_at', sevenDaysAgo.toISOString());
+
+    return {
+        totalUsers: totalUsers || 0,
+        totalAdmins: totalAdmins || 0,
+        totalGenerations: totalGenerations || 0,
+        recentUsers: recentUsers || 0,
+    };
+};
+
+// ============================================
+// User Analytics Tracking Functions
+// ============================================
+
+// Helper to increment a stat column
+const incrementUserStat = async (userId: string, column: string): Promise<void> => {
+    const supabase = getSupabaseClient();
+
+    // First get current value
+    const { data, error: fetchError } = await supabase
+        .from('users')
+        .select(column)
+        .eq('id', userId)
+        .single();
+
+    if (fetchError) {
+        console.error(`Error fetching ${column}:`, fetchError);
+        return;
+    }
+
+    const currentValue = (data as any)?.[column] || 0;
+
+    // Then increment
+    const { error: updateError } = await supabase
+        .from('users')
+        .update({ [column]: currentValue + 1 })
+        .eq('id', userId);
+
+    if (updateError) {
+        console.error(`Error incrementing ${column}:`, updateError);
+    }
+};
+
+// Increment download count for user
+export const trackDownload = async (userId: string): Promise<void> => {
+    await incrementUserStat(userId, 'download_count');
+};
+
+// Increment share count for user
+export const trackShare = async (userId: string): Promise<void> => {
+    await incrementUserStat(userId, 'share_count');
+};
+
+// Increment custom prompt count for user
+export const trackCustomPrompt = async (userId: string): Promise<void> => {
+    await incrementUserStat(userId, 'custom_prompt_count');
+};
+
+// Increment generation count for user
+export const trackGeneration = async (userId: string): Promise<void> => {
+    await incrementUserStat(userId, 'generation_count');
+};
+
+// Get user analytics
+export const getUserAnalytics = async (userId: string): Promise<{
+    download_count: number;
+    share_count: number;
+    custom_prompt_count: number;
+    generation_count: number;
+} | null> => {
+    const supabase = getSupabaseClient();
+
+    const { data, error } = await supabase
+        .from('users')
+        .select('download_count, share_count, custom_prompt_count, generation_count')
+        .eq('id', userId)
+        .single();
+
+    if (error) {
+        console.error('Error getting user analytics:', error);
+        return null;
+    }
+
+    return {
+        download_count: data?.download_count || 0,
+        share_count: data?.share_count || 0,
+        custom_prompt_count: data?.custom_prompt_count || 0,
+        generation_count: data?.generation_count || 0,
+    };
+};
+
+// ============================================
+// Google OAuth Functions
+// ============================================
+
+// Sign in with Google OAuth
+export const signInWithGoogle = async (): Promise<{ error: any }> => {
+    const supabase = getSupabaseClient();
+
+    // Store that we're doing a Google OAuth flow
+    sessionStorage.setItem('headz_oauth_provider', 'google');
+
+    const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: `${window.location.origin}${window.location.pathname}`,
+            queryParams: {
+                access_type: 'offline',
+                prompt: 'consent',
+            },
+        },
+    });
+
+    return { error };
+};
+
+// Handle OAuth callback and get user session
+export const handleOAuthCallback = async (): Promise<{ user: any | null; isNewUser: boolean; error: any }> => {
+    const supabase = getSupabaseClient();
+
+    try {
+        const { data, error } = await supabase.auth.getSession();
+
+        if (error) {
+            return { user: null, isNewUser: false, error };
+        }
+
+        if (!data.session?.user) {
+            return { user: null, isNewUser: false, error: null };
+        }
+
+        const supabaseUser = data.session.user;
+
+        // Check if user exists in our users table
+        const { data: existingUser, error: fetchError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', supabaseUser.email)
+            .single();
+
+        if (fetchError && fetchError.code !== 'PGRST116') {
+            // PGRST116 is "not found" error, which is expected for new users
+            console.error('Error fetching user:', fetchError);
+        }
+
+        if (existingUser) {
+            // Existing user - update last login
+            await supabase
+                .from('users')
+                .update({
+                    last_login_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    auth_provider: 'google',
+                    supabase_user_id: supabaseUser.id,
+                })
+                .eq('id', existingUser.id);
+
+            return { user: existingUser, isNewUser: false, error: null };
+        }
+
+        // New user - needs profile completion
+        return {
+            user: {
+                email: supabaseUser.email,
+                supabase_user_id: supabaseUser.id,
+                auth_provider: 'google',
+            },
+            isNewUser: true,
+            error: null,
+        };
+    } catch (error) {
+        console.error('OAuth callback error:', error);
+        return { user: null, isNewUser: false, error };
+    }
+};
+
+// ============================================
+// User Lookup Functions
+// ============================================
+
+// Get or create user by email (used by Google sign-in)
+export const getOrCreateUserByEmail = async (email: string): Promise<{ user: any | null; isNewUser: boolean; error: any }> => {
+    const supabase = getSupabaseClient();
+
+    try {
+        // Check if user exists - explicitly select is_super_admin and is_admin to ensure they're returned
+        const { data: existingUser, error: fetchError } = await supabase
+            .from('users')
+            .select('*, is_super_admin, is_admin')
+            .eq('email', email.toLowerCase())
+            .single();
+
+        if (fetchError && fetchError.code !== 'PGRST116') {
+            console.error('Error fetching user:', fetchError);
+        }
+
+        if (existingUser) {
+            // Existing user - update last login
+            await supabase
+                .from('users')
+                .update({
+                    last_login_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                })
+                .eq('id', existingUser.id);
+
+            return { user: existingUser, isNewUser: false, error: null };
+        }
+
+        // New user - will need profile completion
+        return {
+            user: { email: email.toLowerCase(), auth_provider: 'google' },
+            isNewUser: true,
+            error: null,
+        };
+    } catch (error) {
+        console.error('Get or create user error:', error);
+        return { user: null, isNewUser: false, error };
+    }
+};
+
+// ============================================
+// User Profile Functions
+// ============================================
+
+// Create new user with profile
+export const createUserWithProfile = async (
+    email: string,
+    firstName: string,
+    lastName: string,
+    location?: string,
+    authProvider: 'google' = 'google',
+    supabaseUserId?: string
+): Promise<{ user: any | null; error: any }> => {
+    const supabase = getSupabaseClient();
+
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .insert({
+                email: email.toLowerCase(),
+                first_name: firstName,
+                last_name: lastName,
+                full_name: `${firstName} ${lastName}`,
+                location: location || null,
+                auth_provider: authProvider,
+                supabase_user_id: supabaseUserId || null,
+                email_verified: true,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                last_login_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Create user error:', error);
+            return { user: null, error };
+        }
+
+        return { user: data, error: null };
+    } catch (error) {
+        console.error('Create user with profile error:', error);
+        return { user: null, error };
+    }
+};
+
+// Update user profile
+export const updateUserProfile = async (
+    userId: string,
+    firstName: string,
+    lastName: string,
+    location?: string
+): Promise<{ user: any | null; error: any }> => {
+    const supabase = getSupabaseClient();
+
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .update({
+                first_name: firstName,
+                last_name: lastName,
+                full_name: `${firstName} ${lastName}`,
+                location: location || null,
+                updated_at: new Date().toISOString(),
+            })
+            .eq('id', userId)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Update profile error:', error);
+            return { user: null, error };
+        }
+
+        return { user: data, error: null };
+    } catch (error) {
+        console.error('Update user profile error:', error);
+        return { user: null, error };
+    }
+};
+
+// Sign out from Supabase Auth (for OAuth users)
+export const signOutFromSupabase = async (): Promise<{ error: any }> => {
+    const supabase = getSupabaseClient();
+
+    try {
+        const { error } = await supabase.auth.signOut();
+        sessionStorage.removeItem('headz_oauth_provider');
+        sessionStorage.removeItem('headz_pending_action');
+        return { error };
+    } catch (error) {
+        return { error };
+    }
+};
+
+// ============================================
+// Super Admin Functions
+// ============================================
+
+// Get super admin dashboard stats (aggregated totals via database-level aggregation)
+export const getSuperAdminStats = async (): Promise<{
+    totalDownloads: number;
+    totalShares: number;
+    totalGenerations: number;
+    maleFavoriteStyle: string | null;
+    femaleFavoriteStyle: string | null;
+}> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    // Call database function via RPC for efficient server-side aggregation
+    const { data, error } = await supabase.rpc('get_super_admin_stats');
+
+    if (error) {
+        console.error('Error fetching super admin stats:', error);
+        throw new Error(error.message);
+    }
+
+    return {
+        totalDownloads: data?.totalDownloads || 0,
+        totalShares: data?.totalShares || 0,
+        totalGenerations: data?.totalGenerations || 0,
+        maleFavoriteStyle: data?.maleFavoriteStyle || null,
+        femaleFavoriteStyle: data?.femaleFavoriteStyle || null,
+    };
+};
+
+// Get all users with their analytics data (super admin only)
+export const getAllUsersWithAnalytics = async (): Promise<any[]> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const { data, error } = await supabase
+        .from('users')
+        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching all users with analytics:', error);
+        throw new Error(error.message);
+    }
+
+    return data || [];
+};
+
+// Search users with analytics data (super admin only) - server-side search
+export const searchUsersWithAnalytics = async (query: string): Promise<any[]> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const { data, error } = await supabase
+        .from('users')
+        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at')
+        .or(`email.ilike.%${query}%,full_name.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error searching users with analytics:', error);
+        throw new Error(error.message);
+    }
+
+    return data || [];
+};

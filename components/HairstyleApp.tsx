@@ -165,8 +165,7 @@ const HairstyleApp: React.FC = () => {
         firstName,
         lastName,
         location,
-        'google',
-        oauthUserData.supabaseUserId
+        'google'
       );
 
       if (result.user && !result.error) {

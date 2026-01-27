@@ -129,7 +129,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const getTitle = () => {
     switch (reason) {
       case 'download':
-        return 'Sign In to Download';
+        return 'Sign In to Continue';
       case 'share':
         return 'Sign In to Share';
       default:

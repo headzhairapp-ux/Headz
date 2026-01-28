@@ -89,8 +89,11 @@ const SuperAdminDashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
-                Headz International
+              <Link to="/" className="flex items-center space-x-2">
+                <img src="/logo.png" alt="Headz International" className="h-10 object-contain rounded-lg" />
+                <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+                  Headz International
+                </span>
               </Link>
               <div className="hidden sm:flex items-center px-3 py-1 bg-purple-600 text-white text-sm rounded-full font-medium">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import UserSearchBar from './UserSearchBar';
 import UserTable from './UserTable';
 import ExportModal from './ExportModal';
-import { searchUsersWithAnalytics } from '../../services/supabaseService';
+import { searchUsersWithAnalytics, toggleUserBlocked, getAllUsersWithAnalytics } from '../../services/supabaseService';
 
 interface UserWithAnalytics {
   id: string;
@@ -16,6 +16,7 @@ interface UserWithAnalytics {
   generation_count: number;
   created_at: string;
   sr_no?: number;
+  is_blocked?: boolean;
 }
 
 interface UsersTabProps {
@@ -31,6 +32,12 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, loading, onError }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    userId: string;
+    userName: string;
+    isBlocked: boolean;
+  } | null>(null);
 
   // Update filtered users when users prop changes
   useEffect(() => {
@@ -84,6 +91,35 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, loading, onError }) => {
     setCurrentPage(1);
   };
 
+  const handleBlockToggle = (userId: string, currentlyBlocked: boolean, userName: string) => {
+    setConfirmModal({
+      isOpen: true,
+      userId,
+      userName,
+      isBlocked: currentlyBlocked,
+    });
+  };
+
+  const confirmBlockAction = async () => {
+    if (!confirmModal) return;
+
+    try {
+      await toggleUserBlocked(confirmModal.userId, !confirmModal.isBlocked);
+      // Refresh the user list
+      const updatedUsers = await getAllUsersWithAnalytics();
+      if (searchQuery) {
+        const searched = await searchUsersWithAnalytics(searchQuery);
+        setFilteredUsers(searched);
+      } else {
+        setFilteredUsers(updatedUsers);
+      }
+    } catch (err) {
+      onError(err instanceof Error ? err.message : 'Failed to update user status');
+    } finally {
+      setConfirmModal(null);
+    }
+  };
+
   return (
     <>
       {/* Search and Export Bar */}
@@ -115,6 +151,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, loading, onError }) => {
         searchQuery={searchQuery}
         onPageChange={setCurrentPage}
         onItemsPerPageChange={handleItemsPerPageChange}
+        onBlockToggle={handleBlockToggle}
       />
 
       {/* Export Modal */}
@@ -124,6 +161,40 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, loading, onError }) => {
           onClose={() => setShowExportModal(false)}
           onError={onError}
         />
+      )}
+
+      {/* Block Confirmation Modal */}
+      {confirmModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700">
+            <h3 className="text-lg font-semibold text-white mb-2">
+              {confirmModal.isBlocked ? 'Unblock User?' : 'Block User?'}
+            </h3>
+            <p className="text-gray-400 mb-6">
+              {confirmModal.isBlocked
+                ? `Are you sure you want to unblock ${confirmModal.userName}? They will be able to login again.`
+                : `Are you sure you want to block ${confirmModal.userName}? They will not be able to login until unblocked.`}
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setConfirmModal(null)}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmBlockAction}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  confirmModal.isBlocked
+                    ? 'bg-green-600 hover:bg-green-500 text-white'
+                    : 'bg-red-600 hover:bg-red-500 text-white'
+                }`}
+              >
+                {confirmModal.isBlocked ? 'Unblock' : 'Block'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

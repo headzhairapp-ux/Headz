@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 type TabType = 'home' | 'users' | 'custom-prompts';
 
@@ -8,6 +8,13 @@ interface SuperAdminSidebarProps {
 }
 
 const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({ activeTab, onTabChange }) => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
   const tabs = [
     {
       id: 'home' as TabType,
@@ -40,6 +47,23 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({ activeTab, onTabC
 
   return (
     <aside className="w-64 bg-gray-900/50 backdrop-blur-sm border-r border-gray-800 h-[calc(100vh-73px)] hidden lg:block sticky top-[73px] overflow-y-auto">
+      <div className="px-4 py-3 border-b border-gray-700">
+        <div className="text-gray-400 text-xs uppercase">Current Date</div>
+        <div className="text-white text-sm font-medium">
+          {currentTime.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          })}
+        </div>
+        <div className="text-purple-400 text-sm">
+          {currentTime.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+          })}
+        </div>
+      </div>
       <nav className="p-4 space-y-2">
         <p className="text-gray-500 text-xs uppercase tracking-wider font-semibold mb-4 px-3">
           Navigation

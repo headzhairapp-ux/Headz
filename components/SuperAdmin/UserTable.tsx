@@ -12,6 +12,7 @@ interface UserWithAnalytics {
   generation_count: number;
   created_at: string;
   sr_no?: number;
+  is_blocked?: boolean;
 }
 
 interface UserTableProps {
@@ -24,6 +25,7 @@ interface UserTableProps {
   searchQuery: string;
   onPageChange: (page: number) => void;
   onItemsPerPageChange: (count: number) => void;
+  onBlockToggle: (userId: string, currentlyBlocked: boolean, userName: string) => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -45,6 +47,7 @@ const UserTable: React.FC<UserTableProps> = ({
   searchQuery,
   onPageChange,
   onItemsPerPageChange,
+  onBlockToggle,
 }) => {
   const totalPages = Math.ceil(filteredCount / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -76,6 +79,9 @@ const UserTable: React.FC<UserTableProps> = ({
               <th className="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 Joined
               </th>
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Status
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-700">
@@ -103,11 +109,14 @@ const UserTable: React.FC<UserTableProps> = ({
                   <td className="px-6 py-4 text-right">
                     <div className="h-4 bg-gray-700 rounded w-20 ml-auto"></div>
                   </td>
+                  <td className="px-4 py-4 text-center">
+                    <div className="h-6 bg-gray-700 rounded-full w-16 mx-auto"></div>
+                  </td>
                 </tr>
               ))
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
+                <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
                   {searchQuery ? 'No users found matching your search.' : 'No users found.'}
                 </td>
               </tr>
@@ -149,6 +158,18 @@ const UserTable: React.FC<UserTableProps> = ({
                   </td>
                   <td className="px-6 py-4 text-right text-gray-400 text-sm">
                     {u.created_at ? formatDate(u.created_at) : 'N/A'}
+                  </td>
+                  <td className="px-4 py-4 text-center">
+                    <button
+                      onClick={() => onBlockToggle(u.id, u.is_blocked || false, u.full_name || u.email)}
+                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                        u.is_blocked
+                          ? 'bg-red-600 hover:bg-red-500 text-white'
+                          : 'bg-green-600 hover:bg-green-500 text-white'
+                      }`}
+                    >
+                      {u.is_blocked ? 'Blocked' : 'Active'}
+                    </button>
                   </td>
                 </tr>
               ))

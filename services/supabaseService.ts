@@ -253,6 +253,39 @@ export const toggleUserAdmin = async (userId: string, isAdmin: boolean): Promise
     }
 };
 
+// Toggle user blocked status (super admin only)
+export const toggleUserBlocked = async (userId: string, isBlocked: boolean): Promise<void> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const { error } = await supabase
+        .from('users')
+        .update({
+            is_blocked: isBlocked,
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+
+    if (error) {
+        console.error("Error updating user blocked status:", error);
+        throw new Error(error.message);
+    }
+};
+
 // Get user generation count (admin only)
 export const getUserGenerationCount = async (userId: string): Promise<number> => {
     const supabase = getSupabaseClient();
@@ -529,6 +562,11 @@ export const getOrCreateUserByEmail = async (email: string): Promise<{ user: any
         }
 
         if (existingUser) {
+            // Check if user is blocked
+            if (existingUser.is_blocked) {
+                return { user: null, isNewUser: false, error: { message: 'Your account has been blocked. Please contact support.' } };
+            }
+
             // Existing user - update last login
             await supabase
                 .from('users')
@@ -719,7 +757,7 @@ export const getAllUsersWithAnalytics = async (): Promise<any[]> => {
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no')
+        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked')
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -751,7 +789,7 @@ export const searchUsersWithAnalytics = async (query: string): Promise<any[]> =>
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no')
+        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked')
         .or(`email.ilike.%${query}%,full_name.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
         .order('created_at', { ascending: false });
 

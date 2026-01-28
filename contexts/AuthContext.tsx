@@ -154,6 +154,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Check if user exists or create new one
       const { user: existingUser, isNewUser, error: findError } = await getOrCreateUserByEmail(email);
 
+      // Check for blocked user error
+      if (findError && findError.message?.includes('blocked')) {
+        return { user: null, isNewUser: false, error: findError };
+      }
+
       if (findError) {
         return { user: null, isNewUser: false, error: findError };
       }
@@ -214,6 +219,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Check if user exists or create new one
       const { user: existingUser, isNewUser, error: findError } = await getOrCreateUserByEmail(email);
+
+      // Check for blocked user error
+      if (findError && findError.message?.includes('blocked')) {
+        return { user: null, isNewUser: false, error: findError };
+      }
 
       if (findError) {
         return { user: null, isNewUser: false, error: findError };

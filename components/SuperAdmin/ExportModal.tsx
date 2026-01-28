@@ -13,6 +13,7 @@ interface UserWithAnalytics {
   generation_count: number;
   created_at: string;
   sr_no?: number;
+  is_blocked?: boolean;
 }
 
 interface ExportModalProps {
@@ -63,7 +64,8 @@ const ExportModal: React.FC<ExportModalProps> = ({ users, onClose, onError }) =>
         'Shares': u.share_count || 0,
         'Generations': u.generation_count || 0,
         'Custom Prompts': u.custom_prompt_count || 0,
-        'Joined': u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'
+        'Joined': u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A',
+        'Status': u.is_blocked ? 'Blocked' : 'Active'
       })), { origin: 1 });
 
       const workbook = XLSX.utils.book_new();

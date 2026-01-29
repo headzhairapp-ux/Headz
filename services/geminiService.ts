@@ -2,14 +2,22 @@ import { GoogleGenAI, Modality, GenerateContentResponse } from "@google/genai";
 
 // Utility function to convert a file to a base64 string
 const fileToGenerativePart = async (file: File) => {
-  const base64EncodedDataPromise = new Promise<string>((resolve) => {
+  const base64EncodedDataPromise = new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => {
         if (typeof reader.result === 'string') {
-            resolve(reader.result.split(',')[1]);
+            const base64 = reader.result.split(',')[1];
+            if (!base64 || base64.length < 100) {
+              reject(new Error('Failed to read image file. Please try uploading again.'));
+            } else {
+              resolve(base64);
+            }
         } else {
-            resolve(''); // Should not happen with readAsDataURL
+            reject(new Error('Failed to read image file.'));
         }
+    };
+    reader.onerror = () => {
+      reject(new Error('Error reading image file. Please try uploading again.'));
     };
     reader.readAsDataURL(file);
   });
@@ -30,7 +38,7 @@ const urlToGenerativePart = async (imageUrl: string) => {
     const response = await fetch(absoluteUrl, {
       method: 'GET',
       mode: 'cors',
-      cache: 'default',
+      cache: 'no-store',  // Always fetch fresh to avoid stale cache
     });
 
     if (!response.ok) {
@@ -38,14 +46,22 @@ const urlToGenerativePart = async (imageUrl: string) => {
     }
 
     const blob = await response.blob();
-    const base64 = await new Promise<string>((resolve) => {
+    const base64 = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {
-          resolve(reader.result.split(',')[1]);
+          const data = reader.result.split(',')[1];
+          if (!data || data.length < 100) {
+            reject(new Error('Failed to load reference image data. Please try again.'));
+          } else {
+            resolve(data);
+          }
         } else {
-          resolve('');
+          reject(new Error('Failed to read reference image.'));
         }
+      };
+      reader.onerror = () => {
+        reject(new Error('Error reading reference image. Please try again.'));
       };
       reader.readAsDataURL(blob);
     });

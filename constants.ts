@@ -46,13 +46,6 @@ export const AVAILABLE_HAIRSTYLES: Hairstyle[] = [
     gender: 'male',
   },
   {
-    id: 'long-straight-layered',
-    name: 'Long Straight Layered',
-    thumbnailUrl: '/hairstyles/long-straight-layered.png',
-    prompt: 'Change ONLY the hairstyle to shoulder-length straight hair with subtle layers. Keep all facial features exactly the same. Inspired by film stars and musicians. Fashion-forward and stylish look. Do not modify face, eyes, nose, mouth, or any other facial features.',
-    gender: 'female',
-  },
-  {
     id: 'french-crop-caesar',
     name: 'French Crop / Caesar Cut',
     thumbnailUrl: '/hairstyles/french-crop.png',
@@ -60,13 +53,6 @@ export const AVAILABLE_HAIRSTYLES: Hairstyle[] = [
     gender: 'male',
   },
   // Original Styles (kept for variety)
-  {
-    id: 'pixie-cut',
-    name: 'Chic Pixie Cut',
-    thumbnailUrl: '/hairstyles/pixie-cut.png',
-    prompt: 'Change ONLY the hairstyle to a chic, textured pixie cut. Keep all facial features exactly the same. Make it look stylish and modern. Do not modify face, eyes, nose, mouth, or any other facial features.',
-    gender: 'female',
-  },
   {
     id: 'wavy-bob',
     name: 'Wavy Bob',
@@ -82,6 +68,13 @@ export const AVAILABLE_HAIRSTYLES: Hairstyle[] = [
     gender: 'female',
   },
   {
+    id: 'sleek-ponytail',
+    name: 'Sleek Ponytail',
+    thumbnailUrl: '/hairstyles/sleek-ponytail.png',
+    prompt: 'Change ONLY the hairstyle to a high, sleek ponytail. Keep all facial features exactly the same. The hair should be smooth and pulled back tightly. Do not modify face, eyes, nose, mouth, or any other facial features.',
+    gender: 'female',
+  },
+  {
     id: 'curly-afro',
     name: 'Curly Afro',
     thumbnailUrl: '/hairstyles/curly-afro.png',
@@ -89,10 +82,17 @@ export const AVAILABLE_HAIRSTYLES: Hairstyle[] = [
     gender: 'female',
   },
   {
-    id: 'sleek-ponytail',
-    name: 'Sleek Ponytail',
-    thumbnailUrl: '/hairstyles/sleek-ponytail.png',
-    prompt: 'Change ONLY the hairstyle to a high, sleek ponytail. Keep all facial features exactly the same. The hair should be smooth and pulled back tightly. Do not modify face, eyes, nose, mouth, or any other facial features.',
+    id: 'long-straight-layered',
+    name: 'Long Straight Layered',
+    thumbnailUrl: '/hairstyles/long-straight-layered.png',
+    prompt: 'Change ONLY the hairstyle to shoulder-length straight hair with subtle layers. Keep all facial features exactly the same. Inspired by film stars and musicians. Fashion-forward and stylish look. Do not modify face, eyes, nose, mouth, or any other facial features.',
+    gender: 'female',
+  },
+  {
+    id: 'pixie-cut',
+    name: 'Chic Pixie Cut',
+    thumbnailUrl: '/hairstyles/pixie-cut.png',
+    prompt: 'Change ONLY the hairstyle to a chic, textured pixie cut. Keep all facial features exactly the same. Make it look stylish and modern. Do not modify face, eyes, nose, mouth, or any other facial features.',
     gender: 'female',
   },
   {

@@ -10,7 +10,7 @@ import AuthModal from './AuthModal';
 import ProfileForm from './ProfileForm';
 import { AVAILABLE_HAIRSTYLES } from '../constants';
 import { Hairstyle, HistoryItem } from '../types';
-import { editImageWithGemini, editImageWithReference } from '../services/geminiService';
+import { editImageWithGemini } from '../services/geminiService';
 import { uploadImage, saveGeneration, dataURLtoFile, trackDownload, trackShare, trackGeneration, trackCustomPrompt } from '../services/supabaseService';
 import { useAuth } from '../contexts/AuthContext';
 import { addStylishWatermark } from '../utils/watermark';
@@ -202,18 +202,13 @@ const HairstyleApp: React.FC = () => {
     setLastUsedStyleName(styleName.replace(/ \((Front|Side|Back) View\)/, ''));
 
     try {
-      // Use the most recent image (styled if available) as the base, so beard/mustache or hair can stack
-      const baseImageFile = currentStyledImage
-        ? dataURLtoFile(currentStyledImage, `base-${Date.now()}.png`)
-        : userImageFile;
+      // Always use the original uploaded image as the base for new style selections
+      const baseImageFile = userImageFile;
 
-      // If thumbnailUrl is provided, use reference image approach for exact style matching
+      // Use text-only generation for better results with stylized reference images
+      // The detailed prompts in constants.ts describe hairstyles well enough
       let newStyledImage: string;
-      if (thumbnailUrl) {
-        newStyledImage = await editImageWithReference(baseImageFile, thumbnailUrl, styleName);
-      } else {
-        newStyledImage = await editImageWithGemini(baseImageFile, prompt);
-      }
+      newStyledImage = await editImageWithGemini(baseImageFile, prompt);
 
       // Store clean image for authenticated users to download
       const cleanImage = newStyledImage;
@@ -320,21 +315,27 @@ ${sqlToCreateTable}`
 
   const handleRequestFrontView = useCallback(async () => {
     if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;
-    const prompt = `${lastUsedPrompt}, show the front view.`;
+    const prompt = `${lastUsedPrompt}
+
+IMPORTANT: Generate a FRONT VIEW of this hairstyle. Show the person facing directly toward the camera with the hairstyle visible from the front. Keep the same person's face and features.`;
     const styleName = `${lastUsedStyleName} (Front View)`;
     await applyStyleAndSave(prompt, styleName, selectedStyle?.id || 'custom-front');
   }, [lastUsedPrompt, lastUsedStyleName, selectedStyle, applyStyleAndSave, isLoading]);
 
   const handleRequestSideView = useCallback(async () => {
     if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;
-    const prompt = `${lastUsedPrompt}, show a side view.`;
+    const prompt = `${lastUsedPrompt}
+
+IMPORTANT: Generate a SIDE PROFILE VIEW of this hairstyle. Visualize how this hairstyle would look from a side angle - show the person's profile (side of face) with the hairstyle visible from the side. Keep the same person's skin tone, face shape, and general appearance but rotated to show a side profile view.`;
     const styleName = `${lastUsedStyleName} (Side View)`;
     await applyStyleAndSave(prompt, styleName, selectedStyle?.id || 'custom-side');
   }, [lastUsedPrompt, lastUsedStyleName, selectedStyle, applyStyleAndSave, isLoading]);
 
   const handleRequestBackView = useCallback(async () => {
     if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;
-    const prompt = `${lastUsedPrompt}, show a back view.`;
+    const prompt = `${lastUsedPrompt}
+
+IMPORTANT: Generate a BACK VIEW of this hairstyle. Visualize how this hairstyle would look from behind - show the back of the person's head with the hairstyle clearly visible. Keep the same hair color, texture, and style, showing how it appears from the back. The person should have the same skin tone and general appearance.`;
     const styleName = `${lastUsedStyleName} (Back View)`;
     await applyStyleAndSave(prompt, styleName, selectedStyle?.id || 'custom-back');
   }, [lastUsedPrompt, lastUsedStyleName, selectedStyle, applyStyleAndSave, isLoading]);

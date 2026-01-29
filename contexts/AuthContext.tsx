@@ -126,6 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('styleMyHair_user', JSON.stringify(result.user));
       setUser(result.user);
       setSession({ user: result.user });
+      setIsFreeUser(false);
       setIsAdmin(result.user.is_admin || false);
       setIsSuperAdmin(result.user.is_super_admin || false);
     }
@@ -181,6 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem('styleMyHair_user', JSON.stringify(newUser));
           setUser(newUser);
           setSession({ user: newUser });
+          setIsFreeUser(false);
           setIsAdmin(newUser.is_admin || false);
           setIsSuperAdmin(newUser.is_super_admin || false);
         }
@@ -192,6 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem('styleMyHair_user', JSON.stringify(existingUser));
           setUser(existingUser);
           setSession({ user: existingUser });
+          setIsFreeUser(false);
           setIsAdmin(existingUser.is_admin || false);
           setIsSuperAdmin(existingUser.is_super_admin || false);
         }
@@ -247,6 +250,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem('styleMyHair_user', JSON.stringify(newUser));
           setUser(newUser);
           setSession({ user: newUser });
+          setIsFreeUser(false);
           setIsAdmin(newUser.is_admin || false);
           setIsSuperAdmin(newUser.is_super_admin || false);
         }
@@ -258,6 +262,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem('styleMyHair_user', JSON.stringify(existingUser));
           setUser(existingUser);
           setSession({ user: existingUser });
+          setIsFreeUser(false);
           setIsAdmin(existingUser.is_admin || false);
           setIsSuperAdmin(existingUser.is_super_admin || false);
         }

@@ -239,6 +239,11 @@ const HairstyleApp: React.FC = () => {
           trackGeneration(user.id).catch(console.error);
         }
 
+        // Track custom prompt if this is an AI-generated style
+        if (styleName === 'AI Generated Style' && user.id) {
+          trackCustomPrompt(user.id).catch(console.error);
+        }
+
         if (currentStyledImage && previousStyleName) {
           setHistory(prev => [{ imageUrl: currentStyledImage, styleName: previousStyleName }, ...prev].slice(0, 3));
         }
@@ -305,13 +310,8 @@ ${sqlToCreateTable}`
     setSelectedStyle(null);
     const styleName = `AI Generated Style`;
 
-    // Track custom prompt usage if user is logged in
-    if (user?.id) {
-      trackCustomPrompt(user.id).catch(console.error);
-    }
-
     await applyStyleAndSave(prompt, styleName, 'ai-generated');
-  }, [applyStyleAndSave, isLoading, user]);
+  }, [applyStyleAndSave, isLoading]);
 
   const handleRequestFrontView = useCallback(async () => {
     if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;

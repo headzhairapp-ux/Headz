@@ -5,9 +5,10 @@ export type TabType = 'virtual-mirror' | 'ai-generator' | 'gallery';
 interface TabSelectorProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
+  isLoggedIn?: boolean;
 }
 
-const TabSelector: React.FC<TabSelectorProps> = ({ activeTab, onTabChange }) => {
+const TabSelector: React.FC<TabSelectorProps> = ({ activeTab, onTabChange, isLoggedIn = false }) => {
   return (
     <div className="bg-gradient-to-r from-gray-800/80 to-gray-900/80 backdrop-blur-sm border-b border-gray-700/50 shadow-lg">
       <div className="w-full overflow-x-auto scrollbar-hide">
@@ -27,7 +28,7 @@ const TabSelector: React.FC<TabSelectorProps> = ({ activeTab, onTabChange }) => 
                 </svg>
               </div>
               <div className="text-left hidden sm:block">
-                <div className="font-bold text-xs sm:text-sm">Virtual Mirror</div>
+                <div className="font-bold text-xs sm:text-sm">Remix My Hair</div>
                 <div className={`text-[10px] sm:text-xs ${activeTab === 'virtual-mirror' ? 'text-red-100' : 'text-gray-400'}`}>
                   Preset Styles
                 </div>
@@ -53,7 +54,14 @@ const TabSelector: React.FC<TabSelectorProps> = ({ activeTab, onTabChange }) => 
                 </svg>
               </div>
               <div className="text-left hidden sm:block">
-                <div className="font-bold text-xs sm:text-sm">AI Style Generator</div>
+                <div className="font-bold text-xs sm:text-sm flex items-center gap-1">
+                  AI Style Generator
+                  {!isLoggedIn && (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  )}
+                </div>
                 <div className={`text-[10px] sm:text-xs ${activeTab === 'ai-generator' ? 'text-blue-100' : 'text-gray-400'}`}>
                   Custom Prompts
                 </div>
@@ -79,7 +87,14 @@ const TabSelector: React.FC<TabSelectorProps> = ({ activeTab, onTabChange }) => 
                 </svg>
               </div>
               <div className="text-left hidden sm:block">
-                <div className="font-bold text-xs sm:text-sm">My Gallery</div>
+                <div className="font-bold text-xs sm:text-sm flex items-center gap-1">
+                  My Gallery
+                  {!isLoggedIn && (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  )}
+                </div>
                 <div className={`text-[10px] sm:text-xs ${activeTab === 'gallery' ? 'text-pink-100' : 'text-gray-400'}`}>
                   Saved Styles
                 </div>

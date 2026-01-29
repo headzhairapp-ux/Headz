@@ -37,6 +37,16 @@ const HairstyleApp: React.FC = () => {
   const [lastUsedStyleName, setLastUsedStyleName] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('virtual-mirror');
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+
+  // Handler for tab changes - locks AI Generator and Gallery for non-logged-in users
+  const handleTabChange = (tab: TabType) => {
+    if (!user && (tab === 'ai-generator' || tab === 'gallery')) {
+      setAuthModalReason('limit');
+      setShowAuthModal(true);
+      return;
+    }
+    setActiveTab(tab);
+  };
   const [authModalReason, setAuthModalReason] = useState<'limit' | 'download' | 'share'>('limit');
   const [genderFilter, setGenderFilter] = useState<'male' | 'female'>('male');
 
@@ -497,7 +507,7 @@ IMPORTANT: Generate a BACK VIEW of this hairstyle. Visualize how this hairstyle 
     <AuthWrapper>
       <div className="min-h-screen flex flex-col bg-gray-900 text-white">
         <Header />
-        <TabSelector activeTab={activeTab} onTabChange={setActiveTab} />
+        <TabSelector activeTab={activeTab} onTabChange={handleTabChange} isLoggedIn={!!user} />
       <div className="flex-grow flex flex-col overflow-y-auto">
         {activeTab === 'virtual-mirror' ? (
           <VirtualMirror

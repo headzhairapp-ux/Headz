@@ -3,10 +3,24 @@ import {
   signInWithGoogle,
   handleOAuthCallback,
   getOrCreateUserByEmail,
+  checkUserByEmail,
   createUserWithProfile,
   updateUserProfile,
   signOutFromSupabase,
 } from '../services/supabaseService';
+
+interface GoogleUserInfo {
+  email: string;
+  firstName: string;
+  lastName: string;
+}
+
+interface AuthenticateWithGoogleResult {
+  googleUserInfo: GoogleUserInfo | null;
+  existingUser: any | null;
+  isNewUser: boolean;
+  error: any;
+}
 
 interface AuthContextType {
   user: any | null;
@@ -24,6 +38,10 @@ interface AuthContextType {
   signInWithGoogleDirect: (credential: string) => Promise<{ user: any | null; isNewUser: boolean; error: any }>;
   // Google Sign-In with Access Token (from useGoogleLogin hook)
   signInWithGoogleToken: (accessToken: string) => Promise<{ user: any | null; isNewUser: boolean; error: any }>;
+  // Authenticate with Google (returns user info without logging in)
+  authenticateWithGoogle: (accessToken: string) => Promise<AuthenticateWithGoogleResult>;
+  // Set user after details form completion
+  setUserLoggedIn: (userData: any) => void;
   // Profile methods
   completeProfile: (
     email: string,
@@ -33,6 +51,8 @@ interface AuthContextType {
     authProvider?: 'google'
   ) => Promise<{ user: any | null; error: any }>;
   updateProfile: (firstName: string, lastName: string, location?: string) => Promise<{ user: any | null; error: any }>;
+  // Update profile for existing user by ID
+  updateProfileById: (userId: string, firstName: string, lastName: string, location?: string) => Promise<{ user: any | null; error: any }>;
   // Pending action for auth flow
   pendingAction: 'download' | 'share' | null;
   setPendingAction: (action: 'download' | 'share' | null) => void;
@@ -275,6 +295,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Authenticate with Google (returns user info without logging in)
+  // Used by the new user details flow
+  const authenticateWithGoogle = async (accessToken: string): Promise<AuthenticateWithGoogleResult> => {
+    try {
+      // Fetch user info from Google API
+      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const googleUser = await response.json();
+
+      const googleUserInfo: GoogleUserInfo = {
+        email: googleUser.email,
+        firstName: googleUser.given_name || '',
+        lastName: googleUser.family_name || '',
+      };
+
+      // Check if user exists in DB (without creating)
+      const { exists, user: existingUser, error: checkError } = await checkUserByEmail(googleUser.email);
+
+      // Check for blocked user error
+      if (checkError && checkError.message?.includes('blocked')) {
+        return { googleUserInfo: null, existingUser: null, isNewUser: false, error: checkError };
+      }
+
+      if (checkError) {
+        return { googleUserInfo: null, existingUser: null, isNewUser: false, error: checkError };
+      }
+
+      if (exists && existingUser) {
+        // Existing user - return their data for pre-populating the form
+        return { googleUserInfo, existingUser, isNewUser: false, error: null };
+      }
+
+      // New user - return Google info
+      return { googleUserInfo, existingUser: null, isNewUser: true, error: null };
+    } catch (error) {
+      console.error('Google authentication error:', error);
+      return { googleUserInfo: null, existingUser: null, isNewUser: false, error: { message: 'Failed to authenticate with Google' } };
+    }
+  };
+
+  // Set user as logged in after completing details form
+  const setUserLoggedIn = (userData: any) => {
+    localStorage.setItem('styleMyHair_user', JSON.stringify(userData));
+    setUser(userData);
+    setSession({ user: userData });
+    setIsFreeUser(false);
+    setIsAdmin(userData.is_admin || false);
+    setIsSuperAdmin(userData.is_super_admin || false);
+  };
+
   // Profile Methods
   const completeProfile = async (
     email: string,
@@ -322,6 +393,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { user: updatedUser, error };
   };
 
+  // Update profile for existing user by ID (used during auth flow before user is set)
+  const updateProfileById = async (
+    userId: string,
+    firstName: string,
+    lastName: string,
+    location?: string
+  ): Promise<{ user: any | null; error: any }> => {
+    const { user: updatedUser, error } = await updateUserProfile(userId, firstName, lastName, location);
+    return { user: updatedUser, error };
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -336,9 +418,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkOAuthCallback,
     signInWithGoogleDirect,
     signInWithGoogleToken,
+    authenticateWithGoogle,
+    setUserLoggedIn,
     // Profile methods
     completeProfile,
     updateProfile,
+    updateProfileById,
     // Pending action
     pendingAction,
     setPendingAction,

@@ -545,6 +545,38 @@ export const handleOAuthCallback = async (): Promise<{ user: any | null; isNewUs
 // User Lookup Functions
 // ============================================
 
+// Check if user exists by email (without creating)
+export const checkUserByEmail = async (email: string): Promise<{ exists: boolean; user: any | null; error: any }> => {
+    const supabase = getSupabaseClient();
+
+    try {
+        const { data: existingUser, error: fetchError } = await supabase
+            .from('users')
+            .select('*, is_super_admin, is_admin')
+            .eq('email', email.toLowerCase())
+            .single();
+
+        if (fetchError && fetchError.code !== 'PGRST116') {
+            console.error('Error checking user:', fetchError);
+            return { exists: false, user: null, error: fetchError };
+        }
+
+        if (existingUser) {
+            // Check if user is blocked
+            if (existingUser.is_blocked) {
+                return { exists: true, user: null, error: { message: 'Your account has been blocked. Please contact support.' } };
+            }
+
+            return { exists: true, user: existingUser, error: null };
+        }
+
+        return { exists: false, user: null, error: null };
+    } catch (error) {
+        console.error('Check user by email error:', error);
+        return { exists: false, user: null, error };
+    }
+};
+
 // Get or create user by email (used by Google sign-in)
 export const getOrCreateUserByEmail = async (email: string): Promise<{ user: any | null; isNewUser: boolean; error: any }> => {
     const supabase = getSupabaseClient();

@@ -30,11 +30,21 @@ interface UserTableProps {
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
+  const dateStr = date.toLocaleDateString('en-US', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   });
+  const timeStr = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  return (
+    <>
+      <div>{dateStr}</div>
+      <div>{timeStr}</div>
+    </>
+  );
 };
 
 const UserTable: React.FC<UserTableProps> = ({

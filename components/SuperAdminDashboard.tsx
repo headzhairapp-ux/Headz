@@ -127,7 +127,7 @@ const SuperAdminDashboard: React.FC = () => {
         <SuperAdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
         {/* Main Content */}
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 max-w-6xl overflow-y-auto">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 overflow-y-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">
               {activeTab === 'home' && 'Super Admin Dashboard'}

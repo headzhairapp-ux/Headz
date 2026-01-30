@@ -14,6 +14,7 @@ interface UserWithAnalytics {
   created_at: string;
   sr_no?: number;
   is_blocked?: boolean;
+  location?: string;
 }
 
 interface ExportModalProps {
@@ -64,7 +65,8 @@ const ExportModal: React.FC<ExportModalProps> = ({ users, onClose, onError }) =>
         'Shares': u.share_count || 0,
         'Generations': u.generation_count || 0,
         'Custom Prompts': u.custom_prompt_count || 0,
-        'Joined': u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A',
+        'Location': u.location || 'N/A',
+        'Joined': u.created_at ? new Date(u.created_at).toLocaleString() : 'N/A',
         'Status': u.is_blocked ? 'Blocked' : 'Active'
       })), { origin: 1 });
 

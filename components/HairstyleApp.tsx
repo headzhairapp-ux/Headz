@@ -430,13 +430,16 @@ IMPORTANT: Generate a BACK VIEW of this hairstyle. Visualize how this hairstyle 
   }, [currentStyledImage, cleanStyledImage, user]);
 
   // Handle auth success - execute the pending action with clean image
-  const handleAuthSuccess = useCallback(() => {
-    // Use clean image for authenticated users (stored in sessionStorage or from state)
+  const handleAuthSuccess = useCallback((authenticatedUser?: any) => {
     const storedCleanImage = sessionStorage.getItem('headz_styled_image');
     const imageToUse = storedCleanImage || cleanStyledImage;
+    const userId = authenticatedUser?.id || user?.id;
 
     if (imageToUse) {
       if (authModalReason === 'download') {
+        if (userId) {
+          trackDownload(userId).catch(console.error);
+        }
         const link = document.createElement('a');
         link.href = imageToUse;
         link.download = 'headz-style.png';
@@ -444,6 +447,9 @@ IMPORTANT: Generate a BACK VIEW of this hairstyle. Visualize how this hairstyle 
         link.click();
         document.body.removeChild(link);
       } else if (authModalReason === 'share' && navigator.share) {
+        if (userId) {
+          trackShare(userId).catch(console.error);
+        }
         const file = dataURLtoFile(imageToUse, 'headz-style.png');
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           navigator.share({
@@ -454,9 +460,8 @@ IMPORTANT: Generate a BACK VIEW of this hairstyle. Visualize how this hairstyle 
         }
       }
     }
-    // Clear stored image
     sessionStorage.removeItem('headz_styled_image');
-  }, [cleanStyledImage, authModalReason]);
+  }, [cleanStyledImage, authModalReason, user]);
 
   const handleStartOver = useCallback(() => {
     setUserImageFile(null);

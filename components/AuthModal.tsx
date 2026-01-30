@@ -14,7 +14,7 @@ interface AuthModalProps {
   onClose: () => void;
   usageCount: number;
   reason?: 'limit' | 'download' | 'share';
-  onAuthSuccess?: () => void;
+  onAuthSuccess?: (userData: any) => void;
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({
@@ -174,7 +174,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
           setUserLoggedIn(result.user);
           setStep('success');
           setTimeout(() => {
-            if (onAuthSuccess) onAuthSuccess();
+            if (onAuthSuccess) onAuthSuccess(result.user);
             handleClose();
           }, 500);
         }
@@ -211,7 +211,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
         setUserLoggedIn(userData);
         setStep('success');
         setTimeout(() => {
-          if (onAuthSuccess) onAuthSuccess();
+          if (onAuthSuccess) onAuthSuccess(userData);
           handleClose();
         }, 500);
       }

@@ -17,6 +17,7 @@ interface UserWithAnalytics {
   created_at: string;
   sr_no?: number;
   is_blocked?: boolean;
+  location?: string;
 }
 
 interface UsersTabProps {

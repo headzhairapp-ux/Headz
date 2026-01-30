@@ -789,7 +789,7 @@ export const getAllUsersWithAnalytics = async (): Promise<any[]> => {
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked')
+        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked, location')
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -821,7 +821,7 @@ export const searchUsersWithAnalytics = async (query: string): Promise<any[]> =>
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked')
+        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked, location')
         .or(`email.ilike.%${query}%,full_name.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
         .order('created_at', { ascending: false });
 

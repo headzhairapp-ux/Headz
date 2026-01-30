@@ -13,6 +13,7 @@ interface UserWithAnalytics {
   created_at: string;
   sr_no?: number;
   is_blocked?: boolean;
+  location?: string;
 }
 
 interface UserTableProps {
@@ -68,28 +69,31 @@ const UserTable: React.FC<UserTableProps> = ({
         <table className="w-full">
           <thead>
             <tr className="bg-gray-900/50 border-b border-gray-700">
-              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider w-16">
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap w-16">
                 Sr No.
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                 User
               </th>
-              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                 Downloads
               </th>
-              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                 Shares
               </th>
-              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                 Generations
               </th>
-              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                 Custom Prompts
               </th>
-              <th className="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                Location
+              </th>
+              <th className="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                 Joined
               </th>
-              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                 Status
               </th>
             </tr>
@@ -116,6 +120,9 @@ const UserTable: React.FC<UserTableProps> = ({
                   <td className="px-6 py-4 text-center">
                     <div className="h-4 bg-gray-700 rounded w-8 mx-auto"></div>
                   </td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="h-4 bg-gray-700 rounded w-16 mx-auto"></div>
+                  </td>
                   <td className="px-6 py-4 text-right">
                     <div className="h-4 bg-gray-700 rounded w-20 ml-auto"></div>
                   </td>
@@ -126,7 +133,7 @@ const UserTable: React.FC<UserTableProps> = ({
               ))
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
+                <td colSpan={9} className="px-6 py-12 text-center text-gray-400">
                   {searchQuery ? 'No users found matching your search.' : 'No users found.'}
                 </td>
               </tr>
@@ -166,7 +173,10 @@ const UserTable: React.FC<UserTableProps> = ({
                       {u.custom_prompt_count || 0}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right text-gray-400 text-sm">
+                  <td className="px-6 py-4 text-center text-gray-400 text-sm whitespace-nowrap">
+                    {u.location || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 text-right text-gray-400 text-sm whitespace-nowrap">
                     {u.created_at ? formatDate(u.created_at) : 'N/A'}
                   </td>
                   <td className="px-4 py-4 text-center">

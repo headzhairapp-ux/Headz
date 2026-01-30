@@ -6,6 +6,8 @@ interface UserWithAnalytics {
   first_name?: string;
   last_name?: string;
   full_name?: string;
+  country_code?: string;
+  phone_number?: string;
   download_count: number;
   share_count: number;
   custom_prompt_count: number;
@@ -75,6 +77,9 @@ const UserTable: React.FC<UserTableProps> = ({
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                 User
               </th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                Phone
+              </th>
               <th className="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                 Downloads
               </th>
@@ -108,6 +113,9 @@ const UserTable: React.FC<UserTableProps> = ({
                   <td className="px-6 py-4">
                     <div className="h-4 bg-gray-700 rounded w-40"></div>
                   </td>
+                  <td className="px-6 py-4">
+                    <div className="h-4 bg-gray-700 rounded w-28"></div>
+                  </td>
                   <td className="px-6 py-4 text-center">
                     <div className="h-4 bg-gray-700 rounded w-8 mx-auto"></div>
                   </td>
@@ -133,7 +141,7 @@ const UserTable: React.FC<UserTableProps> = ({
               ))
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-6 py-12 text-center text-gray-400">
+                <td colSpan={10} className="px-6 py-12 text-center text-gray-400">
                   {searchQuery ? 'No users found matching your search.' : 'No users found.'}
                 </td>
               </tr>
@@ -152,6 +160,11 @@ const UserTable: React.FC<UserTableProps> = ({
                       </span>
                       <span className="text-gray-400 text-sm">{u.email}</span>
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    {u.country_code && u.phone_number
+                      ? `${u.country_code} ${u.phone_number}`
+                      : 'N/A'}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 text-sm font-medium text-blue-400 bg-blue-500/20 rounded-full">

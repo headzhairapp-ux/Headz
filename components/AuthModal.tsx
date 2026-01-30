@@ -1,7 +1,47 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../contexts/AuthContext';
+
+// Country codes with validation rules
+interface CountryCode {
+  code: string;
+  country: string;
+  flag: string;
+  minDigits: number;
+  maxDigits: number;
+}
+
+const COUNTRY_CODES: CountryCode[] = [
+  { code: '+91', country: 'India', flag: '🇮🇳', minDigits: 10, maxDigits: 10 },
+  { code: '+1', country: 'USA', flag: '🇺🇸', minDigits: 10, maxDigits: 10 },
+  { code: '+1', country: 'Canada', flag: '🇨🇦', minDigits: 10, maxDigits: 10 },
+  { code: '+44', country: 'UK', flag: '🇬🇧', minDigits: 10, maxDigits: 10 },
+  { code: '+971', country: 'UAE', flag: '🇦🇪', minDigits: 9, maxDigits: 9 },
+  { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦', minDigits: 9, maxDigits: 9 },
+  { code: '+61', country: 'Australia', flag: '🇦🇺', minDigits: 9, maxDigits: 9 },
+  { code: '+65', country: 'Singapore', flag: '🇸🇬', minDigits: 8, maxDigits: 8 },
+  { code: '+60', country: 'Malaysia', flag: '🇲🇾', minDigits: 9, maxDigits: 10 },
+  { code: '+49', country: 'Germany', flag: '🇩🇪', minDigits: 10, maxDigits: 11 },
+  { code: '+33', country: 'France', flag: '🇫🇷', minDigits: 9, maxDigits: 9 },
+  { code: '+39', country: 'Italy', flag: '🇮🇹', minDigits: 10, maxDigits: 10 },
+  { code: '+34', country: 'Spain', flag: '🇪🇸', minDigits: 9, maxDigits: 9 },
+  { code: '+31', country: 'Netherlands', flag: '🇳🇱', minDigits: 9, maxDigits: 9 },
+  { code: '+55', country: 'Brazil', flag: '🇧🇷', minDigits: 10, maxDigits: 11 },
+  { code: '+52', country: 'Mexico', flag: '🇲🇽', minDigits: 10, maxDigits: 10 },
+  { code: '+81', country: 'Japan', flag: '🇯🇵', minDigits: 10, maxDigits: 10 },
+  { code: '+82', country: 'South Korea', flag: '🇰🇷', minDigits: 9, maxDigits: 10 },
+  { code: '+86', country: 'China', flag: '🇨🇳', minDigits: 11, maxDigits: 11 },
+  { code: '+852', country: 'Hong Kong', flag: '🇭🇰', minDigits: 8, maxDigits: 8 },
+  { code: '+63', country: 'Philippines', flag: '🇵🇭', minDigits: 10, maxDigits: 10 },
+  { code: '+62', country: 'Indonesia', flag: '🇮🇩', minDigits: 10, maxDigits: 12 },
+  { code: '+66', country: 'Thailand', flag: '🇹🇭', minDigits: 9, maxDigits: 9 },
+  { code: '+27', country: 'South Africa', flag: '🇿🇦', minDigits: 9, maxDigits: 9 },
+  { code: '+234', country: 'Nigeria', flag: '🇳🇬', minDigits: 10, maxDigits: 10 },
+  { code: '+254', country: 'Kenya', flag: '🇰🇪', minDigits: 9, maxDigits: 9 },
+  { code: '+92', country: 'Pakistan', flag: '🇵🇰', minDigits: 10, maxDigits: 10 },
+  { code: '+880', country: 'Bangladesh', flag: '🇧🇩', minDigits: 10, maxDigits: 10 },
+];
 
 type AuthStep =
   | 'google-signin'  // Show Google button
@@ -50,6 +90,11 @@ const AuthModal: React.FC<AuthModalProps> = ({
   // User details form fields
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
+  const [countryCode, setCountryCode] = useState<CountryCode>(COUNTRY_CODES[0]); // Default to India
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
 
   // Reset state when modal opens/closes
   const resetState = useCallback(() => {
@@ -61,6 +106,11 @@ const AuthModal: React.FC<AuthModalProps> = ({
     setExistingUserData(null);
     setName('');
     setLocation('');
+    setCountryCode(COUNTRY_CODES[0]);
+    setPhoneNumber('');
+    setPhoneError(null);
+    setIsDropdownOpen(false);
+    setCountrySearch('');
   }, []);
 
   const handleClose = useCallback(() => {
@@ -102,12 +152,24 @@ const AuthModal: React.FC<AuthModalProps> = ({
         // New user - show empty form
         setName('');
         setLocation('');
+        setPhoneNumber('');
+        setCountryCode(COUNTRY_CODES[0]);
         setExistingUserData(null);
       } else if (existingUser) {
         // Existing user - pre-populate form with stored data
         setExistingUserData(existingUser);
         setName(existingUser.full_name || '');
         setLocation(existingUser.location || '');
+        // Pre-populate phone data if available
+        if (existingUser.phone_number) {
+          setPhoneNumber(existingUser.phone_number);
+        }
+        if (existingUser.country_code) {
+          const foundCountry = COUNTRY_CODES.find(c => c.code === existingUser.country_code);
+          if (foundCountry) {
+            setCountryCode(foundCountry);
+          }
+        }
       }
 
       // Go to user-details step
@@ -128,9 +190,66 @@ const AuthModal: React.FC<AuthModalProps> = ({
     onError: handleGoogleError,
   });
 
+  // Filter countries based on search
+  const filteredCountries = useMemo(() => {
+    if (!countrySearch.trim()) return COUNTRY_CODES;
+    const search = countrySearch.toLowerCase();
+    return COUNTRY_CODES.filter(
+      c => c.country.toLowerCase().includes(search) || c.code.includes(search)
+    );
+  }, [countrySearch]);
+
+  // Validate phone number based on selected country
+  const validatePhoneNumber = useCallback((phone: string, country: CountryCode): string | null => {
+    const digitsOnly = phone.replace(/\D/g, '');
+
+    if (!digitsOnly) {
+      return 'Phone number is required';
+    }
+
+    if (digitsOnly.length < country.minDigits) {
+      return `Phone number must be at least ${country.minDigits} digits for ${country.country}`;
+    }
+
+    if (digitsOnly.length > country.maxDigits) {
+      return `Phone number must be at most ${country.maxDigits} digits for ${country.country}`;
+    }
+
+    return null;
+  }, []);
+
+  // Handle phone number change - only allow digits
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    // Limit to max digits for selected country
+    const limitedValue = value.slice(0, countryCode.maxDigits);
+    setPhoneNumber(limitedValue);
+    // Clear error when user starts typing
+    if (phoneError) {
+      setPhoneError(null);
+    }
+  };
+
+  // Handle country selection
+  const handleCountrySelect = (country: CountryCode) => {
+    setCountryCode(country);
+    setIsDropdownOpen(false);
+    setCountrySearch('');
+    // Truncate phone number if it exceeds new country's max digits
+    if (phoneNumber && phoneNumber.length > country.maxDigits) {
+      setPhoneNumber(phoneNumber.slice(0, country.maxDigits));
+      setPhoneError(null);
+    } else if (phoneNumber) {
+      // Re-validate if phone number exists but wasn't truncated
+      const error = validatePhoneNumber(phoneNumber, country);
+      setPhoneError(error);
+    }
+  };
+
   // Handle user details form submission
   const handleUserDetailsSubmit = async () => {
     setError(null);
+    setPhoneError(null);
 
     // Validate name is not empty for new users
     if (!name.trim()) {
@@ -138,11 +257,18 @@ const AuthModal: React.FC<AuthModalProps> = ({
       return;
     }
 
+    // Validate phone number
+    const phoneValidationError = validatePhoneNumber(phoneNumber, countryCode);
+    if (phoneValidationError) {
+      setPhoneError(phoneValidationError);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       if (isNewUser && googleUserInfo) {
-        // New user - create user with name and location
+        // New user - create user with name, location, and phone
         // Parse name into first and last name
         const nameParts = name.trim().split(' ');
         const firstName = nameParts[0] || '';
@@ -153,7 +279,9 @@ const AuthModal: React.FC<AuthModalProps> = ({
           firstName,
           lastName,
           location.trim() || undefined,
-          'google'
+          'google',
+          countryCode.code,
+          phoneNumber
         );
 
         if (result.error) {
@@ -179,7 +307,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
           }, 500);
         }
       } else if (existingUserData) {
-        // Existing user - update profile with name and location
+        // Existing user - update profile with name, location, and phone
         const nameParts = name.trim().split(' ');
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
@@ -188,7 +316,9 @@ const AuthModal: React.FC<AuthModalProps> = ({
           existingUserData.id,
           firstName,
           lastName,
-          location.trim() || undefined
+          location.trim() || undefined,
+          countryCode.code,
+          phoneNumber
         );
 
         if (result.error) {
@@ -358,6 +488,96 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 />
               </div>
 
+              {/* Phone Number Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Phone Number <span className="text-red-400">*</span>
+                </label>
+                <div className="flex gap-2">
+                  {/* Country Code Dropdown */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="flex items-center gap-1 px-3 py-3 bg-gray-700/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all min-w-[110px] justify-between"
+                      disabled={isLoading}
+                    >
+                      <span className="flex items-center gap-1">
+                        <span>{countryCode.flag}</span>
+                        <span className="text-sm">{countryCode.code}</span>
+                      </span>
+                      <svg className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {isDropdownOpen && (
+                      <div className="absolute z-50 mt-1 w-64 bg-gray-800 border border-gray-600 rounded-xl shadow-lg max-h-60 overflow-hidden">
+                        {/* Search Input */}
+                        <div className="p-2 border-b border-gray-600">
+                          <input
+                            type="text"
+                            value={countrySearch}
+                            onChange={(e) => setCountrySearch(e.target.value)}
+                            placeholder="Search country..."
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                            autoFocus
+                          />
+                        </div>
+                        {/* Country List */}
+                        <div className="max-h-44 overflow-y-auto">
+                          {filteredCountries.map((country, index) => (
+                            <button
+                              key={`${country.code}-${country.country}-${index}`}
+                              type="button"
+                              onClick={() => handleCountrySelect(country)}
+                              className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-700 transition-colors ${
+                                countryCode.code === country.code && countryCode.country === country.country
+                                  ? 'bg-gray-700'
+                                  : ''
+                              }`}
+                            >
+                              <span>{country.flag}</span>
+                              <span className="text-white text-sm flex-1">{country.country}</span>
+                              <span className="text-gray-400 text-sm">{country.code}</span>
+                            </button>
+                          ))}
+                          {filteredCountries.length === 0 && (
+                            <div className="px-3 py-2 text-gray-400 text-sm">No countries found</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Phone Number Input */}
+                  <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={handlePhoneChange}
+                    placeholder="Enter phone number"
+                    className={`flex-1 px-4 py-3 bg-gray-700/50 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all ${
+                      phoneError ? 'border-red-500' : 'border-gray-600'
+                    }`}
+                    disabled={isLoading}
+                  />
+                </div>
+                {/* Phone Validation Error */}
+                {phoneError && (
+                  <p className="mt-1 text-sm text-red-400">{phoneError}</p>
+                )}
+                {/* Digit hint */}
+                {!phoneError && phoneNumber && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    {countryCode.minDigits === countryCode.maxDigits
+                      ? `${countryCode.country} requires ${countryCode.minDigits} digits`
+                      : `${countryCode.country} requires ${countryCode.minDigits}-${countryCode.maxDigits} digits`}
+                    {' '}({phoneNumber.length} entered)
+                  </p>
+                )}
+              </div>
+
               {/* Location Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -377,7 +597,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
             {/* Continue Button */}
             <button
               onClick={handleUserDetailsSubmit}
-              disabled={isLoading || !name.trim()}
+              disabled={isLoading || !name.trim() || !phoneNumber.trim()}
               className="w-full mt-6 px-6 py-3.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-medium rounded-xl transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (

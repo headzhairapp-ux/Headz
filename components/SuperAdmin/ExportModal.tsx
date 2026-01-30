@@ -7,6 +7,8 @@ interface UserWithAnalytics {
   first_name?: string;
   last_name?: string;
   full_name?: string;
+  country_code?: string;
+  phone_number?: string;
   download_count: number;
   share_count: number;
   custom_prompt_count: number;
@@ -61,6 +63,9 @@ const ExportModal: React.FC<ExportModalProps> = ({ users, onClose, onError }) =>
         'Sr No.': u.sr_no ?? '-',
         'Name': u.full_name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'No Name',
         'Email': u.email,
+        'Phone': u.country_code && u.phone_number
+          ? `${u.country_code} ${u.phone_number}`
+          : 'N/A',
         'Downloads': u.download_count || 0,
         'Shares': u.share_count || 0,
         'Generations': u.generation_count || 0,

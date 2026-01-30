@@ -140,7 +140,7 @@ export const getUserProfile = async (userId: string): Promise<any> => {
     const supabase = getSupabaseClient();
     const { data, error } = await supabase
         .from('users')
-        .select('id, email, first_name, last_name, full_name, email_verified, created_at, updated_at, last_login_at')
+        .select('id, email, first_name, last_name, full_name, email_verified, created_at, updated_at, last_login_at, country_code, phone_number, location')
         .eq('id', userId)
         .single();
 
@@ -634,7 +634,9 @@ export const createUserWithProfile = async (
     lastName: string,
     location?: string,
     authProvider: 'google' = 'google',
-    supabaseUserId?: string
+    supabaseUserId?: string,
+    countryCode?: string,
+    phoneNumber?: string
 ): Promise<{ user: any | null; error: any }> => {
     const supabase = getSupabaseClient();
 
@@ -650,6 +652,8 @@ export const createUserWithProfile = async (
                 auth_provider: authProvider,
                 supabase_user_id: supabaseUserId || null,
                 email_verified: true,
+                country_code: countryCode || null,
+                phone_number: phoneNumber || null,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
                 last_login_at: new Date().toISOString(),
@@ -674,20 +678,32 @@ export const updateUserProfile = async (
     userId: string,
     firstName: string,
     lastName: string,
-    location?: string
+    location?: string,
+    countryCode?: string,
+    phoneNumber?: string
 ): Promise<{ user: any | null; error: any }> => {
     const supabase = getSupabaseClient();
 
     try {
+        const updateData: any = {
+            first_name: firstName,
+            last_name: lastName,
+            full_name: `${firstName} ${lastName}`,
+            location: location || null,
+            updated_at: new Date().toISOString(),
+        };
+
+        // Only update phone fields if provided
+        if (countryCode !== undefined) {
+            updateData.country_code = countryCode || null;
+        }
+        if (phoneNumber !== undefined) {
+            updateData.phone_number = phoneNumber || null;
+        }
+
         const { data, error } = await supabase
             .from('users')
-            .update({
-                first_name: firstName,
-                last_name: lastName,
-                full_name: `${firstName} ${lastName}`,
-                location: location || null,
-                updated_at: new Date().toISOString(),
-            })
+            .update(updateData)
             .eq('id', userId)
             .select()
             .single();
@@ -789,7 +805,7 @@ export const getAllUsersWithAnalytics = async (): Promise<any[]> => {
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked, location')
+        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked, location, country_code, phone_number')
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -821,7 +837,7 @@ export const searchUsersWithAnalytics = async (query: string): Promise<any[]> =>
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked, location')
+        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked, location, country_code, phone_number')
         .or(`email.ilike.%${query}%,full_name.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
         .order('created_at', { ascending: false });
 

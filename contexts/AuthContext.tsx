@@ -48,11 +48,13 @@ interface AuthContextType {
     firstName: string,
     lastName: string,
     location?: string,
-    authProvider?: 'google'
+    authProvider?: 'google',
+    countryCode?: string,
+    phoneNumber?: string
   ) => Promise<{ user: any | null; error: any }>;
-  updateProfile: (firstName: string, lastName: string, location?: string) => Promise<{ user: any | null; error: any }>;
+  updateProfile: (firstName: string, lastName: string, location?: string, countryCode?: string, phoneNumber?: string) => Promise<{ user: any | null; error: any }>;
   // Update profile for existing user by ID
-  updateProfileById: (userId: string, firstName: string, lastName: string, location?: string) => Promise<{ user: any | null; error: any }>;
+  updateProfileById: (userId: string, firstName: string, lastName: string, location?: string, countryCode?: string, phoneNumber?: string) => Promise<{ user: any | null; error: any }>;
   // Pending action for auth flow
   pendingAction: 'download' | 'share' | null;
   setPendingAction: (action: 'download' | 'share' | null) => void;
@@ -352,14 +354,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     firstName: string,
     lastName: string,
     location?: string,
-    authProvider: 'google' = 'google'
+    authProvider: 'google' = 'google',
+    countryCode?: string,
+    phoneNumber?: string
   ): Promise<{ user: any | null; error: any }> => {
     const { user: newUser, error } = await createUserWithProfile(
       email,
       firstName,
       lastName,
       location,
-      authProvider
+      authProvider,
+      undefined,
+      countryCode,
+      phoneNumber
     );
 
     if (newUser && !error) {
@@ -376,13 +383,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (
     firstName: string,
     lastName: string,
-    location?: string
+    location?: string,
+    countryCode?: string,
+    phoneNumber?: string
   ): Promise<{ user: any | null; error: any }> => {
     if (!user?.id) {
       return { user: null, error: { message: 'No user logged in' } };
     }
 
-    const { user: updatedUser, error } = await updateUserProfile(user.id, firstName, lastName, location);
+    const { user: updatedUser, error } = await updateUserProfile(user.id, firstName, lastName, location, countryCode, phoneNumber);
 
     if (updatedUser && !error) {
       localStorage.setItem('styleMyHair_user', JSON.stringify(updatedUser));
@@ -398,9 +407,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userId: string,
     firstName: string,
     lastName: string,
-    location?: string
+    location?: string,
+    countryCode?: string,
+    phoneNumber?: string
   ): Promise<{ user: any | null; error: any }> => {
-    const { user: updatedUser, error } = await updateUserProfile(userId, firstName, lastName, location);
+    const { user: updatedUser, error } = await updateUserProfile(userId, firstName, lastName, location, countryCode, phoneNumber);
     return { user: updatedUser, error };
   };
 

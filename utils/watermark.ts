@@ -132,7 +132,7 @@ export const addStylishWatermark = async (imageDataUrl: string): Promise<string>
 
       // Add subtle repeating pattern for extra protection
       ctx.save();
-      ctx.globalAlpha = 0.12;
+      ctx.globalAlpha = 0.40;
       const patternSize = fontSize * 4;
       const numCols = Math.ceil(canvas.width / patternSize);
       const numRows = Math.ceil(canvas.height / patternSize);

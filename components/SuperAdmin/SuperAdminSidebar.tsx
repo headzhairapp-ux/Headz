@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 
-type TabType = 'home' | 'users' | 'custom-prompts';
+type TabType = 'home' | 'users' | 'approve-requests' | 'custom-prompts';
 
 interface SuperAdminSidebarProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
+  pendingCount?: number;
 }
 
-const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({ activeTab, onTabChange }) => {
+const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({ activeTab, onTabChange, pendingCount }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -31,6 +32,15 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({ activeTab, onTabC
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'approve-requests' as TabType,
+      label: 'Approve Requests',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
     },
@@ -79,7 +89,12 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({ activeTab, onTabC
             }`}
           >
             {tab.icon}
-            <span className="font-medium">{tab.label}</span>
+            <span className="font-medium flex-1 text-left">{tab.label}</span>
+            {tab.id === 'approve-requests' && pendingCount !== undefined && pendingCount > 0 && (
+              <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-red-600 text-white rounded-full">
+                {pendingCount}
+              </span>
+            )}
           </button>
         ))}
       </nav>
@@ -90,9 +105,10 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({ activeTab, onTabC
 interface MobileTabBarProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
+  pendingCount?: number;
 }
 
-const MobileTabBar: React.FC<MobileTabBarProps> = ({ activeTab, onTabChange }) => {
+const MobileTabBar: React.FC<MobileTabBarProps> = ({ activeTab, onTabChange, pendingCount }) => {
   const tabs = [
     {
       id: 'home' as TabType,
@@ -113,6 +129,15 @@ const MobileTabBar: React.FC<MobileTabBarProps> = ({ activeTab, onTabChange }) =
       ),
     },
     {
+      id: 'approve-requests' as TabType,
+      label: 'Approvals',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
       id: 'custom-prompts' as TabType,
       label: 'Prompts',
       icon: (
@@ -124,19 +149,24 @@ const MobileTabBar: React.FC<MobileTabBarProps> = ({ activeTab, onTabChange }) =
   ];
 
   return (
-    <div className="lg:hidden flex border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm">
+    <div className="lg:hidden flex border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm overflow-x-auto">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
-          className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 transition-all duration-200 ${
+          className={`flex-1 flex items-center justify-center space-x-2 px-3 py-3 transition-all duration-200 relative whitespace-nowrap ${
             activeTab === tab.id
               ? 'text-purple-400 border-b-2 border-purple-400 bg-purple-500/10'
               : 'text-gray-400 hover:text-white'
           }`}
         >
           {tab.icon}
-          <span className="font-medium">{tab.label}</span>
+          <span className="font-medium text-sm">{tab.label}</span>
+          {tab.id === 'approve-requests' && pendingCount !== undefined && pendingCount > 0 && (
+            <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-bold bg-red-600 text-white rounded-full min-w-[18px] text-center">
+              {pendingCount}
+            </span>
+          )}
         </button>
       ))}
     </div>

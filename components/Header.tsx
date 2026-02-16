@@ -12,7 +12,7 @@ const Header: React.FC = () => {
     <header className="bg-gray-950/80 backdrop-blur-md border-b border-gray-800/50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Headz International" className="h-10 object-contain rounded-lg" />
+          <img src="/logo.png" alt="Headz International" className="h-14 object-contain rounded-lg" />
           <span className="text-xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
             Headz International
           </span>

@@ -23,3 +23,6 @@ export type { UsersTabProps } from './UsersTab';
 
 export { default as CustomPromptsTab } from './CustomPromptsTab';
 export type { CustomPromptsTabProps, UserWithCustomPrompts, CustomPrompt } from './CustomPromptsTab';
+
+export { default as ApproveRequestsTab } from './ApproveRequestsTab';
+export type { ApproveRequestsTabProps } from './ApproveRequestsTab';

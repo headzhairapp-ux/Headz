@@ -51,7 +51,7 @@ interface AuthContextType {
     authProvider?: 'google',
     countryCode?: string,
     phoneNumber?: string
-  ) => Promise<{ user: any | null; error: any }>;
+  ) => Promise<{ user: any | null; error: any; pendingApproval?: boolean }>;
   updateProfile: (firstName: string, lastName: string, location?: string, countryCode?: string, phoneNumber?: string) => Promise<{ user: any | null; error: any }>;
   // Update profile for existing user by ID
   updateProfileById: (userId: string, firstName: string, lastName: string, location?: string, countryCode?: string, phoneNumber?: string) => Promise<{ user: any | null; error: any }>;
@@ -357,7 +357,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     authProvider: 'google' = 'google',
     countryCode?: string,
     phoneNumber?: string
-  ): Promise<{ user: any | null; error: any }> => {
+  ): Promise<{ user: any | null; error: any; pendingApproval?: boolean }> => {
     const { user: newUser, error } = await createUserWithProfile(
       email,
       firstName,
@@ -370,6 +370,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     if (newUser && !error) {
+      // Check if user is approved (admins/super-admins are auto-approved)
+      if (!newUser.is_approved && !newUser.is_admin && !newUser.is_super_admin) {
+        // User needs approval - do NOT log them in
+        return { user: newUser, error: null, pendingApproval: true };
+      }
+
       localStorage.setItem('styleMyHair_user', JSON.stringify(newUser));
       setUser(newUser);
       setSession({ user: newUser });

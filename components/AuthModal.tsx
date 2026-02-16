@@ -47,7 +47,8 @@ type AuthStep =
   | 'google-signin'  // Show Google button
   | 'user-details'   // Name + Location form (for all users)
   | 'loading'        // Processing
-  | 'success';       // Success state (brief)
+  | 'success'        // Success state (brief)
+  | 'pending-approval'; // Account pending admin approval
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -131,6 +132,10 @@ const AuthModal: React.FC<AuthModalProps> = ({
       if (authError) {
         if (authError.message?.includes('blocked')) {
           setError('Your account has been blocked. Please contact support.');
+        } else if (authError.message?.includes('pending')) {
+          setStep('pending-approval');
+          setIsLoading(false);
+          return;
         } else {
           setError('Failed to sign in with Google. Please try again.');
         }
@@ -286,6 +291,13 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
         if (result.error) {
           setError(result.error?.message || 'Failed to create profile');
+          setIsLoading(false);
+          return;
+        }
+
+        // Check if user is pending approval
+        if (result.pendingApproval) {
+          setStep('pending-approval');
           setIsLoading(false);
           return;
         }
@@ -636,6 +648,27 @@ const AuthModal: React.FC<AuthModalProps> = ({
             </div>
             <h3 className="text-xl font-bold text-white mb-2">Welcome!</h3>
             <p className="text-gray-400">You're all set.</p>
+          </div>
+        )}
+
+        {/* Step: Pending Approval */}
+        {step === 'pending-approval' && (
+          <div className="py-8 flex flex-col items-center justify-center">
+            <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Account Pending Approval</h3>
+            <p className="text-gray-400 text-center mb-6">
+              Your account has been created successfully. An admin will review and approve your request shortly.
+            </p>
+            <button
+              onClick={handleClose}
+              className="px-6 py-3 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-yellow-600 text-white font-medium rounded-xl transition-all shadow-md"
+            >
+              OK, Got It
+            </button>
           </div>
         )}
       </div>

@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS public.users (
   download_count INTEGER DEFAULT 0,
   share_count INTEGER DEFAULT 0,
   custom_prompt_count INTEGER DEFAULT 0,
-  generation_count INTEGER DEFAULT 0
+  generation_count INTEGER DEFAULT 0,
+  is_approved BOOLEAN DEFAULT false
 );
 
 -- Create index for faster email lookups

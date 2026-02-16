@@ -567,6 +567,11 @@ export const checkUserByEmail = async (email: string): Promise<{ exists: boolean
                 return { exists: true, user: null, error: { message: 'Your account has been blocked. Please contact support.' } };
             }
 
+            // Check if user is pending approval
+            if (!existingUser.is_approved) {
+                return { exists: true, user: null, error: { message: 'Your account is pending admin approval. Please wait for approval before logging in.' } };
+            }
+
             return { exists: true, user: existingUser, error: null };
         }
 
@@ -597,6 +602,11 @@ export const getOrCreateUserByEmail = async (email: string): Promise<{ user: any
             // Check if user is blocked
             if (existingUser.is_blocked) {
                 return { user: null, isNewUser: false, error: { message: 'Your account has been blocked. Please contact support.' } };
+            }
+
+            // Check if user is pending approval
+            if (!existingUser.is_approved) {
+                return { user: null, isNewUser: false, error: { message: 'Your account is pending admin approval. Please wait for approval before logging in.' } };
             }
 
             // Existing user - update last login
@@ -805,7 +815,7 @@ export const getAllUsersWithAnalytics = async (): Promise<any[]> => {
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked, location, country_code, phone_number')
+        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked, is_approved, location, country_code, phone_number')
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -837,7 +847,7 @@ export const searchUsersWithAnalytics = async (query: string): Promise<any[]> =>
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked, location, country_code, phone_number')
+        .select('id, email, first_name, last_name, full_name, download_count, share_count, custom_prompt_count, generation_count, created_at, sr_no, is_blocked, is_approved, location, country_code, phone_number')
         .or(`email.ilike.%${query}%,full_name.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
         .order('created_at', { ascending: false });
 
@@ -1125,6 +1135,141 @@ export const getMonthlyUserRegistrations = async (): Promise<MonthlyCount[]> => 
     }
 
     return result;
+};
+
+// ============================================
+// Approval Functions (Super Admin)
+// ============================================
+
+// Get pending users (unapproved, non-blocked)
+export const getPendingUsers = async (): Promise<any[]> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const { data, error } = await supabase
+        .from('users')
+        .select('id, email, first_name, last_name, full_name, location, country_code, phone_number, created_at')
+        .eq('is_approved', false)
+        .eq('is_blocked', false)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching pending users:', error);
+        throw new Error(error.message);
+    }
+
+    return data || [];
+};
+
+// Approve a user
+export const approveUser = async (userId: string): Promise<void> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const { error } = await supabase
+        .from('users')
+        .update({
+            is_approved: true,
+            updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+
+    if (error) {
+        console.error('Error approving user:', error);
+        throw new Error(error.message);
+    }
+};
+
+// Reject (delete) a pending user
+export const rejectUser = async (userId: string): Promise<void> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', userId)
+        .eq('is_approved', false);
+
+    if (error) {
+        console.error('Error rejecting user:', error);
+        throw new Error(error.message);
+    }
+};
+
+// Get count of pending approval users
+export const getPendingApprovalCount = async (): Promise<number> => {
+    const supabase = getSupabaseClient();
+
+    // Verify super admin status
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || !currentUser.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const { count, error } = await supabase
+        .from('users')
+        .select('id', { count: 'exact' })
+        .eq('is_approved', false)
+        .eq('is_blocked', false);
+
+    if (error) {
+        console.error('Error fetching pending approval count:', error);
+        throw new Error(error.message);
+    }
+
+    return count || 0;
 };
 
 // Get generations per month for last 6 months (super admin only)

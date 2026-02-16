@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getSuperAdminStats, getAllUsersWithAnalytics, getWeeklyUserRegistrations, getWeeklyGenerations, getMonthlyUserRegistrations, getMonthlyGenerations } from '../services/supabaseService';
+import { getSuperAdminStats, getAllUsersWithAnalytics, getWeeklyUserRegistrations, getWeeklyGenerations, getMonthlyUserRegistrations, getMonthlyGenerations, getPendingApprovalCount } from '../services/supabaseService';
 import {
   SuperAdminSidebar,
   MobileTabBar,
   HomeTab,
   UsersTab,
   CustomPromptsTab,
+  ApproveRequestsTab,
   type TabType,
   type SuperAdminStats as StatsType,
   type UserWithAnalytics,
@@ -33,6 +34,7 @@ const SuperAdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<UserWithAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
     if (!isSuperAdmin) {
@@ -48,13 +50,14 @@ const SuperAdminDashboard: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const [statsData, usersData, weeklyUsersData, weeklyGenerationsData, monthlyUsersData, monthlyGenerationsData] = await Promise.all([
+      const [statsData, usersData, weeklyUsersData, weeklyGenerationsData, monthlyUsersData, monthlyGenerationsData, pendingCountData] = await Promise.all([
         getSuperAdminStats(),
         getAllUsersWithAnalytics(),
         getWeeklyUserRegistrations(),
         getWeeklyGenerations(),
         getMonthlyUserRegistrations(),
         getMonthlyGenerations(),
+        getPendingApprovalCount().catch(() => 0),
       ]);
 
       setStats({
@@ -65,6 +68,7 @@ const SuperAdminDashboard: React.FC = () => {
         monthlyGenerations: monthlyGenerationsData,
       });
       setUsers(usersData);
+      setPendingCount(pendingCountData);
     } catch (err) {
       console.error('Error loading super admin data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load data');
@@ -90,7 +94,7 @@ const SuperAdminDashboard: React.FC = () => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
               <Link to="/" className="flex items-center space-x-2">
-                <img src="/logo.png" alt="Headz International" className="h-10 object-contain rounded-lg" />
+                <img src="/logo.png" alt="Headz International" className="h-14 object-contain rounded-lg" />
                 <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
                   Headz International
                 </span>
@@ -119,12 +123,12 @@ const SuperAdminDashboard: React.FC = () => {
       </header>
 
       {/* Mobile Tab Bar */}
-      <MobileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+      <MobileTabBar activeTab={activeTab} onTabChange={setActiveTab} pendingCount={pendingCount} />
 
       {/* Main Layout with Sidebar */}
       <div className="flex">
         {/* Sidebar */}
-        <SuperAdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <SuperAdminSidebar activeTab={activeTab} onTabChange={setActiveTab} pendingCount={pendingCount} />
 
         {/* Main Content */}
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 overflow-y-auto">
@@ -132,11 +136,13 @@ const SuperAdminDashboard: React.FC = () => {
             <h1 className="text-3xl font-bold text-white mb-2">
               {activeTab === 'home' && 'Super Admin Dashboard'}
               {activeTab === 'users' && 'User Management'}
+              {activeTab === 'approve-requests' && 'Approve Requests'}
               {activeTab === 'custom-prompts' && 'Custom Prompts'}
             </h1>
             <p className="text-gray-400">
               {activeTab === 'home' && 'Analytics overview across all users'}
               {activeTab === 'users' && 'View and manage user data'}
+              {activeTab === 'approve-requests' && 'Review and approve new user registrations'}
               {activeTab === 'custom-prompts' && 'View custom AI prompts created by users'}
             </p>
           </div>
@@ -154,6 +160,9 @@ const SuperAdminDashboard: React.FC = () => {
           )}
           {activeTab === 'users' && (
             <UsersTab users={users} loading={loading} onError={handleError} />
+          )}
+          {activeTab === 'approve-requests' && (
+            <ApproveRequestsTab onPendingCountChange={setPendingCount} />
           )}
           {activeTab === 'custom-prompts' && (
             <CustomPromptsTab loading={loading} />

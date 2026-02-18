@@ -334,18 +334,31 @@ IMPORTANT: Generate a FRONT VIEW of this hairstyle. Show the person facing direc
 
   const handleRequestSideView = useCallback(async () => {
     if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;
-    const prompt = `${lastUsedPrompt}
+    const prompt = `Using the person in this photo as reference for skin tone, hair color, and general appearance, generate a SIDE PROFILE VIEW of them with a ${lastUsedStyleName} hairstyle.
 
-IMPORTANT: Generate a SIDE PROFILE VIEW of this hairstyle. Visualize how this hairstyle would look from a side angle - show the person's profile (side of face) with the hairstyle visible from the side. Keep the same person's skin tone, face shape, and general appearance but rotated to show a side profile view.`;
+REQUIREMENTS:
+- Show the person's head turned to show a side profile (90-degree angle from camera)
+- The hairstyle should be a ${lastUsedStyleName} - clearly visible from the side angle
+- Maintain the same hair color, texture, and styling as the ${lastUsedStyleName} would have
+- Keep the same skin tone and body appearance
+- Show how the hair falls, layers, and frames the face from this side angle
+- This must be a profile/side view, NOT a front-facing image`;
     const styleName = `${lastUsedStyleName} (Side View)`;
     await applyStyleAndSave(prompt, styleName, selectedStyle?.id || 'custom-side');
   }, [lastUsedPrompt, lastUsedStyleName, selectedStyle, applyStyleAndSave, isLoading]);
 
   const handleRequestBackView = useCallback(async () => {
     if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;
-    const prompt = `${lastUsedPrompt}
+    const prompt = `Using the person in this photo as reference for skin tone, hair color, and general appearance, generate a BACK VIEW of them with a ${lastUsedStyleName} hairstyle.
 
-IMPORTANT: Generate a BACK VIEW of this hairstyle. Visualize how this hairstyle would look from behind - show the back of the person's head with the hairstyle clearly visible. Keep the same hair color, texture, and style, showing how it appears from the back. The person should have the same skin tone and general appearance.`;
+REQUIREMENTS:
+- Show the BACK of the person's head - camera is behind them
+- Do NOT show the face at all - only the back of the head, neck, and shoulders
+- The hairstyle should be a ${lastUsedStyleName} - clearly visible from behind
+- Show how the hair looks from the back: the length, layers, texture, and how it falls at the nape of the neck
+- Maintain the same hair color and texture
+- Keep the same skin tone
+- This must be a rear/back view, NOT a front-facing or side image`;
     const styleName = `${lastUsedStyleName} (Back View)`;
     await applyStyleAndSave(prompt, styleName, selectedStyle?.id || 'custom-back');
   }, [lastUsedPrompt, lastUsedStyleName, selectedStyle, applyStyleAndSave, isLoading]);

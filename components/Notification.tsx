@@ -8,12 +8,12 @@ interface NotificationProps {
   duration?: number;
 }
 
-const Notification: React.FC<NotificationProps> = ({ 
-  message, 
-  type, 
-  isVisible, 
-  onClose, 
-  duration = 5000 
+const Notification: React.FC<NotificationProps> = ({
+  message,
+  type,
+  isVisible,
+  onClose,
+  duration = 5000
 }) => {
   useEffect(() => {
     if (isVisible && type !== 'loading') {
@@ -61,11 +61,11 @@ const Notification: React.FC<NotificationProps> = ({
       case 'success':
         return 'bg-green-600 border-green-500 text-green-100';
       case 'error':
-        return 'bg-red-600 border-red-500 text-red-100';
+        return 'bg-[#E1262D] border-[#B91C1C] text-white';
       case 'loading':
-        return 'bg-purple-600 border-purple-500 text-purple-100';
+        return 'bg-[#E1262D] border-[#B91C1C] text-white';
       default:
-        return 'bg-blue-600 border-blue-500 text-blue-100';
+        return 'bg-[#E1262D] border-[#B91C1C] text-white';
     }
   };
 

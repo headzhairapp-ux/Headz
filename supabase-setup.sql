@@ -120,6 +120,11 @@ CREATE POLICY "Anyone can register" ON public.users
 FOR INSERT
 WITH CHECK (true);
 
+-- Policy: Allow deleting users (for admin reject)
+CREATE POLICY "Allow delete users" ON public.users
+FOR DELETE
+USING (true);
+
 -- Enable RLS on generations table
 ALTER TABLE public.generations ENABLE ROW LEVEL SECURITY;
 

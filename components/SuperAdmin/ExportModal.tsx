@@ -95,28 +95,28 @@ const ExportModal: React.FC<ExportModalProps> = ({ users, onClose, onError }) =>
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-gray-800 rounded-xl p-6 w-full max-w-md border border-gray-700">
-        <h3 className="text-xl font-bold text-white mb-4">Export User Data</h3>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-xl p-6 w-full max-w-md border border-gray-200 shadow-2xl">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Export User Data</h3>
 
         {/* Date Range Filters */}
         <div className="space-y-4">
           <div>
-            <label className="block text-gray-400 text-sm mb-2">From Date</label>
+            <label className="block text-gray-500 text-sm mb-2">From Date</label>
             <input
               type="date"
               value={exportStartDate}
               onChange={(e) => setExportStartDate(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900"
             />
           </div>
           <div>
-            <label className="block text-gray-400 text-sm mb-2">To Date</label>
+            <label className="block text-gray-500 text-sm mb-2">To Date</label>
             <input
               type="date"
               value={exportEndDate}
               onChange={(e) => setExportEndDate(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900"
             />
           </div>
         </div>
@@ -125,14 +125,14 @@ const ExportModal: React.FC<ExportModalProps> = ({ users, onClose, onError }) =>
         <div className="flex gap-3 mt-6">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
+            className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg"
           >
             Cancel
           </button>
           <button
             onClick={handleExportUsers}
             disabled={exporting}
-            className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-500 disabled:bg-green-800 text-white rounded-lg flex items-center justify-center space-x-2"
+            className="flex-1 px-4 py-2 bg-[#E1262D] hover:bg-[#c82128] disabled:bg-red-300 text-white rounded-lg flex items-center justify-center space-x-2"
           >
             {exporting ? 'Exporting...' : 'Download Excel'}
           </button>

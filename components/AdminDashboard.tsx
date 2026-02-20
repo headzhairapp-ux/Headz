@@ -59,15 +59,15 @@ const AdminDashboard: React.FC = () => {
     color: string;
     description?: string;
   }> = ({ title, value, icon, color, description }) => (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-all duration-300">
+    <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-gray-400 text-sm font-medium">{title}</p>
+          <p className="text-gray-500 text-sm font-medium">{title}</p>
           <p className={`text-3xl font-bold ${color} mt-1`}>
             {value.toLocaleString()}
           </p>
           {description && (
-            <p className="text-gray-500 text-xs mt-1">{description}</p>
+            <p className="text-gray-400 text-xs mt-1">{description}</p>
           )}
         </div>
         <div className={`p-3 rounded-full ${color.replace('text-', 'bg-').replace('500', '500/20')}`}>
@@ -78,16 +78,16 @@ const AdminDashboard: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-900 via-black to-red-800">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-black/20 backdrop-blur-sm border-b border-gray-800">
+      <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
+              <Link to="/" className="text-2xl font-bold text-[#E1262D]">
                 Headz International
               </Link>
-              <div className="hidden sm:flex items-center px-3 py-1 bg-red-600 text-white text-sm rounded-full font-medium">
+              <div className="hidden sm:flex items-center px-3 py-1 bg-[#E1262D] text-white text-sm rounded-full font-medium">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -96,12 +96,12 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-4">
-              <span className="text-gray-300 hidden sm:block">
+              <span className="text-gray-600 hidden sm:block">
                 Welcome, {user?.full_name || user?.email}
               </span>
               <button
                 onClick={handleSignOut}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors duration-300"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-300"
               >
                 Sign Out
               </button>
@@ -112,13 +112,13 @@ const AdminDashboard: React.FC = () => {
 
       {/* Navigation Tabs */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="flex space-x-1 bg-gray-800/50 backdrop-blur-sm rounded-lg p-1">
+        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
               activeTab === 'dashboard'
-                ? 'bg-red-600 text-white shadow-lg'
-                : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                ? 'bg-[#E1262D] text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
             }`}
           >
             <div className="flex items-center space-x-2">
@@ -132,8 +132,8 @@ const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('users')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
               activeTab === 'users'
-                ? 'bg-red-600 text-white shadow-lg'
-                : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                ? 'bg-[#E1262D] text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
             }`}
           >
             <div className="flex items-center space-x-2">
@@ -151,12 +151,12 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'dashboard' && (
           <div>
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">Dashboard Overview</h1>
-              <p className="text-gray-400">Manage your Headz International application</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard Overview</h1>
+              <p className="text-gray-500">Manage your Headz International application</p>
             </div>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-900/50 border border-red-700 text-red-300 rounded-lg">
+              <div className="mb-6 p-4 bg-red-50 border border-red-300 text-red-600 rounded-lg">
                 <p className="font-bold">Error:</p>
                 <p>{error}</p>
               </div>
@@ -165,13 +165,13 @@ const AdminDashboard: React.FC = () => {
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 animate-pulse">
+                  <div key={i} className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm animate-pulse">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="h-4 bg-gray-700 rounded w-20 mb-2"></div>
-                        <div className="h-8 bg-gray-700 rounded w-16"></div>
+                        <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+                        <div className="h-8 bg-gray-200 rounded w-16"></div>
                       </div>
-                      <div className="w-12 h-12 bg-gray-700 rounded-full"></div>
+                      <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
                     </div>
                   </div>
                 ))}
@@ -227,57 +227,57 @@ const AdminDashboard: React.FC = () => {
 
             {/* Quick Actions */}
             <div className="mt-12">
-              <h2 className="text-xl font-bold text-white mb-6">Quick Actions</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <button
                   onClick={() => setActiveTab('users')}
-                  className="p-6 bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 hover:border-gray-600 transition-all duration-300 text-left group"
+                  className="p-6 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 text-left group"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-purple-500/20 rounded-full">
-                      <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="p-3 bg-[#E1262D]/10 rounded-full">
+                      <svg className="w-6 h-6 text-[#E1262D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                       </svg>
                     </div>
-                    <svg className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-400 group-hover:text-[#E1262D] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Manage Users</h3>
-                  <p className="text-gray-400 text-sm">View, search, and manage all user accounts</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Manage Users</h3>
+                  <p className="text-gray-500 text-sm">View, search, and manage all user accounts</p>
                 </button>
 
                 <button
                   onClick={() => loadStats()}
-                  className="p-6 bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 hover:border-gray-600 transition-all duration-300 text-left group"
+                  className="p-6 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 text-left group"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-green-500/20 rounded-full">
+                    <div className="p-3 bg-green-500/10 rounded-full">
                       <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Refresh Stats</h3>
-                  <p className="text-gray-400 text-sm">Update dashboard statistics</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Refresh Stats</h3>
+                  <p className="text-gray-500 text-sm">Update dashboard statistics</p>
                 </button>
 
                 <Link
                   to="/"
-                  className="p-6 bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 hover:border-gray-600 transition-all duration-300 text-left group block"
+                  className="p-6 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 text-left group block"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-blue-500/20 rounded-full">
+                    <div className="p-3 bg-blue-500/10 rounded-full">
                       <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                       </svg>
                     </div>
-                    <svg className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-400 group-hover:text-[#E1262D] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">View Main App</h3>
-                  <p className="text-gray-400 text-sm">Go to the main Headz International application</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">View Main App</h3>
+                  <p className="text-gray-500 text-sm">Go to the main Headz International application</p>
                 </Link>
               </div>
             </div>

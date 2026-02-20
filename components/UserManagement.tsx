@@ -122,17 +122,17 @@ const UserManagement: React.FC = () => {
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white mb-2">User Management</h2>
-        <p className="text-gray-400">Manage all user accounts and permissions</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">User Management</h2>
+        <p className="text-gray-500">Manage all user accounts and permissions</p>
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-900/50 border border-red-700 text-red-300 rounded-lg">
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
           <p className="font-bold">Error:</p>
           <p>{error}</p>
           <button
             onClick={loadUsers}
-            className="mt-2 px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded-lg text-sm transition-colors"
+            className="mt-2 px-4 py-2 bg-[#E1262D] hover:bg-[#c82126] text-white rounded-lg text-sm transition-colors"
           >
             Retry
           </button>
@@ -153,7 +153,7 @@ const UserManagement: React.FC = () => {
               placeholder="Search users by email or name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-600 rounded-lg bg-gray-800/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:border-transparent"
             />
           </div>
         </div>
@@ -162,7 +162,7 @@ const UserManagement: React.FC = () => {
           <select
             value={filterAdmin}
             onChange={(e) => setFilterAdmin(e.target.value as 'all' | 'admin' | 'user')}
-            className="block w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-800/50 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:border-transparent"
           >
             <option value="all">All Users</option>
             <option value="admin">Admins Only</option>
@@ -173,7 +173,7 @@ const UserManagement: React.FC = () => {
         <button
           onClick={loadUsers}
           disabled={loading}
-          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center space-x-2"
+          className="px-4 py-2 bg-[#E1262D] hover:bg-[#c82126] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center space-x-2"
         >
           <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -184,55 +184,55 @@ const UserManagement: React.FC = () => {
 
       {/* Users Table */}
       {loading ? (
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-8">
+        <div className="bg-white rounded-xl border border-gray-200 p-8">
           <div className="animate-pulse space-y-4">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center space-x-4">
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-700 rounded w-1/4"></div>
-                  <div className="h-3 bg-gray-700 rounded w-1/3"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/3"></div>
                 </div>
-                <div className="h-8 bg-gray-700 rounded w-20"></div>
-                <div className="h-8 bg-gray-700 rounded w-24"></div>
+                <div className="h-8 bg-gray-200 rounded w-20"></div>
+                <div className="h-8 bg-gray-200 rounded w-24"></div>
               </div>
             ))}
           </div>
         </div>
       ) : (
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-700">
-              <thead className="bg-gray-900/50">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     User
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Generations
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Joined
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Last Login
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-700">
+              <tbody className="divide-y divide-gray-200">
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-700/30 transition-colors">
+                  <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-white">
+                        <div className="text-sm font-medium text-gray-900">
                           {user.full_name || `${user.first_name} ${user.last_name}`}
                         </div>
-                        <div className="text-sm text-gray-400">{user.email}</div>
+                        <div className="text-sm text-gray-500">{user.email}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -243,13 +243,13 @@ const UserManagement: React.FC = () => {
                         <svg className="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span className="text-sm text-gray-300">{user.generationCount || 0}</span>
+                        <span className="text-sm text-gray-700">{user.generationCount || 0}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(user.created_at)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {user.last_login_at ? formatDate(user.last_login_at) : 'Never'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -259,7 +259,7 @@ const UserManagement: React.FC = () => {
                         className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                           user.is_admin
                             ? 'bg-red-100 text-red-800 hover:bg-red-200'
-                            : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                            : 'bg-[#E1262D]/10 text-[#E1262D] hover:bg-[#E1262D]/20'
                         }`}
                       >
                         {updatingUser === user.id ? (
@@ -284,7 +284,7 @@ const UserManagement: React.FC = () => {
 
           {filteredUsers.length === 0 && !loading && (
             <div className="text-center py-8">
-              <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
               </svg>
               <p className="text-gray-400">No users found matching your criteria.</p>
@@ -295,17 +295,17 @@ const UserManagement: React.FC = () => {
 
       {/* Summary Stats */}
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
-          <div className="text-sm text-gray-400">Showing Users</div>
-          <div className="text-2xl font-bold text-white">{filteredUsers.length}</div>
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+          <div className="text-sm text-gray-500">Showing Users</div>
+          <div className="text-2xl font-bold text-gray-900">{filteredUsers.length}</div>
         </div>
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
-          <div className="text-sm text-gray-400">Total Users</div>
-          <div className="text-2xl font-bold text-white">{users.length}</div>
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+          <div className="text-sm text-gray-500">Total Users</div>
+          <div className="text-2xl font-bold text-gray-900">{users.length}</div>
         </div>
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
-          <div className="text-sm text-gray-400">Admin Users</div>
-          <div className="text-2xl font-bold text-white">{users.filter(u => u.is_admin).length}</div>
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+          <div className="text-sm text-gray-500">Admin Users</div>
+          <div className="text-2xl font-bold text-gray-900">{users.filter(u => u.is_admin).length}</div>
         </div>
       </div>
     </div>

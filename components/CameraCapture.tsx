@@ -50,17 +50,17 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose }) => 
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    
+
     const context = canvas.getContext('2d');
     if (context) {
       // Flip the image horizontally to undo the mirror effect
       context.translate(canvas.width, 0);
       context.scale(-1, 1);
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
+
       canvas.toBlob((blob) => {
         if (blob) {
           const file = new File([blob], `capture-${Date.now()}.png`, { type: 'image/png' });
@@ -78,11 +78,11 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose }) => 
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm" role="dialog" aria-modal="true">
-      <div className="bg-gray-900 rounded-lg shadow-2xl p-6 w-full max-w-2xl relative text-white border border-gray-700">
+      <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-2xl relative text-gray-900 border border-gray-200">
         <h2 className="text-xl font-semibold mb-4 text-center">Camera Capture</h2>
         {error ? (
           <div className="text-center p-8">
-            <p className="text-red-400">{error}</p>
+            <p className="text-red-500">{error}</p>
           </div>
         ) : (
           <div className="relative aspect-square w-full bg-black rounded-md overflow-hidden">
@@ -99,7 +99,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose }) => 
         <div className="mt-6 flex justify-center items-center gap-4">
           <button
             onClick={onClose}
-            className="px-6 py-2 rounded-md bg-gray-700 hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+            className="px-6 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white"
             aria-label="Close camera"
           >
             Cancel
@@ -107,7 +107,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose }) => 
           <button
             onClick={handleCapture}
             disabled={!!error || isCapturing}
-            className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 disabled:bg-gray-500 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 focus:ring-offset-gray-900"
+            className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[#E1262D] hover:bg-[#c82126] disabled:bg-gray-300 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#E1262D] focus:ring-offset-white"
             aria-label="Capture photo"
           >
             {isCapturing ? 'Capturing...' : (

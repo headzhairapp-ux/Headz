@@ -13,34 +13,34 @@ interface CountryCode {
 }
 
 const COUNTRY_CODES: CountryCode[] = [
-  { code: '+91', country: 'India', flag: '🇮🇳', minDigits: 10, maxDigits: 10 },
-  { code: '+1', country: 'USA', flag: '🇺🇸', minDigits: 10, maxDigits: 10 },
-  { code: '+1', country: 'Canada', flag: '🇨🇦', minDigits: 10, maxDigits: 10 },
-  { code: '+44', country: 'UK', flag: '🇬🇧', minDigits: 10, maxDigits: 10 },
-  { code: '+971', country: 'UAE', flag: '🇦🇪', minDigits: 9, maxDigits: 9 },
-  { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦', minDigits: 9, maxDigits: 9 },
-  { code: '+61', country: 'Australia', flag: '🇦🇺', minDigits: 9, maxDigits: 9 },
-  { code: '+65', country: 'Singapore', flag: '🇸🇬', minDigits: 8, maxDigits: 8 },
-  { code: '+60', country: 'Malaysia', flag: '🇲🇾', minDigits: 9, maxDigits: 10 },
-  { code: '+49', country: 'Germany', flag: '🇩🇪', minDigits: 10, maxDigits: 11 },
-  { code: '+33', country: 'France', flag: '🇫🇷', minDigits: 9, maxDigits: 9 },
-  { code: '+39', country: 'Italy', flag: '🇮🇹', minDigits: 10, maxDigits: 10 },
-  { code: '+34', country: 'Spain', flag: '🇪🇸', minDigits: 9, maxDigits: 9 },
-  { code: '+31', country: 'Netherlands', flag: '🇳🇱', minDigits: 9, maxDigits: 9 },
-  { code: '+55', country: 'Brazil', flag: '🇧🇷', minDigits: 10, maxDigits: 11 },
-  { code: '+52', country: 'Mexico', flag: '🇲🇽', minDigits: 10, maxDigits: 10 },
-  { code: '+81', country: 'Japan', flag: '🇯🇵', minDigits: 10, maxDigits: 10 },
-  { code: '+82', country: 'South Korea', flag: '🇰🇷', minDigits: 9, maxDigits: 10 },
-  { code: '+86', country: 'China', flag: '🇨🇳', minDigits: 11, maxDigits: 11 },
-  { code: '+852', country: 'Hong Kong', flag: '🇭🇰', minDigits: 8, maxDigits: 8 },
-  { code: '+63', country: 'Philippines', flag: '🇵🇭', minDigits: 10, maxDigits: 10 },
-  { code: '+62', country: 'Indonesia', flag: '🇮🇩', minDigits: 10, maxDigits: 12 },
-  { code: '+66', country: 'Thailand', flag: '🇹🇭', minDigits: 9, maxDigits: 9 },
-  { code: '+27', country: 'South Africa', flag: '🇿🇦', minDigits: 9, maxDigits: 9 },
-  { code: '+234', country: 'Nigeria', flag: '🇳🇬', minDigits: 10, maxDigits: 10 },
-  { code: '+254', country: 'Kenya', flag: '🇰🇪', minDigits: 9, maxDigits: 9 },
-  { code: '+92', country: 'Pakistan', flag: '🇵🇰', minDigits: 10, maxDigits: 10 },
-  { code: '+880', country: 'Bangladesh', flag: '🇧🇩', minDigits: 10, maxDigits: 10 },
+  { code: '+91', country: 'India', flag: '\u{1F1EE}\u{1F1F3}', minDigits: 10, maxDigits: 10 },
+  { code: '+1', country: 'USA', flag: '\u{1F1FA}\u{1F1F8}', minDigits: 10, maxDigits: 10 },
+  { code: '+1', country: 'Canada', flag: '\u{1F1E8}\u{1F1E6}', minDigits: 10, maxDigits: 10 },
+  { code: '+44', country: 'UK', flag: '\u{1F1EC}\u{1F1E7}', minDigits: 10, maxDigits: 10 },
+  { code: '+971', country: 'UAE', flag: '\u{1F1E6}\u{1F1EA}', minDigits: 9, maxDigits: 9 },
+  { code: '+966', country: 'Saudi Arabia', flag: '\u{1F1F8}\u{1F1E6}', minDigits: 9, maxDigits: 9 },
+  { code: '+61', country: 'Australia', flag: '\u{1F1E6}\u{1F1FA}', minDigits: 9, maxDigits: 9 },
+  { code: '+65', country: 'Singapore', flag: '\u{1F1F8}\u{1F1EC}', minDigits: 8, maxDigits: 8 },
+  { code: '+60', country: 'Malaysia', flag: '\u{1F1F2}\u{1F1FE}', minDigits: 9, maxDigits: 10 },
+  { code: '+49', country: 'Germany', flag: '\u{1F1E9}\u{1F1EA}', minDigits: 10, maxDigits: 11 },
+  { code: '+33', country: 'France', flag: '\u{1F1EB}\u{1F1F7}', minDigits: 9, maxDigits: 9 },
+  { code: '+39', country: 'Italy', flag: '\u{1F1EE}\u{1F1F9}', minDigits: 10, maxDigits: 10 },
+  { code: '+34', country: 'Spain', flag: '\u{1F1EA}\u{1F1F8}', minDigits: 9, maxDigits: 9 },
+  { code: '+31', country: 'Netherlands', flag: '\u{1F1F3}\u{1F1F1}', minDigits: 9, maxDigits: 9 },
+  { code: '+55', country: 'Brazil', flag: '\u{1F1E7}\u{1F1F7}', minDigits: 10, maxDigits: 11 },
+  { code: '+52', country: 'Mexico', flag: '\u{1F1F2}\u{1F1FD}', minDigits: 10, maxDigits: 10 },
+  { code: '+81', country: 'Japan', flag: '\u{1F1EF}\u{1F1F5}', minDigits: 10, maxDigits: 10 },
+  { code: '+82', country: 'South Korea', flag: '\u{1F1F0}\u{1F1F7}', minDigits: 9, maxDigits: 10 },
+  { code: '+86', country: 'China', flag: '\u{1F1E8}\u{1F1F3}', minDigits: 11, maxDigits: 11 },
+  { code: '+852', country: 'Hong Kong', flag: '\u{1F1ED}\u{1F1F0}', minDigits: 8, maxDigits: 8 },
+  { code: '+63', country: 'Philippines', flag: '\u{1F1F5}\u{1F1ED}', minDigits: 10, maxDigits: 10 },
+  { code: '+62', country: 'Indonesia', flag: '\u{1F1EE}\u{1F1E9}', minDigits: 10, maxDigits: 12 },
+  { code: '+66', country: 'Thailand', flag: '\u{1F1F9}\u{1F1ED}', minDigits: 9, maxDigits: 9 },
+  { code: '+27', country: 'South Africa', flag: '\u{1F1FF}\u{1F1E6}', minDigits: 9, maxDigits: 9 },
+  { code: '+234', country: 'Nigeria', flag: '\u{1F1F3}\u{1F1EC}', minDigits: 10, maxDigits: 10 },
+  { code: '+254', country: 'Kenya', flag: '\u{1F1F0}\u{1F1EA}', minDigits: 9, maxDigits: 9 },
+  { code: '+92', country: 'Pakistan', flag: '\u{1F1F5}\u{1F1F0}', minDigits: 10, maxDigits: 10 },
+  { code: '+880', country: 'Bangladesh', flag: '\u{1F1E7}\u{1F1E9}', minDigits: 10, maxDigits: 10 },
 ];
 
 type AuthStep =
@@ -399,11 +399,11 @@ const AuthModal: React.FC<AuthModalProps> = ({
       />
 
       {/* Modal Content */}
-      <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-gray-700/50 animate-slide-in">
+      <div className="relative bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl animate-slide-in">
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-10"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -419,21 +419,21 @@ const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             {/* Title */}
-            <h2 className="text-2xl sm:text-3xl font-bold text-center text-white mb-2">
+            <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-900 mb-2">
               {getTitle()}
             </h2>
 
             {/* Subtitle */}
-            <p className="text-gray-300 text-center mb-6">{getSubtitle()}</p>
+            <p className="text-gray-500 text-center mb-6">{getSubtitle()}</p>
 
             {/* Error Message */}
             {error && (
-              <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg">
-                <p className="text-red-300 text-sm text-center">{error}</p>
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm text-center">{error}</p>
               </div>
             )}
 
-            {/* Google Sign-In Button */}
+            {/* Google Sign-In Button - KEPT ORIGINAL COLORS */}
             <button
               onClick={() => googleLogin()}
               disabled={isLoading}
@@ -451,7 +451,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
             {/* Maybe Later */}
             <button
               onClick={handleClose}
-              className="w-full text-center text-gray-400 hover:text-gray-300 text-sm mt-4 transition-colors"
+              className="w-full text-center text-gray-500 hover:text-gray-600 text-sm mt-4 transition-colors"
             >
               Maybe later
             </button>
@@ -467,19 +467,19 @@ const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             {/* Title */}
-            <h2 className="text-2xl sm:text-3xl font-bold text-center text-white mb-2">
+            <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-900 mb-2">
               Complete Your Profile
             </h2>
 
             {/* Subtitle */}
-            <p className="text-gray-300 text-center mb-6">
+            <p className="text-gray-500 text-center mb-6">
               Add your details to get started
             </p>
 
             {/* Error Message */}
             {error && (
-              <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg">
-                <p className="text-red-300 text-sm text-center">{error}</p>
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm text-center">{error}</p>
               </div>
             )}
 
@@ -487,23 +487,23 @@ const AuthModal: React.FC<AuthModalProps> = ({
             <div className="space-y-4">
               {/* Name Field */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Name <span className="text-red-400">*</span>
+                <label className="block text-sm font-medium text-gray-600 mb-2">
+                  Name <span className="text-[#E1262D]">*</span>
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter your name"
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:border-transparent transition-all"
                   disabled={isLoading}
                 />
               </div>
 
               {/* Phone Number Field */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Phone Number <span className="text-red-400">*</span>
+                <label className="block text-sm font-medium text-gray-600 mb-2">
+                  Phone Number <span className="text-[#E1262D]">*</span>
                 </label>
                 <div className="flex gap-2">
                   {/* Country Code Dropdown */}
@@ -511,7 +511,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center gap-1 px-3 py-3 bg-gray-700/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all min-w-[110px] justify-between"
+                      className="flex items-center gap-1 px-3 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:border-transparent transition-all min-w-[110px] justify-between"
                       disabled={isLoading}
                     >
                       <span className="flex items-center gap-1">
@@ -525,15 +525,15 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
                     {/* Dropdown Menu */}
                     {isDropdownOpen && (
-                      <div className="absolute z-50 mt-1 w-64 bg-gray-800 border border-gray-600 rounded-xl shadow-lg max-h-60 overflow-hidden">
+                      <div className="absolute z-50 mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-hidden">
                         {/* Search Input */}
-                        <div className="p-2 border-b border-gray-600">
+                        <div className="p-2 border-b border-gray-200">
                           <input
                             type="text"
                             value={countrySearch}
                             onChange={(e) => setCountrySearch(e.target.value)}
                             placeholder="Search country..."
-                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E1262D] text-sm"
                             autoFocus
                           />
                         </div>
@@ -544,19 +544,19 @@ const AuthModal: React.FC<AuthModalProps> = ({
                               key={`${country.code}-${country.country}-${index}`}
                               type="button"
                               onClick={() => handleCountrySelect(country)}
-                              className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-700 transition-colors ${
+                              className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-100 transition-colors ${
                                 countryCode.code === country.code && countryCode.country === country.country
-                                  ? 'bg-gray-700'
+                                  ? 'bg-gray-100'
                                   : ''
                               }`}
                             >
                               <span>{country.flag}</span>
-                              <span className="text-white text-sm flex-1">{country.country}</span>
-                              <span className="text-gray-400 text-sm">{country.code}</span>
+                              <span className="text-gray-900 text-sm flex-1">{country.country}</span>
+                              <span className="text-gray-500 text-sm">{country.code}</span>
                             </button>
                           ))}
                           {filteredCountries.length === 0 && (
-                            <div className="px-3 py-2 text-gray-400 text-sm">No countries found</div>
+                            <div className="px-3 py-2 text-gray-500 text-sm">No countries found</div>
                           )}
                         </div>
                       </div>
@@ -569,15 +569,15 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     value={phoneNumber}
                     onChange={handlePhoneChange}
                     placeholder="Enter phone number"
-                    className={`flex-1 px-4 py-3 bg-gray-700/50 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all ${
-                      phoneError ? 'border-red-500' : 'border-gray-600'
+                    className={`flex-1 px-4 py-3 bg-gray-50 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:border-transparent transition-all ${
+                      phoneError ? 'border-[#E1262D]' : 'border-gray-300'
                     }`}
                     disabled={isLoading}
                   />
                 </div>
                 {/* Phone Validation Error */}
                 {phoneError && (
-                  <p className="mt-1 text-sm text-red-400">{phoneError}</p>
+                  <p className="mt-1 text-sm text-[#E1262D]">{phoneError}</p>
                 )}
                 {/* Digit hint */}
                 {!phoneError && phoneNumber && (
@@ -592,7 +592,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
               {/* Location Field */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-600 mb-2">
                   Location <span className="text-gray-500">(optional)</span>
                 </label>
                 <input
@@ -600,7 +600,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="Enter your location"
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:border-transparent transition-all"
                   disabled={isLoading}
                 />
               </div>
@@ -610,7 +610,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
             <button
               onClick={handleUserDetailsSubmit}
               disabled={isLoading || !name.trim() || !phoneNumber.trim()}
-              className="w-full mt-6 px-6 py-3.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-medium rounded-xl transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-6 px-6 py-3.5 bg-[#E1262D] hover:bg-[#B91C1C] text-white font-medium rounded-xl transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -630,11 +630,11 @@ const AuthModal: React.FC<AuthModalProps> = ({
         {/* Step: Loading */}
         {step === 'loading' && (
           <div className="py-12 flex flex-col items-center justify-center">
-            <svg className="animate-spin h-12 w-12 text-red-500 mb-4" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-12 w-12 text-[#E1262D] mb-4" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p className="text-gray-300">Please wait...</p>
+            <p className="text-gray-500">Please wait...</p>
           </div>
         )}
 
@@ -646,12 +646,12 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Welcome!</h3>
-            <p className="text-gray-400">You're all set.</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Welcome!</h3>
+            <p className="text-gray-500">You're all set.</p>
           </div>
         )}
 
-        {/* Step: Pending Approval */}
+        {/* Step: Pending Approval - KEPT YELLOW for functional exception */}
         {step === 'pending-approval' && (
           <div className="py-8 flex flex-col items-center justify-center">
             <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mb-4">
@@ -659,8 +659,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Account Pending Approval</h3>
-            <p className="text-gray-400 text-center mb-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Account Pending Approval</h3>
+            <p className="text-gray-500 text-center mb-6">
               Your account has been created successfully. An admin will review and approve your request shortly.
             </p>
             <button

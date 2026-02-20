@@ -167,11 +167,11 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, loading, onError }) => {
       {/* Block Confirmation Modal */}
       {confirmModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700">
-            <h3 className="text-lg font-semibold text-white mb-2">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 border border-gray-200 shadow-2xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {confirmModal.isBlocked ? 'Unblock User?' : 'Block User?'}
             </h3>
-            <p className="text-gray-400 mb-6">
+            <p className="text-gray-500 mb-6">
               {confirmModal.isBlocked
                 ? `Are you sure you want to unblock ${confirmModal.userName}? They will be able to login again.`
                 : `Are you sure you want to block ${confirmModal.userName}? They will not be able to login until unblocked.`}
@@ -179,7 +179,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, loading, onError }) => {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setConfirmModal(null)}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>

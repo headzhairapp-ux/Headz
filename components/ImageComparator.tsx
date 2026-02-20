@@ -36,7 +36,7 @@ const ImageComparator: React.FC<ImageComparatorProps> = ({ originalImage, styled
   const handleMouseUp = useCallback(() => {
     isDragging.current = false;
   }, []);
-  
+
   const handleTouchEnd = useCallback(() => {
     isDragging.current = false;
   }, []);
@@ -48,13 +48,13 @@ const ImageComparator: React.FC<ImageComparatorProps> = ({ originalImage, styled
   const handleTouchMove = useCallback((e: globalThis.TouchEvent) => {
     handleMove(e.touches[0].clientX);
   }, [handleMove]);
-  
+
   useEffect(() => {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('touchmove', handleTouchMove);
     window.addEventListener('mouseup', handleMouseUp);
     window.addEventListener('touchend', handleTouchEnd);
-    
+
     return () => {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('touchmove', handleTouchMove);
@@ -65,9 +65,9 @@ const ImageComparator: React.FC<ImageComparatorProps> = ({ originalImage, styled
 
 
   return (
-    <div 
+    <div
         ref={containerRef}
-        className="relative w-full aspect-square bg-gray-800 rounded-lg shadow-lg overflow-hidden select-none group"
+        className="relative w-full aspect-square bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden select-none group"
     >
       <img
         src={originalImage}
@@ -86,13 +86,13 @@ const ImageComparator: React.FC<ImageComparatorProps> = ({ originalImage, styled
           draggable="false"
         />
       </div>
-      
+
       {/* Action Buttons: Download & Share */}
       <div className="absolute top-4 right-4 flex items-center gap-3 z-10 opacity-80 group-hover:opacity-100 transition-opacity">
         {onDownload && (
-          <button 
-              onClick={onDownload} 
-              className="bg-gray-800/60 hover:bg-gray-700/80 backdrop-blur-sm text-white font-semibold py-2 px-3 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 text-sm flex items-center"
+          <button
+              onClick={onDownload}
+              className="bg-white/80 hover:bg-white backdrop-blur-sm text-gray-700 font-semibold py-2 px-3 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:ring-offset-2 focus:ring-offset-white text-sm flex items-center"
               aria-label="Download styled image"
               title="Download Image"
           >
@@ -101,10 +101,10 @@ const ImageComparator: React.FC<ImageComparatorProps> = ({ originalImage, styled
               </svg>
           </button>
         )}
-        <button 
-            onClick={onShare} 
+        <button
+            onClick={onShare}
             disabled={!onShare}
-            className="bg-gray-800/60 hover:bg-gray-700/80 backdrop-blur-sm text-white font-semibold py-2 px-3 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 text-sm flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-white/80 hover:bg-white backdrop-blur-sm text-gray-700 font-semibold py-2 px-3 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:ring-offset-2 focus:ring-offset-white text-sm flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Share styled image"
             title={!onShare ? "Sharing not supported in this browser" : "Share Image"}
         >
@@ -121,12 +121,12 @@ const ImageComparator: React.FC<ImageComparatorProps> = ({ originalImage, styled
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       >
-        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 bg-white/50"></div>
+        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 bg-gray-400/50"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/80 shadow-md backdrop-blur-sm flex items-center justify-center cursor-ew-resize transition-transform duration-200 group-hover:scale-110">
-          <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path></svg>
+          <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path></svg>
         </div>
       </div>
-      
+
       {isLoading && <Loader />}
       {children}
     </div>

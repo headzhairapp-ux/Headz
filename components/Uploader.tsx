@@ -43,54 +43,54 @@ const Uploader: React.FC<UploaderProps> = ({ onImageUpload }) => {
   }, [onImageUpload]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4 sm:p-8 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="flex items-center justify-center min-h-screen p-4 sm:p-8 bg-white">
       <div className="w-full max-w-4xl text-center">
         {/* Hero Section */}
         <div className="mb-8 sm:mb-12">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">
             Transform Your Look with
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400"> AI Magic</span>
+            <span className="text-[#E1262D]"> AI Magic</span>
           </h1>
-          <p className="text-base sm:text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed px-2 sm:px-0">
-            Upload a photo and discover your perfect hairstyle using cutting-edge AI technology. 
+          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-2 sm:px-0">
+            Upload a photo and discover your perfect hairstyle using cutting-edge AI technology.
             See yourself with any look instantly!
           </p>
         </div>
 
         {/* Upload Area */}
-        <div className="bg-gray-800/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-gray-700/50 shadow-2xl mb-6 sm:mb-8">
+        <div className="bg-white border border-gray-200 shadow-lg rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8">
           <label
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             className={`relative flex flex-col items-center justify-center w-full h-64 sm:h-80 lg:h-96 border-2 border-dashed rounded-xl sm:rounded-2xl cursor-pointer transition-all duration-500 transform hover:scale-105 ${
-              isDragging 
-                ? 'border-purple-400 bg-gradient-to-br from-purple-500/20 to-blue-500/20 scale-105 shadow-2xl shadow-purple-500/25' 
-                : 'border-gray-600 bg-gradient-to-br from-gray-700/50 to-gray-800/50 hover:border-purple-400 hover:bg-gradient-to-br hover:from-purple-500/10 hover:to-blue-500/10'
+              isDragging
+                ? 'border-[#E1262D] bg-[#E1262D]/5 scale-105 shadow-2xl shadow-[#E1262D]/25'
+                : 'border-gray-300 bg-gray-50 hover:border-[#E1262D] hover:bg-[#E1262D]/5'
             }`}
           >
             <div className="flex flex-col items-center justify-center pt-5 pb-6">
               <div className={`w-16 h-16 sm:w-20 sm:h-20 mb-4 sm:mb-6 transition-all duration-500 ${isDragging ? 'scale-110' : ''}`}>
-                <svg className="w-full h-full text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                <svg className="w-full h-full text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
                   <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
                 </svg>
               </div>
-              <p className="mb-2 sm:mb-3 text-lg sm:text-xl lg:text-2xl text-gray-300 font-semibold">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">Click to upload</span> or drag and drop
+              <p className="mb-2 sm:mb-3 text-lg sm:text-xl lg:text-2xl text-gray-600 font-semibold">
+                <span className="text-[#E1262D]">Click to upload</span> or drag and drop
               </p>
-              <p className="text-sm sm:text-base lg:text-lg text-gray-400 mb-3 sm:mb-4">PNG, JPG, or WEBP (Max 10MB)</p>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-500 mb-3 sm:mb-4">PNG, JPG, or WEBP (Max 10MB)</p>
               <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
                 <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-[#E1262D] rounded-full"></div>
                   <span>High Quality</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-[#E1262D] rounded-full"></div>
                   <span>Fast Processing</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-[#E1262D] rounded-full"></div>
                   <span>AI Powered</span>
                 </div>
               </div>
@@ -98,19 +98,19 @@ const Uploader: React.FC<UploaderProps> = ({ onImageUpload }) => {
             <input id="dropzone-file" type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleFileChange} />
           </label>
         </div>
-        
+
         {/* Divider */}
         <div className="flex items-center my-8">
-          <div className="flex-grow border-t border-gray-600"></div>
+          <div className="flex-grow border-t border-gray-200"></div>
           <span className="flex-shrink mx-6 text-gray-500 uppercase text-sm font-semibold tracking-wider">Or</span>
-          <div className="flex-grow border-t border-gray-600"></div>
+          <div className="flex-grow border-t border-gray-200"></div>
         </div>
 
         {/* Camera Button */}
         <div className="mb-12">
           <button
             onClick={() => setShowCamera(true)}
-            className="group inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-semibold rounded-2xl text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 focus:outline-none focus:ring-4 focus:ring-purple-500/30 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl shadow-purple-500/25"
+            className="group inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-semibold rounded-2xl text-white bg-[#E1262D] hover:bg-[#B91C1C] focus:outline-none focus:ring-4 focus:ring-[#E1262D]/30 focus:ring-offset-2 focus:ring-offset-white transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl shadow-[#E1262D]/25"
             aria-label="Use camera to take a photo"
           >
             <div className="p-2 rounded-xl bg-white/20 mr-4 group-hover:bg-white/30 transition-colors">
@@ -125,34 +125,34 @@ const Uploader: React.FC<UploaderProps> = ({ onImageUpload }) => {
 
         {/* Features */}
         <div className="grid md:grid-cols-3 gap-8 text-left">
-          <div className="bg-gray-800/40 rounded-2xl p-6 border border-gray-700/50">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
+          <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6">
+            <div className="w-12 h-12 bg-[#E1262D] rounded-xl flex items-center justify-center mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Lightning Fast</h3>
-            <p className="text-gray-300">Get your new hairstyle in seconds with our advanced AI technology</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Lightning Fast</h3>
+            <p className="text-gray-600">Get your new hairstyle in seconds with our advanced AI technology</p>
           </div>
-          
-          <div className="bg-gray-800/40 rounded-2xl p-6 border border-gray-700/50">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4">
+
+          <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6">
+            <div className="w-12 h-12 bg-[#E1262D] rounded-xl flex items-center justify-center mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Professional Quality</h3>
-            <p className="text-gray-300">Salon-grade results that look natural and realistic</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Professional Quality</h3>
+            <p className="text-gray-600">Salon-grade results that look natural and realistic</p>
           </div>
-          
-          <div className="bg-gray-800/40 rounded-2xl p-6 border border-gray-700/50">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4">
+
+          <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6">
+            <div className="w-12 h-12 bg-[#E1262D] rounded-xl flex items-center justify-center mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Free Forever</h3>
-            <p className="text-gray-300">No subscriptions, no hidden fees - just amazing results</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Free Forever</h3>
+            <p className="text-gray-600">No subscriptions, no hidden fees - just amazing results</p>
           </div>
         </div>
       </div>

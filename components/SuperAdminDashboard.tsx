@@ -87,19 +87,19 @@ const SuperAdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-800">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-black/20 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
               <Link to="/" className="flex items-center space-x-2">
                 <img src="/logo.png" alt="Headz International" className="h-14 object-contain rounded-lg" />
-                <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+                <span className="text-2xl font-bold text-[#E1262D]">
                   Headz International
                 </span>
               </Link>
-              <div className="hidden sm:flex items-center px-3 py-1 bg-purple-600 text-white text-sm rounded-full font-medium">
+              <div className="hidden sm:flex items-center px-3 py-1 bg-[#E1262D] text-white text-sm rounded-full font-medium">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
@@ -108,12 +108,12 @@ const SuperAdminDashboard: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-4">
-              <span className="text-gray-300 hidden sm:block">
+              <span className="text-gray-600 hidden sm:block">
                 Welcome, {user?.full_name || user?.email}
               </span>
               <button
                 onClick={handleSignOut}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors duration-300"
+                className="px-4 py-2 text-sm bg-[#E1262D] hover:bg-[#B91C1C] text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg"
               >
                 Sign Out
               </button>
@@ -133,13 +133,13 @@ const SuperAdminDashboard: React.FC = () => {
         {/* Main Content */}
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 overflow-y-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
               {activeTab === 'home' && 'Super Admin Dashboard'}
               {activeTab === 'users' && 'User Management'}
               {activeTab === 'approve-requests' && 'Approve Requests'}
               {activeTab === 'custom-prompts' && 'Custom Prompts'}
             </h1>
-            <p className="text-gray-400">
+            <p className="text-gray-500">
               {activeTab === 'home' && 'Analytics overview across all users'}
               {activeTab === 'users' && 'View and manage user data'}
               {activeTab === 'approve-requests' && 'Review and approve new user registrations'}
@@ -148,7 +148,7 @@ const SuperAdminDashboard: React.FC = () => {
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-900/50 border border-red-700 text-red-300 rounded-lg">
+            <div className="mb-6 p-4 bg-red-50 border border-red-300 text-red-600 rounded-lg">
               <p className="font-bold">Error:</p>
               <p>{error}</p>
             </div>

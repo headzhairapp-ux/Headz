@@ -16,12 +16,12 @@ interface MainDisplayProps {
   onDiscard?: () => void;
 }
 
-const MainDisplay: React.FC<MainDisplayProps> = ({ 
-    originalImage, 
-    styledImage, 
-    isLoading, 
-    onRequestFrontView, 
-    onRequestSideView, 
+const MainDisplay: React.FC<MainDisplayProps> = ({
+    originalImage,
+    styledImage,
+    isLoading,
+    onRequestFrontView,
+    onRequestSideView,
     onRequestBackView,
     onDownload,
     onShare,
@@ -34,12 +34,12 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
   return (
     <div className="p-4 md:p-8">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-200">Virtual Mirror</h2>
+        <h2 className="text-xl font-semibold text-gray-900">Virtual Mirror</h2>
         <div className="flex gap-2">
           {onStartOver && (
             <button
               onClick={onStartOver}
-              className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 text-sm flex items-center"
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 focus:ring-offset-white text-sm flex items-center"
               aria-label="Start over with a new image"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
@@ -51,7 +51,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
           {onDiscard && styledImage && (
             <button
               onClick={onDiscard}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 text-sm flex items-center"
+              className="bg-[#E1262D] hover:bg-[#c82128] text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:ring-offset-2 focus:ring-offset-white text-sm flex items-center"
               aria-label="Discard current styled image"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
@@ -66,14 +66,14 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
         {originalImage && !styledImage && (
              <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-5xl relative">
                  {isLoading && <Loader />}
-                 <div className="w-full aspect-square bg-gray-800 rounded-lg shadow-lg overflow-hidden flex flex-col">
-                     <h3 className="text-center py-2 text-sm font-semibold bg-gray-900/50 text-gray-300">Current Image</h3>
+                 <div className="w-full aspect-square bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
+                     <h3 className="text-center py-2 text-sm font-semibold bg-gray-50 text-gray-600">Current Image</h3>
                      <div className="relative flex-grow flex items-center justify-center">
                          <img src={originalImage} alt="Current" className="w-full h-full object-cover" />
                      </div>
                  </div>
-                 <div className="w-full aspect-square bg-gray-800 rounded-lg shadow-lg overflow-hidden flex flex-col">
-                     <h3 className="text-center py-2 text-sm font-semibold bg-gray-900/50 text-gray-300">Image with Style Applied</h3>
+                 <div className="w-full aspect-square bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
+                     <h3 className="text-center py-2 text-sm font-semibold bg-gray-50 text-gray-600">Image with Style Applied</h3>
                      <div className="relative flex-grow flex items-center justify-center text-gray-500">
                          {isLoading ? "Processing..." : "Select a style to begin"}
                      </div>
@@ -83,8 +83,8 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
         {originalImage && styledImage && (
             <div className="w-full max-w-2xl relative">
                 {isLoading && <Loader />}
-                <ImageComparator 
-                    originalImage={originalImage} 
+                <ImageComparator
+                    originalImage={originalImage}
                     styledImage={styledImage}
                     isLoading={isLoading}
                     onDownload={showActionButtons ? onDownload : undefined}
@@ -95,7 +95,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
                             {onRequestFrontView && (
                                 <button
                                     onClick={onRequestFrontView}
-                                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 text-sm flex items-center"
+                                    className="bg-[#E1262D] hover:bg-[#c82128] text-white font-semibold py-2 px-3 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:ring-offset-2 focus:ring-offset-white text-sm flex items-center"
                                     aria-label="Regenerate style with a front view"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
@@ -107,7 +107,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
                             {onRequestSideView && (
                                 <button
                                     onClick={onRequestSideView}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 text-sm flex items-center"
+                                    className="bg-[#E1262D] hover:bg-[#c82128] text-white font-semibold py-2 px-3 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:ring-offset-2 focus:ring-offset-white text-sm flex items-center"
                                     aria-label="Regenerate style with a side view"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
@@ -120,7 +120,7 @@ const MainDisplay: React.FC<MainDisplayProps> = ({
                             {onRequestBackView && (
                                 <button
                                     onClick={onRequestBackView}
-                                    className="bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-gray-900 text-sm flex items-center"
+                                    className="bg-[#E1262D] hover:bg-[#c82128] text-white font-semibold py-2 px-3 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:ring-offset-2 focus:ring-offset-white text-sm flex items-center"
                                     aria-label="Regenerate style with a back view"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">

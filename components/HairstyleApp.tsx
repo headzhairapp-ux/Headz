@@ -508,8 +508,8 @@ REQUIREMENTS:
         {/* OAuth Profile Modal */}
         {showOAuthProfileModal && oauthUserData && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black bg-opacity-75 backdrop-blur-sm" />
-            <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-gray-700/50">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+            <div className="relative bg-white border border-gray-200 shadow-2xl rounded-2xl p-6 sm:p-8 max-w-md w-full">
               <ProfileForm
                 email={oauthUserData.email}
                 onSubmit={handleOAuthProfileSubmit}
@@ -523,7 +523,7 @@ REQUIREMENTS:
 
   return (
     <AuthWrapper>
-      <div className="min-h-screen flex flex-col bg-gray-900 text-white">
+      <div className="min-h-screen flex flex-col bg-white text-gray-900">
         <Header />
         <TabSelector activeTab={activeTab} onTabChange={handleTabChange} isLoggedIn={!!user} />
       <div className="flex-grow flex flex-col overflow-y-auto">
@@ -568,7 +568,7 @@ REQUIREMENTS:
           />
         )}
         {error && (
-          <div className="mx-8 mb-4 p-4 bg-red-900/50 border border-red-700 text-red-300 rounded-lg">
+          <div className="mx-8 mb-4 p-4 bg-red-50 border border-[#E1262D]/30 text-[#E1262D] rounded-lg">
             <p className="font-bold">Error:</p>
             <p className="text-sm whitespace-pre-wrap font-mono">{error}</p>
           </div>
@@ -588,8 +588,8 @@ REQUIREMENTS:
       {/* OAuth Profile Modal */}
       {showOAuthProfileModal && oauthUserData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black bg-opacity-75 backdrop-blur-sm" />
-          <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-gray-700/50">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="relative bg-white border border-gray-200 shadow-2xl rounded-2xl p-6 sm:p-8 max-w-md w-full">
             <ProfileForm
               email={oauthUserData.email}
               onSubmit={handleOAuthProfileSubmit}

@@ -1003,6 +1003,7 @@ export const getWeeklyUserRegistrations = async (): Promise<DailyCount[]> => {
         const { count, error } = await supabase
             .from('users')
             .select('id', { count: 'exact' })
+            .eq('is_approved', true)
             .gte('created_at', startOfDay.toISOString())
             .lte('created_at', endOfDay.toISOString());
 
@@ -1122,6 +1123,7 @@ export const getMonthlyUserRegistrations = async (): Promise<MonthlyCount[]> => 
         const { count, error } = await supabase
             .from('users')
             .select('id', { count: 'exact' })
+            .eq('is_approved', true)
             .gte('created_at', startOfMonth.toISOString())
             .lte('created_at', endOfMonth.toISOString());
 

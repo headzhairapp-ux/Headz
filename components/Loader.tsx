@@ -38,22 +38,22 @@ const Loader: React.FC = () => {
   }, []);
 
   return (
-    <div className="absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center z-50 rounded-lg p-6">
+    <div className="absolute inset-0 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center z-50 rounded-lg p-6">
       {/* AI Loader Card */}
-      <div className="bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-3xl p-8 max-w-md w-full border border-gray-700/50 shadow-2xl">
+      <div className="bg-white rounded-3xl p-8 max-w-md w-full border border-gray-200 shadow-2xl">
 
         {/* AI Brain Animation */}
         <div className="flex justify-center mb-8">
           <div className="relative">
             {/* Outer rotating ring */}
-            <div className="absolute inset-0 w-28 h-28 border-2 border-dashed border-red-500/30 rounded-full animate-spin" style={{ animationDuration: '8s' }}></div>
+            <div className="absolute inset-0 w-28 h-28 border-2 border-dashed border-[#E1262D]/30 rounded-full animate-spin" style={{ animationDuration: '8s' }}></div>
 
             {/* Middle pulsing ring */}
-            <div className="absolute inset-2 w-24 h-24 border-2 border-red-400/40 rounded-full animate-pulse"></div>
+            <div className="absolute inset-2 w-24 h-24 border-2 border-[#E1262D]/40 rounded-full animate-pulse"></div>
 
             {/* Inner glow circle */}
             <div className="relative w-28 h-28 flex items-center justify-center">
-              <div className="absolute inset-4 bg-gradient-to-br from-red-600 via-red-500 to-red-700 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
+              <div className="absolute inset-4 bg-gradient-to-br from-[#E1262D] via-[#E1262D] to-[#B91C1C] rounded-full animate-pulse shadow-lg shadow-[#E1262D]/50"></div>
 
               {/* AI Sparkles Icon */}
               <div className="relative z-10">
@@ -66,10 +66,10 @@ const Loader: React.FC = () => {
 
             {/* Orbiting dots */}
             <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s' }}>
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-red-400 rounded-full shadow-lg shadow-red-400/50"></div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#E1262D] rounded-full shadow-lg shadow-[#E1262D]/50"></div>
             </div>
             <div className="absolute inset-0 animate-spin" style={{ animationDuration: '4s', animationDirection: 'reverse' }}>
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-red-300 rounded-full shadow-lg shadow-red-300/50"></div>
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#E1262D]/70 rounded-full shadow-lg shadow-[#E1262D]/50"></div>
             </div>
             <div className="absolute inset-0 animate-spin" style={{ animationDuration: '5s' }}>
               <div className="absolute top-1/2 left-0 -translate-y-1/2 w-2 h-2 bg-white rounded-full shadow-lg shadow-white/50"></div>
@@ -79,19 +79,19 @@ const Loader: React.FC = () => {
 
         {/* AI Badge */}
         <div className="flex justify-center mb-4">
-          <div className="bg-gradient-to-r from-red-600 to-red-500 px-4 py-1.5 rounded-full">
+          <div className="bg-gradient-to-r from-[#E1262D] to-[#B91C1C] px-4 py-1.5 rounded-full">
             <span className="text-white text-sm font-bold tracking-wider">AI POWERED</span>
           </div>
         </div>
 
         {/* Progress Bar */}
         <div className="mb-6">
-          <div className="relative w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+          <div className="relative w-full bg-gray-200 rounded-full h-2 overflow-hidden">
             <div
               className="h-2 rounded-full transition-all duration-500 ease-out"
               style={{
                 width: `${Math.min(progress, 100)}%`,
-                background: 'linear-gradient(90deg, #dc2626, #ef4444, #b91c1c)',
+                background: 'linear-gradient(90deg, #E1262D, #E1262D, #B91C1C)',
               }}
             />
           </div>
@@ -99,16 +99,16 @@ const Loader: React.FC = () => {
 
         {/* Status Message */}
         <div className="text-center mb-6">
-          <p className="text-lg font-semibold text-white mb-2">
+          <p className="text-lg font-semibold text-gray-900 mb-2">
             {steps[step]}
-            <span className="text-red-400">{dots}</span>
+            <span className="text-[#E1262D]">{dots}</span>
           </p>
           <div className="flex justify-center space-x-1">
             {steps.map((_, index) => (
               <div
                 key={index}
                 className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                  index === step ? 'bg-red-400 scale-125' : 'bg-gray-600'
+                  index === step ? 'bg-[#E1262D] scale-125' : 'bg-gray-300'
                 }`}
               />
             ))}
@@ -117,23 +117,23 @@ const Loader: React.FC = () => {
 
         {/* Info Text */}
         <div className="text-center mb-6">
-          <p className="text-gray-400 text-sm">
+          <p className="text-gray-500 text-sm">
             Our AI is transforming your hairstyle
           </p>
-          <p className="text-gray-500 text-xs mt-1">
+          <p className="text-gray-400 text-xs mt-1">
             This usually takes 10-30 seconds
           </p>
         </div>
 
         {/* Tip Box */}
-        <div className="bg-gradient-to-r from-red-900/30 to-red-800/30 rounded-xl border border-red-500/20 p-3">
+        <div className="bg-gradient-to-r from-[#E1262D]/20 to-[#B91C1C]/20 rounded-xl border border-[#E1262D]/20 p-3">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 bg-gradient-to-br from-[#E1262D] to-[#B91C1C] rounded-lg flex items-center justify-center flex-shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <p className="text-gray-300 text-sm">
+            <p className="text-gray-600 text-sm">
               Tip: Front-facing photos work best with our AI
             </p>
           </div>

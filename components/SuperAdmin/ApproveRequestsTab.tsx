@@ -31,7 +31,7 @@ const formatDate = (dateString: string) => {
   return (
     <>
       <div>{dateStr}</div>
-      <div className="text-xs text-gray-500">{timeStr}</div>
+      <div className="text-xs text-gray-400">{timeStr}</div>
     </>
   );
 };
@@ -105,11 +105,11 @@ const ApproveRequestsTab: React.FC<ApproveRequestsTabProps> = ({ onPendingCountC
     <>
       {/* Summary Bar */}
       {!loading && (
-        <div className="mb-6 p-4 bg-yellow-900/30 border border-yellow-700/50 rounded-xl flex items-center space-x-3">
-          <svg className="w-5 h-5 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl flex items-center space-x-3">
+          <svg className="w-5 h-5 text-yellow-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="text-yellow-300 font-medium">
+          <span className="text-yellow-700 font-medium">
             {pendingUsers.length} user{pendingUsers.length !== 1 ? 's' : ''} pending approval
           </span>
         </div>
@@ -126,78 +126,78 @@ const ApproveRequestsTab: React.FC<ApproveRequestsTabProps> = ({ onPendingCountC
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search pending users..."
-            className="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:border-transparent transition-all"
           />
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-900/50 border-b border-gray-700">
-                <th className="px-4 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap w-16">
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="px-4 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">
                   Sr No.
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   User
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Phone
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Location
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Requested On
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-700">
+            <tbody className="divide-y divide-gray-200">
               {loading ? (
                 [...Array(3)].map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td className="px-4 py-4 text-center"><div className="h-4 bg-gray-700 rounded w-8 mx-auto"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-700 rounded w-40"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-700 rounded w-28"></div></td>
-                    <td className="px-6 py-4 text-center"><div className="h-4 bg-gray-700 rounded w-20 mx-auto"></div></td>
-                    <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-700 rounded w-24 ml-auto"></div></td>
-                    <td className="px-6 py-4 text-center"><div className="h-4 bg-gray-700 rounded w-32 mx-auto"></div></td>
+                    <td className="px-4 py-4 text-center"><div className="h-4 bg-gray-200 rounded w-8 mx-auto"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-40"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-28"></div></td>
+                    <td className="px-6 py-4 text-center"><div className="h-4 bg-gray-200 rounded w-20 mx-auto"></div></td>
+                    <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-24 ml-auto"></div></td>
+                    <td className="px-6 py-4 text-center"><div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div></td>
                   </tr>
                 ))
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                     {searchQuery ? 'No pending users found matching your search.' : 'No pending approval requests.'}
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((u, index) => (
-                  <tr key={u.id} className="hover:bg-gray-700/30 transition-colors">
+                  <tr key={u.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-4 text-center">
-                      <span className="text-gray-300 font-medium">{index + 1}</span>
+                      <span className="text-gray-700 font-medium">{index + 1}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="text-white font-medium">
+                        <span className="text-gray-900 font-medium">
                           {u.full_name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'No Name'}
                         </span>
-                        <span className="text-gray-400 text-sm">{u.email}</span>
+                        <span className="text-gray-500 text-sm">{u.email}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {u.country_code && u.phone_number
                         ? `${u.country_code} ${u.phone_number}`
                         : 'N/A'}
                     </td>
-                    <td className="px-6 py-4 text-center text-gray-400 text-sm whitespace-nowrap">
+                    <td className="px-6 py-4 text-center text-gray-500 text-sm whitespace-nowrap">
                       {u.location || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 text-right text-gray-400 text-sm whitespace-nowrap">
+                    <td className="px-6 py-4 text-right text-gray-500 text-sm whitespace-nowrap">
                       {u.created_at ? formatDate(u.created_at) : 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -229,11 +229,11 @@ const ApproveRequestsTab: React.FC<ApproveRequestsTabProps> = ({ onPendingCountC
       {/* Confirmation Modal */}
       {confirmModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700">
-            <h3 className="text-lg font-semibold text-white mb-2">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 border border-gray-200 shadow-2xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {confirmModal.action === 'approve' ? 'Approve User?' : 'Reject User?'}
             </h3>
-            <p className="text-gray-400 mb-6">
+            <p className="text-gray-500 mb-6">
               {confirmModal.action === 'approve'
                 ? `Are you sure you want to approve ${confirmModal.userName}? They will be able to login and use the application.`
                 : `Are you sure you want to reject ${confirmModal.userName}? Their account will be permanently deleted.`}
@@ -241,7 +241,7 @@ const ApproveRequestsTab: React.FC<ApproveRequestsTabProps> = ({ onPendingCountC
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setConfirmModal(null)}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>

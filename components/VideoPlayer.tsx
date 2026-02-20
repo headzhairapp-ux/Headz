@@ -15,12 +15,12 @@ const VideoPlayer: React.FC = () => {
 
     // Small delay to ensure the iframe is loaded
     const timer = setTimeout(enterFullscreen, 1000);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
+    <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="w-full h-screen">
         <iframe
           ref={iframeRef}
@@ -31,13 +31,13 @@ const VideoPlayer: React.FC = () => {
           title="Headz International Demo Video"
         />
       </div>
-      
+
       {/* Instructions */}
-      <div className="absolute top-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg">
+      <div className="absolute top-4 right-4 bg-white bg-opacity-90 text-gray-900 p-4 rounded-lg shadow-lg border border-gray-200">
         <p className="text-sm">Press F11 or click the fullscreen button on the video player</p>
-        <button 
-          onClick={() => window.close()} 
-          className="mt-2 px-3 py-1 bg-gray-600 hover:bg-gray-500 rounded text-xs transition-colors"
+        <button
+          onClick={() => window.close()}
+          className="mt-2 px-3 py-1 bg-[#E1262D] hover:bg-[#c82126] text-white rounded text-xs transition-colors"
         >
           Close
         </button>

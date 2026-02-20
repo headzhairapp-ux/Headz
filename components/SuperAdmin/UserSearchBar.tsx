@@ -22,11 +22,11 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({ value, onChange, loading 
         placeholder="Search users..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-10 pr-10 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        className="w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:border-transparent"
       />
       {loading && (
         <svg
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-purple-400 animate-spin"
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#E1262D] animate-spin"
           fill="none"
           viewBox="0 0 24 24"
         >

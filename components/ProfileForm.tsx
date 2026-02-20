@@ -41,24 +41,24 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
     <div className="w-full">
       {/* Header */}
       <div className="text-center mb-6">
-        <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center">
+        <div className="w-16 h-16 mx-auto mb-4 bg-[#E1262D] rounded-full flex items-center justify-center">
           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">Complete Your Profile</h2>
-        <p className="text-gray-400 text-sm">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Complete Your Profile</h2>
+        <p className="text-gray-500 text-sm">
           Just a few more details to get started
         </p>
-        <p className="text-gray-500 text-xs mt-1">{email}</p>
+        <p className="text-gray-400 text-xs mt-1">{email}</p>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* First Name */}
         <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-1">
-            First Name <span className="text-red-400">*</span>
+          <label htmlFor="firstName" className="block text-sm font-medium text-gray-600 mb-1">
+            First Name <span className="text-[#E1262D]">*</span>
           </label>
           <input
             type="text"
@@ -67,15 +67,15 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
             onChange={(e) => setFirstName(e.target.value)}
             disabled={isLoading}
             placeholder="Enter your first name"
-            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all disabled:opacity-50"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:border-transparent transition-all disabled:opacity-50"
             autoFocus
           />
         </div>
 
         {/* Last Name */}
         <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-gray-300 mb-1">
-            Last Name <span className="text-red-400">*</span>
+          <label htmlFor="lastName" className="block text-sm font-medium text-gray-600 mb-1">
+            Last Name <span className="text-[#E1262D]">*</span>
           </label>
           <input
             type="text"
@@ -84,14 +84,14 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
             onChange={(e) => setLastName(e.target.value)}
             disabled={isLoading}
             placeholder="Enter your last name"
-            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all disabled:opacity-50"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:border-transparent transition-all disabled:opacity-50"
           />
         </div>
 
         {/* Location (Optional) */}
         <div>
-          <label htmlFor="location" className="block text-sm font-medium text-gray-300 mb-1">
-            Location <span className="text-gray-500 text-xs">(optional)</span>
+          <label htmlFor="location" className="block text-sm font-medium text-gray-600 mb-1">
+            Location <span className="text-gray-400 text-xs">(optional)</span>
           </label>
           <input
             type="text"
@@ -100,14 +100,14 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
             onChange={(e) => setLocation(e.target.value)}
             disabled={isLoading}
             placeholder="e.g., New York, USA"
-            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all disabled:opacity-50"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E1262D] focus:border-transparent transition-all disabled:opacity-50"
           />
         </div>
 
         {/* Error Messages */}
         {(validationError || error) && (
-          <div className="p-3 bg-red-900/50 border border-red-700 rounded-lg">
-            <p className="text-red-300 text-sm">{validationError || error}</p>
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm">{validationError || error}</p>
           </div>
         )}
 
@@ -115,7 +115,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
+          className="w-full py-3 bg-[#E1262D] hover:bg-[#B91C1C] text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
         >
           {isLoading ? (
             <>
@@ -136,7 +136,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
             type="button"
             onClick={onSkip}
             disabled={isLoading}
-            className="w-full text-center text-gray-400 hover:text-gray-300 text-sm transition-colors disabled:opacity-50"
+            className="w-full text-center text-gray-500 hover:text-gray-600 text-sm transition-colors disabled:opacity-50"
           >
             Skip for now
           </button>

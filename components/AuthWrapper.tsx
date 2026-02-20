@@ -18,7 +18,7 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
 
   if (loading || (!user && !isFreeUser)) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <Loader />
       </div>
     );

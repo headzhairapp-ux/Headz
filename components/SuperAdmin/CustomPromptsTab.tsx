@@ -79,13 +79,13 @@ const CustomPromptsTab: React.FC<CustomPromptsTabProps> = ({ loading: initialLoa
     return (
       <div className="space-y-4">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="bg-gray-800/50 rounded-lg p-4 animate-pulse">
+          <div key={i} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm animate-pulse">
             <div className="flex justify-between items-center">
               <div className="space-y-2">
-                <div className="h-4 bg-gray-700 rounded w-48"></div>
-                <div className="h-3 bg-gray-700 rounded w-32"></div>
+                <div className="h-4 bg-gray-200 rounded w-48"></div>
+                <div className="h-3 bg-gray-200 rounded w-32"></div>
               </div>
-              <div className="h-8 w-8 bg-gray-700 rounded"></div>
+              <div className="h-8 w-8 bg-gray-200 rounded"></div>
             </div>
           </div>
         ))}
@@ -98,7 +98,7 @@ const CustomPromptsTab: React.FC<CustomPromptsTabProps> = ({ loading: initialLoa
     return (
       <div className="text-center py-12">
         <svg
-          className="w-16 h-16 mx-auto text-gray-600 mb-4"
+          className="w-16 h-16 mx-auto text-gray-400 mb-4"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -110,8 +110,8 @@ const CustomPromptsTab: React.FC<CustomPromptsTabProps> = ({ loading: initialLoa
             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
           />
         </svg>
-        <h3 className="text-lg font-medium text-gray-400">No Custom Prompts Yet</h3>
-        <p className="text-gray-500 mt-2">
+        <h3 className="text-lg font-medium text-gray-500">No Custom Prompts Yet</h3>
+        <p className="text-gray-400 mt-2">
           Users haven&apos;t created any custom AI-generated styles yet.
         </p>
       </div>
@@ -121,9 +121,9 @@ const CustomPromptsTab: React.FC<CustomPromptsTabProps> = ({ loading: initialLoa
   return (
     <div className="space-y-4">
       {/* Summary */}
-      <div className="mb-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-        <p className="text-gray-300">
-          <span className="text-purple-400 font-semibold">{users.length}</span> users with custom
+      <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+        <p className="text-gray-700">
+          <span className="text-[#E1262D] font-semibold">{users.length}</span> users with custom
           prompts
         </p>
       </div>
@@ -132,21 +132,21 @@ const CustomPromptsTab: React.FC<CustomPromptsTabProps> = ({ loading: initialLoa
       {users.map((user) => (
         <div
           key={user.id}
-          className="bg-gray-800/50 rounded-lg border border-gray-700 overflow-hidden"
+          className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
         >
           {/* User header - clickable to expand */}
           <button
             onClick={() => handleToggleExpand(user.id)}
-            className="w-full p-4 flex justify-between items-center hover:bg-gray-700/50 transition-colors duration-200"
+            className="w-full p-4 flex justify-between items-center hover:bg-gray-50 transition-colors duration-200"
           >
             <div className="text-left">
-              <p className="text-white font-medium">
+              <p className="text-gray-900 font-medium">
                 {user.full_name || 'Unknown User'}
               </p>
-              <p className="text-gray-400 text-sm">{user.email}</p>
+              <p className="text-gray-500 text-sm">{user.email}</p>
             </div>
             <div className="flex items-center space-x-3">
-              <span className="px-3 py-1 bg-purple-600/20 text-purple-400 rounded-full text-sm font-medium">
+              <span className="px-3 py-1 bg-red-50 text-[#E1262D] rounded-full text-sm font-medium">
                 {user.custom_prompt_count} prompt{user.custom_prompt_count !== 1 ? 's' : ''}
               </span>
               <svg
@@ -169,13 +169,13 @@ const CustomPromptsTab: React.FC<CustomPromptsTabProps> = ({ loading: initialLoa
 
           {/* Expanded content - prompts list */}
           {expandedUserId === user.id && (
-            <div className="border-t border-gray-700 p-4 bg-gray-900/50">
+            <div className="border-t border-gray-200 p-4 bg-gray-50">
               {loadingPrompts === user.id ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="animate-pulse">
-                      <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
-                      <div className="h-3 bg-gray-700 rounded w-1/4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/4"></div>
                     </div>
                   ))}
                 </div>
@@ -184,20 +184,20 @@ const CustomPromptsTab: React.FC<CustomPromptsTabProps> = ({ loading: initialLoa
                   {userPrompts[user.id].map((prompt) => (
                     <div
                       key={prompt.id}
-                      className="p-3 bg-gray-800 rounded-lg border border-gray-700"
+                      className="p-3 bg-white rounded-lg border border-gray-200"
                     >
-                      <p className="text-gray-200 mb-2">&quot;{prompt.prompt}&quot;</p>
-                      <div className="flex items-center justify-between text-sm text-gray-500">
+                      <p className="text-gray-700 mb-2">&quot;{prompt.prompt}&quot;</p>
+                      <div className="flex items-center justify-between text-sm text-gray-400">
                         <span>{formatDate(prompt.created_at)}</span>
                         {prompt.hairstyle_name && (
-                          <span className="text-purple-400">{prompt.hairstyle_name}</span>
+                          <span className="text-[#E1262D]">{prompt.hairstyle_name}</span>
                         )}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4">No prompts found</p>
+                <p className="text-gray-400 text-center py-4">No prompts found</p>
               )}
             </div>
           )}

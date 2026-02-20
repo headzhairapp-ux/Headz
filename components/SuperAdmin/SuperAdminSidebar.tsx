@@ -56,10 +56,10 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({ activeTab, onTabC
   ];
 
   return (
-    <aside className="w-64 bg-gray-900/50 backdrop-blur-sm border-r border-gray-800 h-[calc(100vh-73px)] hidden lg:block sticky top-[73px] overflow-y-auto">
-      <div className="px-4 py-3 border-b border-gray-700">
-        <div className="text-gray-400 text-xs uppercase">Current Date</div>
-        <div className="text-white text-sm font-medium">
+    <aside className="w-64 bg-white border-r border-gray-200 h-[calc(100vh-73px)] hidden lg:block sticky top-[73px] overflow-y-auto">
+      <div className="px-4 py-3 border-b border-gray-200">
+        <div className="text-gray-500 text-xs uppercase">Current Date</div>
+        <div className="text-gray-900 text-sm font-medium">
           {currentTime.toLocaleDateString('en-US', {
             weekday: 'long',
             month: 'short',
@@ -67,7 +67,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({ activeTab, onTabC
             year: 'numeric'
           })}
         </div>
-        <div className="text-purple-400 text-sm">
+        <div className="text-[#E1262D] text-sm">
           {currentTime.toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
@@ -84,8 +84,8 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({ activeTab, onTabC
             onClick={() => onTabChange(tab.id)}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
               activeTab === tab.id
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                ? 'bg-[#E1262D] text-white'
+                : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
             {tab.icon}
@@ -149,15 +149,15 @@ const MobileTabBar: React.FC<MobileTabBarProps> = ({ activeTab, onTabChange, pen
   ];
 
   return (
-    <div className="lg:hidden flex border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm overflow-x-auto">
+    <div className="lg:hidden flex border-b border-gray-200 bg-white overflow-x-auto">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
           className={`flex-1 flex items-center justify-center space-x-2 px-3 py-3 transition-all duration-200 relative whitespace-nowrap ${
             activeTab === tab.id
-              ? 'text-purple-400 border-b-2 border-purple-400 bg-purple-500/10'
-              : 'text-gray-400 hover:text-white'
+              ? 'text-[#E1262D] border-b-2 border-[#E1262D] bg-red-50'
+              : 'text-gray-500 hover:text-gray-900'
           }`}
         >
           {tab.icon}

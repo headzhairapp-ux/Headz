@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserGenerations } from '../services/supabaseService';
+import { getUserGenerations, deleteGeneration } from '../services/supabaseService';
 
 interface GenerationItem {
   id: string;
@@ -60,6 +60,25 @@ const Gallery: React.FC<GalleryProps> = ({ onDownload, onStartOver, onSelectImag
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleDeleteGeneration = async (generation: GenerationItem) => {
+    if (!user) return;
+    if (!window.confirm(`Delete "${generation.style_name}"? This cannot be undone.`)) return;
+
+    try {
+      const result = await deleteGeneration(generation.id, user.id);
+      if (result.success) {
+        setGenerations((prev) => prev.filter((g) => g.id !== generation.id));
+        if (selectedImage?.id === generation.id) {
+          setSelectedImage(null);
+        }
+      } else {
+        console.error('Failed to delete generation:', result.error);
+      }
+    } catch (err) {
+      console.error('Error deleting generation:', err);
+    }
   };
 
   if (!user) {
@@ -180,6 +199,18 @@ const Gallery: React.FC<GalleryProps> = ({ onDownload, onStartOver, onSelectImag
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
                     </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteGeneration(generation);
+                      }}
+                      className="p-3 bg-white/90 hover:bg-red-600 rounded-full transition-colors text-red-600 hover:text-white"
+                      title="Delete"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
                 {selectedImage?.id === generation.id && (
@@ -217,6 +248,12 @@ const Gallery: React.FC<GalleryProps> = ({ onDownload, onStartOver, onSelectImag
                   className="px-4 py-2 bg-[#E1262D] hover:bg-[#c82128] rounded-lg text-sm font-medium text-white transition-colors"
                 >
                   Download
+                </button>
+                <button
+                  onClick={() => handleDeleteGeneration(selectedImage)}
+                  className="px-4 py-2 bg-red-100 hover:bg-red-600 text-red-600 hover:text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  Delete
                 </button>
                 <button
                   onClick={() => setSelectedImage(null)}

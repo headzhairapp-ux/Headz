@@ -325,9 +325,15 @@ ${sqlToCreateTable}`
 
   const handleRequestFrontView = useCallback(async () => {
     if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;
-    const prompt = `${lastUsedPrompt}
+    const prompt = `Using the person in this photo as reference for skin tone, hair color, and general appearance, generate a FRONT VIEW of them with a ${lastUsedStyleName} hairstyle.
 
-IMPORTANT: Generate a FRONT VIEW of this hairstyle. Show the person facing directly toward the camera with the hairstyle visible from the front. Keep the same person's face and features.`;
+REQUIREMENTS:
+- Show the person facing DIRECTLY toward the camera
+- The hairstyle should be a ${lastUsedStyleName} - clearly visible from the front
+- Maintain the same hair color, texture, and styling
+- Keep the same skin tone and facial features
+- Show how the hair frames the face from the front angle
+- This must be a front-facing view, NOT a side or back image`;
     const styleName = `${lastUsedStyleName} (Front View)`;
     await applyStyleAndSave(prompt, styleName, selectedStyle?.id || 'custom-front');
   }, [lastUsedPrompt, lastUsedStyleName, selectedStyle, applyStyleAndSave, isLoading]);
@@ -488,6 +494,11 @@ REQUIREMENTS:
     setLastUsedStyleName(null);
   }, []);
 
+  const handleRegenerate = useCallback(async () => {
+    if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;
+    await applyStyleAndSave(lastUsedPrompt, lastUsedStyleName, selectedStyle?.id || 'custom-regenerated');
+  }, [lastUsedPrompt, lastUsedStyleName, selectedStyle, applyStyleAndSave, isLoading]);
+
   const handleDiscard = useCallback(() => {
     setCurrentStyledImage(null);
     setCleanStyledImage(null);
@@ -541,6 +552,7 @@ REQUIREMENTS:
             onShare={!!navigator.share ? handleShare : undefined}
             onStartOver={handleStartOver}
             onDiscard={handleDiscard}
+            onRegenerate={handleRegenerate}
             onRequestFrontView={handleRequestFrontView}
             onRequestBackView={handleRequestBackView}
             onRequestSideView={handleRequestSideView}

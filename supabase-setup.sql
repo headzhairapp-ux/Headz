@@ -138,6 +138,11 @@ CREATE POLICY "Public insert generations" ON public.generations
 FOR INSERT
 WITH CHECK (true);
 
+-- Policy: Public delete for generations
+CREATE POLICY "Users can delete own generations" ON public.generations
+FOR DELETE
+USING (true);
+
 -- Enable RLS on otp_codes table
 ALTER TABLE public.otp_codes ENABLE ROW LEVEL SECURITY;
 

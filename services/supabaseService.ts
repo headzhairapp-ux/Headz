@@ -187,6 +187,74 @@ export const getUserGenerations = async (userId: string): Promise<any[]> => {
     return data || [];
 }
 
+// Delete a generation (image) from the database and optionally from storage
+export const deleteGeneration = async (generationId: string, userId: string): Promise<{ success: boolean; error?: string }> => {
+    const supabase = getSupabaseClient();
+
+    // Verify ownership via localStorage
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || currentUser.id !== userId) {
+        return { success: false, error: 'Unauthorized access' };
+    }
+
+    // First, get the generation to extract the storage path
+    const { data: generation, error: fetchError } = await supabase
+        .from('generations')
+        .select('styled_image_url, generated_image_url')
+        .eq('id', generationId)
+        .eq('user_id', userId)
+        .single();
+
+    if (fetchError) {
+        console.error('Error fetching generation for deletion:', fetchError);
+        return { success: false, error: fetchError.message };
+    }
+
+    // Delete the row from the database and verify deletion
+    const { data: deleted, error: deleteError } = await supabase
+        .from('generations')
+        .delete()
+        .eq('id', generationId)
+        .eq('user_id', userId)
+        .select();
+
+    if (deleteError) {
+        console.error('Error deleting generation:', deleteError);
+        return { success: false, error: deleteError.message };
+    }
+
+    if (!deleted || deleted.length === 0) {
+        console.error('No rows deleted — check RLS policies on generations table');
+        return { success: false, error: 'No rows deleted — check RLS policies' };
+    }
+
+    // Optionally remove the image from storage
+    if (generation) {
+        const imageUrl = generation.generated_image_url || generation.styled_image_url;
+        if (imageUrl && imageUrl.includes('/generated-images/')) {
+            try {
+                const path = imageUrl.split('/generated-images/')[1];
+                if (path) {
+                    await supabase.storage.from('generated-images').remove([decodeURIComponent(path)]);
+                }
+            } catch (storageError) {
+                console.error('Error removing image from storage (non-critical):', storageError);
+            }
+        }
+    }
+
+    return { success: true };
+};
+
 // Admin-only functions
 // Get all users (admin only)
 export const getAllUsers = async (): Promise<any[]> => {

@@ -18,6 +18,7 @@ interface VirtualMirrorProps {
   onShare?: () => void;
   onStartOver: () => void;
   onDiscard: () => void;
+  onRegenerate?: () => void;
   onRequestFrontView?: () => void;
   onRequestBackView?: () => void;
   onRequestSideView?: () => void;
@@ -41,6 +42,7 @@ const VirtualMirror: React.FC<VirtualMirrorProps> = ({
   onDownload,
   onShare,
   onDiscard,
+  onRegenerate,
   onStartOver,
   onRequestFrontView,
   onRequestBackView,
@@ -196,6 +198,21 @@ const VirtualMirror: React.FC<VirtualMirrorProps> = ({
           {/* Action Buttons */}
           {styledImage && (
             <div className="mt-4 lg:mt-6 space-y-3 lg:space-y-4 animate-slide-in-up delay-300">{/* Download and Share buttons removed - available in image comparator */}
+
+              {onRegenerate && (
+                <button
+                  onClick={onRegenerate}
+                  disabled={isLoading}
+                  className="w-full group relative bg-gradient-to-br from-indigo-600 via-indigo-500 to-blue-600 hover:from-indigo-500 hover:via-indigo-400 hover:to-blue-500 disabled:from-gray-400 disabled:via-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 lg:py-4 px-4 rounded-xl lg:rounded-2xl transition-all duration-500 transform hover:scale-105 disabled:hover:scale-100 focus:outline-none focus:ring-4 focus:ring-indigo-500/50 focus:ring-offset-2 focus:ring-offset-white shadow-2xl hover:shadow-indigo-500/40 overflow-hidden"
+                >
+                  <div className="relative flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 lg:h-6 lg:w-6 mr-2 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+                    </svg>
+                    <span className="text-xs lg:text-sm font-semibold">Regenerate</span>
+                  </div>
+                </button>
+              )}
 
               <button
                 onClick={onDiscard}

@@ -98,6 +98,11 @@ CREATE POLICY "Public Upload" ON storage.objects
 FOR INSERT
 WITH CHECK (bucket_id = 'generated-images');
 
+-- Policy: Allow anyone to delete images
+CREATE POLICY "Public Delete" ON storage.objects
+FOR DELETE
+USING (bucket_id = 'generated-images');
+
 -- 6. ROW LEVEL SECURITY (RLS)
 -- Enable RLS on tables (optional but recommended)
 -- ============================================

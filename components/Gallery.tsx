@@ -23,6 +23,8 @@ const Gallery: React.FC<GalleryProps> = ({ onDownload, onStartOver, onSelectImag
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<GenerationItem | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<GenerationItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const loadGenerations = async () => {
@@ -62,22 +64,29 @@ const Gallery: React.FC<GalleryProps> = ({ onDownload, onStartOver, onSelectImag
     document.body.removeChild(link);
   };
 
-  const handleDeleteGeneration = async (generation: GenerationItem) => {
-    if (!user) return;
-    if (!window.confirm(`Delete "${generation.style_name}"? This cannot be undone.`)) return;
+  const handleDeleteGeneration = (generation: GenerationItem) => {
+    setDeleteConfirm(generation);
+  };
+
+  const confirmDelete = async () => {
+    if (!user || !deleteConfirm) return;
+    setDeleting(true);
 
     try {
-      const result = await deleteGeneration(generation.id, user.id);
+      const result = await deleteGeneration(deleteConfirm.id, user.id);
       if (result.success) {
-        setGenerations((prev) => prev.filter((g) => g.id !== generation.id));
-        if (selectedImage?.id === generation.id) {
+        setGenerations((prev) => prev.filter((g) => g.id !== deleteConfirm.id));
+        if (selectedImage?.id === deleteConfirm.id) {
           setSelectedImage(null);
         }
       } else {
-        console.error('Failed to delete generation:', result.error);
+        console.error('Failed to delete:', result.error);
       }
     } catch (err) {
       console.error('Error deleting generation:', err);
+    } finally {
+      setDeleting(false);
+      setDeleteConfirm(null);
     }
   };
 
@@ -266,6 +275,41 @@ const Gallery: React.FC<GalleryProps> = ({ onDownload, onStartOver, onSelectImag
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
+            <div className="p-6 text-center">
+              <div className="mx-auto mb-4 w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="h-7 w-7 text-[#E1262D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Style</h3>
+              <p className="text-gray-500 text-sm">
+                Delete "<span className="font-medium text-gray-700">{deleteConfirm.style_name}</span>"? This cannot be undone.
+              </p>
+            </div>
+            <div className="flex border-t border-gray-200">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                disabled={deleting}
+                className="flex-1 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="flex-1 py-3 text-sm font-semibold text-white bg-[#E1262D] hover:bg-[#c82128] transition-colors disabled:opacity-50"
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

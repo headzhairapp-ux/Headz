@@ -44,15 +44,12 @@ export const uploadImage = async (file: File, sessionId: string): Promise<string
     const supabase = getSupabaseClient();
     const fileName = `${sessionId}/${Date.now()}-${file.name.replace(/\s/g, '_')}`;
 
-    console.log('Attempting to upload to images bucket:', fileName);
-
     const { data, error } = await supabase.storage
         .from('generated-images') // Using 'generated-images' bucket that actually exists
         .upload(fileName, file);
 
     if (error) {
         console.error("Error uploading image to Supabase:", error);
-        console.log('Available buckets check needed');
 
         // More specific error messages
         if (error.message.includes('Bucket not found')) {
@@ -206,26 +203,13 @@ export const deleteGeneration = async (generationId: string, userId: string): Pr
         return { success: false, error: 'Unauthorized access' };
     }
 
-    // First, get the generation to extract the storage path
-    const { data: generation, error: fetchError } = await supabase
-        .from('generations')
-        .select('styled_image_url, generated_image_url')
-        .eq('id', generationId)
-        .eq('user_id', userId)
-        .single();
-
-    if (fetchError) {
-        console.error('Error fetching generation for deletion:', fetchError);
-        return { success: false, error: fetchError.message };
-    }
-
-    // Delete the row from the database and verify deletion
+    // Delete the row and return its data for storage cleanup
     const { data: deleted, error: deleteError } = await supabase
         .from('generations')
         .delete()
         .eq('id', generationId)
         .eq('user_id', userId)
-        .select();
+        .select('original_image_url, styled_image_url, generated_image_url');
 
     if (deleteError) {
         console.error('Error deleting generation:', deleteError);
@@ -237,17 +221,27 @@ export const deleteGeneration = async (generationId: string, userId: string): Pr
         return { success: false, error: 'No rows deleted — check RLS policies' };
     }
 
-    // Optionally remove the image from storage
-    if (generation) {
-        const imageUrl = generation.generated_image_url || generation.styled_image_url;
-        if (imageUrl && imageUrl.includes('/generated-images/')) {
+    // Remove all associated images from storage (if they exist)
+    const deletedRow = deleted[0];
+    if (deletedRow) {
+        const urls = [
+            deletedRow.original_image_url,
+            deletedRow.styled_image_url,
+            deletedRow.generated_image_url,
+        ];
+        const paths = urls
+            .filter((url): url is string => !!url && url.includes('/generated-images/'))
+            .map((url) => decodeURIComponent(url.split('/generated-images/')[1]))
+            .filter((path): path is string => !!path);
+
+        // Deduplicate (styled and generated can be the same URL)
+        const uniquePaths = [...new Set(paths)];
+
+        if (uniquePaths.length > 0) {
             try {
-                const path = imageUrl.split('/generated-images/')[1];
-                if (path) {
-                    await supabase.storage.from('generated-images').remove([decodeURIComponent(path)]);
-                }
+                await supabase.storage.from('generated-images').remove(uniquePaths);
             } catch (storageError) {
-                console.error('Error removing image from storage (non-critical):', storageError);
+                console.error('Error removing images from storage (non-critical):', storageError);
             }
         }
     }

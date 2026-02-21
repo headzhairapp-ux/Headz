@@ -220,13 +220,13 @@ const AIStyleGenerator: React.FC<AIStyleGeneratorProps> = ({
             {/* Modern Example Prompts */}
             <div className="mb-3 lg:mb-4 p-3 lg:p-4 bg-gray-50 rounded-xl lg:rounded-2xl border border-gray-200 shadow-lg">
               <p className="text-xs font-semibold text-gray-600 mb-2 lg:mb-3 flex items-center">
-                <div className="relative mr-1 lg:mr-2">
+                <span className="relative mr-1 lg:mr-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 lg:h-4 lg:w-4 text-[#E1262D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   {/* Glow effect around icon */}
-                  <div className="absolute inset-0 w-3 h-3 lg:w-4 lg:h-4 bg-[#E1262D] rounded-full blur-sm opacity-0 animate-pulse"></div>
-                </div>
+                  <span className="absolute inset-0 w-3 h-3 lg:w-4 lg:h-4 bg-[#E1262D] rounded-full blur-sm opacity-0 animate-pulse"></span>
+                </span>
                 Example Prompts:
               </p>
               <div className="space-y-1 lg:space-y-2 text-xs text-gray-600">

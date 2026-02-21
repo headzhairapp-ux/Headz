@@ -92,7 +92,6 @@ export const editImageWithGemini = async (
 
   while (retryCount < maxRetries) {
     try {
-      console.log('Calling Gemini API with model: gemini-2.5-flash');
       response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: {
@@ -105,7 +104,6 @@ export const editImageWithGemini = async (
           responseModalities: [Modality.IMAGE, Modality.TEXT],
         },
       });
-      console.log('Gemini response:', response);
       break;
     } catch (error) {
       retryCount++;
@@ -184,7 +182,6 @@ Generate an edited version of Image 1 with the new hairstyle applied. The person
 
   while (retryCount < maxRetries) {
     try {
-      console.log('Calling Gemini API (with reference) using model: gemini-2.5-flash');
       response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: {
@@ -198,20 +195,6 @@ Generate an edited version of Image 1 with the new hairstyle applied. The person
           responseModalities: [Modality.IMAGE, Modality.TEXT],
         },
       });
-      console.log('Gemini response (with reference):', response);
-
-      // Debug: Log the parts in the response to see what we're getting
-      if (response.candidates && response.candidates[0]?.content?.parts) {
-        console.log('Response parts count:', response.candidates[0].content.parts.length);
-        response.candidates[0].content.parts.forEach((part, index) => {
-          if (part.text) {
-            console.log(`Part ${index}: TEXT - "${part.text.substring(0, 200)}..."`);
-          }
-          if (part.inlineData) {
-            console.log(`Part ${index}: IMAGE - mimeType: ${part.inlineData.mimeType}, data length: ${part.inlineData.data?.length || 0} chars`);
-          }
-        });
-      }
       break;
     } catch (error) {
       retryCount++;

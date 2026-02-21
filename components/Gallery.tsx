@@ -6,7 +6,6 @@ interface GenerationItem {
   id: string;
   created_at: string;
   styled_image_url: string;
-  original_image_url: string;
   style_name: string;
   prompt: string;
 }

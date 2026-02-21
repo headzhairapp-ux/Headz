@@ -232,12 +232,11 @@ const HairstyleApp: React.FC = () => {
 
       // Only upload and save for authenticated users
       if (user && !isFreeUser) {
-        const originalImageUrl = await uploadImage(userImageFile, sessionId);
         const styledImageUrl = await uploadImage(styledImageFile, sessionId);
 
         await saveGeneration({
             sessionId,
-            originalImageUrl,
+            originalImageUrl: null,
             styledImageUrl,
             prompt,
             styleName,

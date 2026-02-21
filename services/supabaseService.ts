@@ -67,7 +67,7 @@ export const uploadImage = async (file: File, sessionId: string): Promise<string
 
 interface GenerationData {
     sessionId: string;
-    originalImageUrl: string;
+    originalImageUrl?: string | null;
     styledImageUrl: string;
     prompt: string;
     styleName: string;
@@ -102,7 +102,7 @@ export const saveGeneration = async (data: GenerationData): Promise<void> => {
 
     const insertData: any = {
         session_id: data.sessionId,
-        original_image_url: data.originalImageUrl,
+        original_image_url: data.originalImageUrl || null,
         styled_image_url: data.styledImageUrl,
         generated_image_url: data.generatedImageUrl || data.styledImageUrl,
         prompt: data.prompt,

@@ -135,14 +135,14 @@ const SuperAdminDashboard: React.FC = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               {activeTab === 'home' && 'Super Admin Dashboard'}
-              {activeTab === 'users' && 'User Management'}
-              {activeTab === 'approve-requests' && 'Approve Requests'}
+              {activeTab === 'users' && 'Approved Users'}
+              {activeTab === 'approve-requests' && 'Pending Requests'}
               {activeTab === 'custom-prompts' && 'Custom Prompts'}
             </h1>
             <p className="text-gray-500">
               {activeTab === 'home' && 'Analytics overview across all users'}
-              {activeTab === 'users' && 'View and manage user data'}
-              {activeTab === 'approve-requests' && 'Review and approve new user registrations'}
+              {activeTab === 'users' && 'View and manage approved user data'}
+              {activeTab === 'approve-requests' && 'Review and approve pending user registrations'}
               {activeTab === 'custom-prompts' && 'View custom AI prompts created by users'}
             </p>
           </div>

@@ -118,7 +118,7 @@ const Loader: React.FC = () => {
         {/* Info Text */}
         <div className="text-center mb-6">
           <p className="text-gray-500 text-sm">
-            Our AI is transforming your hairstyle
+            AI-generated preview. Final results may vary slightly.
           </p>
           <p className="text-gray-400 text-xs mt-1">
             This usually takes 10-30 seconds

@@ -28,7 +28,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({ activeTab, onTabC
     },
     {
       id: 'users' as TabType,
-      label: 'Users',
+      label: 'Approved Users',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -37,7 +37,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({ activeTab, onTabC
     },
     {
       id: 'approve-requests' as TabType,
-      label: 'Approve Requests',
+      label: 'Pending Requests',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -121,7 +121,7 @@ const MobileTabBar: React.FC<MobileTabBarProps> = ({ activeTab, onTabChange, pen
     },
     {
       id: 'users' as TabType,
-      label: 'Users',
+      label: 'Approved',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -130,7 +130,7 @@ const MobileTabBar: React.FC<MobileTabBarProps> = ({ activeTab, onTabChange, pen
     },
     {
       id: 'approve-requests' as TabType,
-      label: 'Approvals',
+      label: 'Pending',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

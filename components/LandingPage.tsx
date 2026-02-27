@@ -7,6 +7,7 @@ const LandingPage: React.FC = () => {
   const { user, signOut } = useAuth();
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const handleLogout = async () => {
     await signOut();
@@ -103,12 +104,15 @@ const LandingPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {transformations.map((item, index) => (
               <div key={index} className="group">
-                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
+                <div
+                  className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 cursor-pointer"
+                  onClick={() => setActiveIndex(activeIndex === index ? null : index)}
+                >
                   {/* Before Image */}
                   <img
                     src={item.before}
                     alt={`Before transformation ${index + 1}`}
-                    className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-0"
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-0 ${activeIndex === index ? 'opacity-0' : ''}`}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
@@ -123,7 +127,7 @@ const LandingPage: React.FC = () => {
                   <img
                     src={item.after}
                     alt={`After transformation ${index + 1}`}
-                    className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-100 ${activeIndex === index ? 'opacity-100' : 'opacity-0'}`}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
@@ -131,15 +135,15 @@ const LandingPage: React.FC = () => {
                   />
                   {/* Labels */}
                   <div className="absolute bottom-4 left-4 right-4 flex justify-between">
-                    <span className="px-3 py-1 bg-white/80 text-gray-900 rounded-full text-xs font-medium transition-opacity duration-500 group-hover:opacity-0">
+                    <span className={`px-3 py-1 bg-white/80 text-gray-900 rounded-full text-xs font-medium transition-opacity duration-500 group-hover:opacity-0 ${activeIndex === index ? 'opacity-0' : ''}`}>
                       Before
                     </span>
-                    <span className="px-3 py-1 bg-[#E1262D] text-white rounded-full text-xs font-medium opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                    <span className={`px-3 py-1 bg-[#E1262D] text-white rounded-full text-xs font-medium transition-opacity duration-500 group-hover:opacity-100 ${activeIndex === index ? 'opacity-100' : 'opacity-0'}`}>
                       After
                     </span>
                   </div>
                 </div>
-                <p className="text-center text-gray-500 text-sm mt-3">Hover to see result</p>
+                <p className="text-center text-gray-500 text-sm mt-3">Tap or hover to see result</p>
               </div>
             ))}
           </div>

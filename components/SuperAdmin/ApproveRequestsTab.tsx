@@ -65,11 +65,12 @@ const ApproveRequestsTab: React.FC<ApproveRequestsTabProps> = ({ onPendingCountC
     loadPendingUsers();
   }, []);
 
-  // Client-side search filter
+  // Client-side search filter (reversed so latest requests appear first)
   const filteredUsers = useMemo(() => {
-    if (!searchQuery.trim()) return pendingUsers;
+    const reversed = [...pendingUsers].reverse();
+    if (!searchQuery.trim()) return reversed;
     const query = searchQuery.toLowerCase();
-    return pendingUsers.filter(
+    return reversed.filter(
       (u) =>
         u.email?.toLowerCase().includes(query) ||
         u.full_name?.toLowerCase().includes(query) ||

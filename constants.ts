@@ -2,6 +2,28 @@
 import { Hairstyle } from './types';
 
 export const AVAILABLE_HAIRSTYLES: Hairstyle[] = [
+  // New Male Styles
+  {
+    id: 'curly-mullet',
+    name: 'Curly Mullet',
+    thumbnailUrl: '/hairstyles/Curly_mullet.png',
+    prompt: 'Change ONLY the hairstyle to a curly mullet with textured curls on top and longer curly hair at the back. Keep all facial features exactly the same. Short and tighter on the sides, voluminous curls flowing at the back. Do not modify face, eyes, nose, mouth, or any other facial features.',
+    gender: 'male',
+  },
+  {
+    id: 'french-crop-hair',
+    name: 'French Crop',
+    thumbnailUrl: '/hairstyles/french_crop_hair.png',
+    prompt: 'Change ONLY the hairstyle to a clean French crop with short textured fringe on the forehead and tapered sides. Keep all facial features exactly the same. Neat, modern, and low-maintenance look. Do not modify face, eyes, nose, mouth, or any other facial features.',
+    gender: 'male',
+  },
+  {
+    id: 'undercut-hair',
+    name: 'Undercut',
+    thumbnailUrl: '/hairstyles/under_cut_hair.png',
+    prompt: 'Change ONLY the hairstyle to a sharp undercut with closely shaved sides and back, and longer styled hair on top. Keep all facial features exactly the same. Bold, edgy, and contemporary look. Do not modify face, eyes, nose, mouth, or any other facial features.',
+    gender: 'male',
+  },
   // India-Specific Popular Styles
   {
     id: 'classic-side-part',
@@ -51,6 +73,28 @@ export const AVAILABLE_HAIRSTYLES: Hairstyle[] = [
     thumbnailUrl: '/hairstyles/french-crop.png',
     prompt: 'Change ONLY the hairstyle to a French crop or Caesar cut. Keep all facial features exactly the same. Short bangs in the front with tapered sides. Low-maintenance, edgy, and suits oval or square faces. Do not modify face, eyes, nose, mouth, or any other facial features.',
     gender: 'male',
+  },
+  // New Female Styles
+  {
+    id: 'medium-layers-cut',
+    name: 'Medium Layers',
+    thumbnailUrl: '/hairstyles/Medium_layers_cut.png',
+    prompt: 'Change ONLY the hairstyle to a Long Layered Cut with Tapered Ends. Keep all facial features exactly the same. Hair is kept long with layers cut into the bottom half to prevent it from looking heavy or boxy. The ends are tapered and thinned out slightly so they lay flat against the chest and back. Do not modify face, eyes, nose, mouth, or any other facial features.',
+    gender: 'female',
+  },
+  {
+    id: 'up-sweep-style',
+    name: 'Up Sweep',
+    thumbnailUrl: '/hairstyles/Up_sweep_style.png',
+    prompt: 'Change ONLY the hairstyle to a Butterfly Cut with Wispy Bangs. Keep all facial features exactly the same. Heavy dramatic layers that are shorter around the face and much longer in the back, creating a wing effect. Include face-framing layers starting around the chin and a full fringe cut straight across but textured so they are not too thick. Maximum volume and movement. Do not modify face, eyes, nose, mouth, or any other facial features.',
+    gender: 'female',
+  },
+  {
+    id: 'long-straight-hair',
+    name: 'Long Straight',
+    thumbnailUrl: '/hairstyles/long_straight_hair.png',
+    prompt: 'Change ONLY the hairstyle to a U-Cut with Face-Framing and Internal Layering. Keep all facial features exactly the same. The hemline forms a U shape rather than a straight line when hair hangs down the back. Invisible internal layers provide body to the waves without a choppy look. Long face-framing pieces start at the collarbone. Sleek, polished look with bounce. Do not modify face, eyes, nose, mouth, or any other facial features.',
+    gender: 'female',
   },
   // Original Styles (kept for variety)
   {

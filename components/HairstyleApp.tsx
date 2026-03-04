@@ -326,10 +326,12 @@ ${sqlToCreateTable}`
     if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;
     const prompt = `Using the person in this photo as reference for skin tone, hair color, and general appearance, generate a FRONT VIEW of them with a ${lastUsedStyleName} hairstyle.
 
+STYLE DETAILS: ${lastUsedPrompt}
+
 REQUIREMENTS:
 - Show the person facing DIRECTLY toward the camera
-- The hairstyle should be a ${lastUsedStyleName} - clearly visible from the front
-- Maintain the same hair color, texture, and styling
+- The hairstyle should be a ${lastUsedStyleName} - clearly visible from the front, preserving ALL details described above (length, layers, flowing sections, pinned sections, etc.)
+- Maintain the same hair color, texture, and styling as described in the style details
 - Keep the same skin tone and facial features
 - Show how the hair frames the face from the front angle
 - This must be a front-facing view, NOT a side or back image`;
@@ -341,10 +343,12 @@ REQUIREMENTS:
     if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;
     const prompt = `Using the person in this photo as reference for skin tone, hair color, and general appearance, generate a SIDE PROFILE VIEW of them with a ${lastUsedStyleName} hairstyle.
 
+STYLE DETAILS: ${lastUsedPrompt}
+
 REQUIREMENTS:
 - Show the person's head turned to show a side profile (90-degree angle from camera)
-- The hairstyle should be a ${lastUsedStyleName} - clearly visible from the side angle
-- Maintain the same hair color, texture, and styling as the ${lastUsedStyleName} would have
+- The hairstyle should be a ${lastUsedStyleName} - clearly visible from the side angle, preserving ALL details described above (length, layers, flowing sections, pinned sections, etc.)
+- Maintain the same hair color, texture, and styling as described in the style details
 - Keep the same skin tone and body appearance
 - Show how the hair falls, layers, and frames the face from this side angle
 - This must be a profile/side view, NOT a front-facing image`;
@@ -356,12 +360,14 @@ REQUIREMENTS:
     if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;
     const prompt = `Using the person in this photo as reference for skin tone, hair color, and general appearance, generate a BACK VIEW of them with a ${lastUsedStyleName} hairstyle.
 
+STYLE DETAILS: ${lastUsedPrompt}
+
 REQUIREMENTS:
 - Show the BACK of the person's head - camera is behind them
 - Do NOT show the face at all - only the back of the head, neck, and shoulders
-- The hairstyle should be a ${lastUsedStyleName} - clearly visible from behind
+- The hairstyle should be a ${lastUsedStyleName} - clearly visible from behind, preserving ALL details described above (length, layers, flowing sections, pinned sections, etc.)
 - Show how the hair looks from the back: the length, layers, texture, and how it falls at the nape of the neck
-- Maintain the same hair color and texture
+- Maintain the same hair color, texture, and styling as described in the style details
 - Keep the same skin tone
 - This must be a rear/back view, NOT a front-facing or side image`;
     const styleName = `${lastUsedStyleName} (Back View)`;

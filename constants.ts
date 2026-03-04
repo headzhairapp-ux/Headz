@@ -14,7 +14,7 @@ export const AVAILABLE_HAIRSTYLES: Hairstyle[] = [
     id: 'french-crop-hair',
     name: 'French Crop',
     thumbnailUrl: '/hairstyles/french_crop_hair.png',
-    prompt: 'Change ONLY the hairstyle to a clean French crop with short textured fringe on the forehead and tapered sides. Keep all facial features exactly the same. Neat, modern, and low-maintenance look. Do not modify face, eyes, nose, mouth, or any other facial features.',
+    prompt: 'Change ONLY the hairstyle to a French crop with medium-length hair on top that has volume and body, swept back and slightly to the side. Keep all facial features exactly the same. The top hair is thick and full with a slight wave, while the sides and back are neatly tapered and short. Clean, polished, and classic men\'s look. Do not modify face, eyes, nose, mouth, or any other facial features.',
     gender: 'male',
   },
   {
@@ -29,7 +29,7 @@ export const AVAILABLE_HAIRSTYLES: Hairstyle[] = [
     id: 'classic-side-part',
     name: 'Classic Side Part',
     thumbnailUrl: '/hairstyles/classic-side-part.png',
-    prompt: 'Change ONLY the hairstyle to a timeless classic side part. Keep all facial features exactly the same. Clean side part with medium length on top and shorter sides. Professional and business-appropriate look. Do not modify face, eyes, nose, mouth, or any other facial features.',
+    prompt: 'Change ONLY the hairstyle to a timeless classic side part with short hair. Keep all facial features exactly the same. Neatly combed short hair parted cleanly to one side, with short tapered sides and back. The top is only slightly longer, slicked to the side. Professional, business-appropriate men\'s short haircut. Do not modify face, eyes, nose, mouth, or any other facial features.',
     gender: 'male',
   },
   {
@@ -86,7 +86,7 @@ export const AVAILABLE_HAIRSTYLES: Hairstyle[] = [
     id: 'up-sweep-style',
     name: 'Up Sweep',
     thumbnailUrl: '/hairstyles/Up_sweep_style.png',
-    prompt: 'Change ONLY the hairstyle to a Butterfly Cut with Wispy Bangs. Keep all facial features exactly the same. Heavy dramatic layers that are shorter around the face and much longer in the back, creating a wing effect. Include face-framing layers starting around the chin and a full fringe cut straight across but textured so they are not too thick. Maximum volume and movement. Do not modify face, eyes, nose, mouth, or any other facial features.',
+    prompt: 'Change ONLY the hairstyle to a half-up half-down up sweep style. Keep all facial features exactly the same. The top and crown section of hair is swept up, twisted, and pinned at the back of the head, while the remaining hair flows down long and loose from behind. A few soft face-framing wisps or tendrils around the face. Elegant and polished half-up look. Do not modify face, eyes, nose, mouth, or any other facial features.',
     gender: 'female',
   },
   {

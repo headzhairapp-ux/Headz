@@ -7,7 +7,7 @@ export const AVAILABLE_HAIRSTYLES: Hairstyle[] = [
     id: 'curly-mullet',
     name: 'Curly Mullet',
     thumbnailUrl: '/hairstyles/Curly_mullet.png',
-    prompt: 'Change ONLY the hairstyle to a curly mullet with textured curls on top and longer curly hair at the back. Keep all facial features exactly the same. Short and tighter on the sides, voluminous curls flowing at the back. Do not modify face, eyes, nose, mouth, or any other facial features.',
+    prompt: 'Change ONLY the hairstyle to a short curly mullet with short textured curls on top and slightly longer but still short curly hair at the back. Keep all facial features exactly the same. Short and tighter on the sides, short curls at the back that do not go past the neck. Do not modify face, eyes, nose, mouth, or any other facial features.',
     gender: 'male',
   },
   {

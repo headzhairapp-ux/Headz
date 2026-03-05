@@ -85,7 +85,7 @@ const AdminDashboard: React.FC = () => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
               <Link to="/" className="text-2xl font-bold text-[#E1262D]">
-                Headz International
+                HEADZ HAIR FIXING APP
               </Link>
               <div className="hidden sm:flex items-center px-3 py-1 bg-[#E1262D] text-white text-sm rounded-full font-medium">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,7 +152,7 @@ const AdminDashboard: React.FC = () => {
           <div>
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard Overview</h1>
-              <p className="text-gray-500">Manage your Headz International application</p>
+              <p className="text-gray-500">Manage your HEADZ HAIR FIXING APP application</p>
             </div>
 
             {error && (
@@ -277,7 +277,7 @@ const AdminDashboard: React.FC = () => {
                     </svg>
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">View Main App</h3>
-                  <p className="text-gray-500 text-sm">Go to the main Headz International application</p>
+                  <p className="text-gray-500 text-sm">Go to the main HEADZ HAIR FIXING APP application</p>
                 </Link>
               </div>
             </div>

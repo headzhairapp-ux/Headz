@@ -151,7 +151,7 @@ const HairstyleApp: React.FC = () => {
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
             navigator.share({
               title: 'My New Look!',
-              text: 'Check out my new hairstyle from Headz International!',
+              text: 'Check out my new hairstyle from HEADZ HAIR FIXING APP!',
               files: [file],
             }).catch(console.error);
           }
@@ -435,7 +435,7 @@ REQUIREMENTS:
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: 'My New Look!',
-          text: 'Check out my new hairstyle from Headz International!',
+          text: 'Check out my new hairstyle from HEADZ HAIR FIXING APP!',
           files: [file],
         });
         // Track share if user is logged in
@@ -478,7 +478,7 @@ REQUIREMENTS:
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           navigator.share({
             title: 'My New Look!',
-            text: 'Check out my new hairstyle from Headz International!',
+            text: 'Check out my new hairstyle from HEADZ HAIR FIXING APP!',
             files: [file],
           }).catch(console.error);
         }

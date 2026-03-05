@@ -26,9 +26,9 @@ const LandingPage: React.FC = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Headz International" className="h-32 -my-9 object-contain" />
+            <img src="/logo.png" alt="HEADZ HAIR FIXING APP" className="h-32 -my-9 object-contain" />
             <span className="text-xl font-bold text-[#E1262D]">
-              Headz International
+              HEADZ HAIR FIXING APP
             </span>
           </div>
 
@@ -224,9 +224,9 @@ const LandingPage: React.FC = () => {
       <footer className="py-8 px-4 sm:px-6 border-t border-gray-200 bg-white">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Headz International" className="h-32 -my-9 object-contain" />
+            <img src="/logo.png" alt="HEADZ HAIR FIXING APP" className="h-32 -my-9 object-contain" />
             <span className="text-lg font-bold text-[#E1262D]">
-              Headz International
+              HEADZ HAIR FIXING APP
             </span>
           </div>
           <div className="flex gap-6 text-sm text-gray-500">

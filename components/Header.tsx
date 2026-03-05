@@ -13,9 +13,9 @@ const Header: React.FC = () => {
     <header className="bg-white/80 backdrop-blur-md border-b border-gray-200">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="Headz International" className="h-32 -my-9 object-contain rounded-lg" />
+          <img src="/logo.png" alt="HEADZ HAIR FIXING APP" className="h-32 -my-9 object-contain rounded-lg" />
           <span className="text-xl font-bold text-[#E1262D]">
-            Headz International
+            HEADZ HAIR FIXING APP
           </span>
         </Link>
 

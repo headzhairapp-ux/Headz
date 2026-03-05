@@ -330,7 +330,7 @@ const HomeTab: React.FC<HomeTabProps> = ({ stats, loading, onRefresh }) => {
               </div>
               <div>
                 <h3 className="text-gray-900 font-medium">View Main App</h3>
-                <p className="text-gray-500 text-sm">Go to Headz International</p>
+                <p className="text-gray-500 text-sm">Go to HEADZ HAIR FIXING APP</p>
               </div>
             </div>
           </Link>

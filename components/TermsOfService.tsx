@@ -11,7 +11,7 @@ const TermsOfService: React.FC = () => {
             to="/"
             className="text-2xl font-bold text-[#E1262D]"
           >
-            Headz International
+            HEADZ HAIR FIXING APP
           </Link>
           <Link
             to="/"
@@ -36,12 +36,12 @@ const TermsOfService: React.FC = () => {
 
             <section>
               <h2 className="text-2xl font-bold text-[#E1262D] mb-4">1. Acceptance of Terms</h2>
-              <p>By accessing and using Headz International ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
+              <p>By accessing and using HEADZ HAIR FIXING APP ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
             </section>
 
             <section>
               <h2 className="text-2xl font-bold text-[#E1262D] mb-4">2. Description of Service</h2>
-              <p>Headz International is an AI-powered virtual hairstyling platform that allows users to try on different hairstyles, colors, and looks using artificial intelligence technology. Our service includes:</p>
+              <p>HEADZ HAIR FIXING APP is an AI-powered virtual hairstyling platform that allows users to try on different hairstyles, colors, and looks using artificial intelligence technology. Our service includes:</p>
               <ul className="list-disc list-inside mt-4 space-y-2">
                 <li>Virtual hairstyle try-on using uploaded photos</li>
                 <li>AI-powered hair color simulation</li>
@@ -80,7 +80,7 @@ const TermsOfService: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-[#E1262D] mb-2">Our Technology</h3>
-                  <p>All AI models, algorithms, and generated transformations are proprietary to Headz International. You may not reverse engineer, copy, or distribute our technology.</p>
+                  <p>All AI models, algorithms, and generated transformations are proprietary to HEADZ HAIR FIXING APP. You may not reverse engineer, copy, or distribute our technology.</p>
                 </div>
               </div>
             </section>
@@ -109,7 +109,7 @@ const TermsOfService: React.FC = () => {
 
             <section>
               <h2 className="text-2xl font-bold text-[#E1262D] mb-4">7. Limitation of Liability</h2>
-              <p>Headz International shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:</p>
+              <p>HEADZ HAIR FIXING APP shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:</p>
               <ul className="list-disc list-inside mt-4 space-y-2">
                 <li>Dissatisfaction with AI-generated results</li>
                 <li>Hair styling decisions based on our transformations</li>
@@ -166,9 +166,9 @@ const TermsOfService: React.FC = () => {
               <h2 className="text-2xl font-bold text-[#E1262D] mb-4">13. Contact Information</h2>
               <p>If you have any questions about these Terms of Service, please contact us at:</p>
               <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <p>Email: support@Headz International</p>
-                <p>Legal: legal@Headz International</p>
-                <p>Address: Headz International Legal Team</p>
+                <p>Email: support@HEADZ HAIR FIXING APP</p>
+                <p>Legal: legal@HEADZ HAIR FIXING APP</p>
+                <p>Address: HEADZ HAIR FIXING APP Legal Team</p>
               </div>
             </section>
           </div>
@@ -180,7 +180,7 @@ const TermsOfService: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-2xl font-bold text-[#E1262D] mb-4 md:mb-0">
-              Headz International
+              HEADZ HAIR FIXING APP
             </div>
             <div className="flex gap-6 text-gray-500">
               <Link to="/privacy" className="hover:text-[#E1262D] transition-colors">Privacy</Link>
@@ -189,7 +189,7 @@ const TermsOfService: React.FC = () => {
             </div>
           </div>
           <div className="text-center text-gray-400 mt-8">
-            © 2024 Headz International. All rights reserved.
+            © 2024 HEADZ HAIR FIXING APP. All rights reserved.
           </div>
         </div>
       </footer>

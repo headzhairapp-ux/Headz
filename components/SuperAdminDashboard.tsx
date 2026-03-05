@@ -94,9 +94,9 @@ const SuperAdminDashboard: React.FC = () => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
               <Link to="/" className="flex items-center space-x-2">
-                <img src="/logo.png" alt="Headz International" className="h-32 -my-9 object-contain rounded-lg" />
+                <img src="/logo.png" alt="HEADZ HAIR FIXING APP" className="h-32 -my-9 object-contain rounded-lg" />
                 <span className="text-2xl font-bold text-[#E1262D]">
-                  Headz International
+                  HEADZ HAIR FIXING APP
                 </span>
               </Link>
               <div className="hidden sm:flex items-center px-3 py-1 bg-[#E1262D] text-white text-sm rounded-full font-medium">

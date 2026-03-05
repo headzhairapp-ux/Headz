@@ -66,9 +66,9 @@ const SuperAdminLogin: React.FC = () => {
         {/* Logo & Super Admin Badge */}
         <div className="text-center mb-6 sm:mb-8">
           <div className="flex flex-col items-center gap-2">
-            <img src="/logo.png" alt="Headz International" className="w-12 h-12 rounded-xl object-cover" />
+            <img src="/logo.png" alt="HEADZ HAIR FIXING APP" className="w-12 h-12 rounded-xl object-cover" />
             <Link to="/" className="text-3xl font-bold text-[#E1262D]">
-              Headz International
+              HEADZ HAIR FIXING APP
             </Link>
           </div>
           <div className="mt-2 inline-flex items-center px-3 py-1 bg-[#E1262D] text-white text-sm rounded-full font-medium">

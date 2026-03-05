@@ -11,7 +11,7 @@ const PrivacyPolicy: React.FC = () => {
             to="/"
             className="text-2xl font-bold text-[#E1262D]"
           >
-            Headz International
+            HEADZ HAIR FIXING APP
           </Link>
           <Link
             to="/"
@@ -115,8 +115,8 @@ const PrivacyPolicy: React.FC = () => {
               <h2 className="text-2xl font-bold text-[#E1262D] mb-4">9. Contact Us</h2>
               <p>If you have any questions about this Privacy Policy, please contact us at:</p>
               <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <p>Email: privacy@Headz International</p>
-                <p>Address: Headz International Privacy Team</p>
+                <p>Email: privacy@HEADZ HAIR FIXING APP</p>
+                <p>Address: HEADZ HAIR FIXING APP Privacy Team</p>
               </div>
             </section>
           </div>
@@ -128,7 +128,7 @@ const PrivacyPolicy: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-2xl font-bold text-[#E1262D] mb-4 md:mb-0">
-              Headz International
+              HEADZ HAIR FIXING APP
             </div>
             <div className="flex gap-6 text-gray-500">
               <Link to="/privacy" className="hover:text-[#E1262D] transition-colors">Privacy</Link>
@@ -137,7 +137,7 @@ const PrivacyPolicy: React.FC = () => {
             </div>
           </div>
           <div className="text-center text-gray-400 mt-8">
-            © 2024 Headz International. All rights reserved.
+            © 2024 HEADZ HAIR FIXING APP. All rights reserved.
           </div>
         </div>
       </footer>

@@ -415,7 +415,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
           <>
             {/* Logo */}
             <div className="flex justify-center mb-6">
-              <img src="/logo.png" alt="Headz International" className="h-14 object-contain rounded-lg" />
+              <img src="/logo.png" alt="HEADZ HAIR FIXING APP" className="h-14 object-contain rounded-lg" />
             </div>
 
             {/* Title */}
@@ -463,7 +463,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
           <>
             {/* Logo */}
             <div className="flex justify-center mb-6">
-              <img src="/logo.png" alt="Headz International" className="h-14 object-contain rounded-lg" />
+              <img src="/logo.png" alt="HEADZ HAIR FIXING APP" className="h-14 object-contain rounded-lg" />
             </div>
 
             {/* Title */}

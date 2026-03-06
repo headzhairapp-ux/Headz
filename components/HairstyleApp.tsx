@@ -34,6 +34,7 @@ const HairstyleApp: React.FC = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [previousStyleName, setPreviousStyleName] = useState<string | null>(null);
   const [lastUsedPrompt, setLastUsedPrompt] = useState<string | null>(null);
+  const [baseStylePrompt, setBaseStylePrompt] = useState<string | null>(null);
   const [lastUsedStyleName, setLastUsedStyleName] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('virtual-mirror');
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
@@ -199,6 +200,7 @@ const HairstyleApp: React.FC = () => {
     setError(null);
     setPreviousStyleName(null);
     setLastUsedPrompt(null);
+    setBaseStylePrompt(null);
     setLastUsedStyleName(null);
     setActiveTab('virtual-mirror');
   };
@@ -209,6 +211,10 @@ const HairstyleApp: React.FC = () => {
     setIsLoading(true);
     setError(null);
     setLastUsedPrompt(prompt);
+    const isViewAngle = / \((Front|Side|Back) View\)$/.test(styleName);
+    if (!isViewAngle) {
+      setBaseStylePrompt(prompt);
+    }
     setLastUsedStyleName(styleName.replace(/ \((Front|Side|Back) View\)/, ''));
 
     try {
@@ -323,10 +329,10 @@ ${sqlToCreateTable}`
   }, [applyStyleAndSave, isLoading]);
 
   const handleRequestFrontView = useCallback(async () => {
-    if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;
+    if (!baseStylePrompt || !lastUsedStyleName || isLoading) return;
     const prompt = `Using the person in this photo as reference for skin tone, hair color, and general appearance, generate a FRONT VIEW of them with a ${lastUsedStyleName} hairstyle.
 
-STYLE DETAILS: ${lastUsedPrompt}
+STYLE DETAILS: ${baseStylePrompt}
 
 REQUIREMENTS:
 - Show the person facing DIRECTLY toward the camera
@@ -337,13 +343,13 @@ REQUIREMENTS:
 - This must be a front-facing view, NOT a side or back image`;
     const styleName = `${lastUsedStyleName} (Front View)`;
     await applyStyleAndSave(prompt, styleName, selectedStyle?.id || 'custom-front');
-  }, [lastUsedPrompt, lastUsedStyleName, selectedStyle, applyStyleAndSave, isLoading]);
+  }, [baseStylePrompt, lastUsedStyleName, selectedStyle, applyStyleAndSave, isLoading]);
 
   const handleRequestSideView = useCallback(async () => {
-    if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;
+    if (!baseStylePrompt || !lastUsedStyleName || isLoading) return;
     const prompt = `Using the person in this photo as reference for skin tone, hair color, and general appearance, generate a SIDE PROFILE VIEW of them with a ${lastUsedStyleName} hairstyle.
 
-STYLE DETAILS: ${lastUsedPrompt}
+STYLE DETAILS: ${baseStylePrompt}
 
 REQUIREMENTS:
 - Show the person's head turned to show a side profile (90-degree angle from camera)
@@ -354,13 +360,13 @@ REQUIREMENTS:
 - This must be a profile/side view, NOT a front-facing image`;
     const styleName = `${lastUsedStyleName} (Side View)`;
     await applyStyleAndSave(prompt, styleName, selectedStyle?.id || 'custom-side');
-  }, [lastUsedPrompt, lastUsedStyleName, selectedStyle, applyStyleAndSave, isLoading]);
+  }, [baseStylePrompt, lastUsedStyleName, selectedStyle, applyStyleAndSave, isLoading]);
 
   const handleRequestBackView = useCallback(async () => {
-    if (!lastUsedPrompt || !lastUsedStyleName || isLoading) return;
+    if (!baseStylePrompt || !lastUsedStyleName || isLoading) return;
     const prompt = `Using the person in this photo as reference for skin tone, hair color, and general appearance, generate a BACK VIEW of them with a ${lastUsedStyleName} hairstyle.
 
-STYLE DETAILS: ${lastUsedPrompt}
+STYLE DETAILS: ${baseStylePrompt}
 
 REQUIREMENTS:
 - Show the BACK of the person's head - camera is behind them
@@ -372,7 +378,7 @@ REQUIREMENTS:
 - This must be a rear/back view, NOT a front-facing or side image`;
     const styleName = `${lastUsedStyleName} (Back View)`;
     await applyStyleAndSave(prompt, styleName, selectedStyle?.id || 'custom-back');
-  }, [lastUsedPrompt, lastUsedStyleName, selectedStyle, applyStyleAndSave, isLoading]);
+  }, [baseStylePrompt, lastUsedStyleName, selectedStyle, applyStyleAndSave, isLoading]);
 
   const handleHistorySelect = (item: HistoryItem) => {
     setCurrentStyledImage(item.imageUrl);
@@ -496,6 +502,7 @@ REQUIREMENTS:
     setError(null);
     setPreviousStyleName(null);
     setLastUsedPrompt(null);
+    setBaseStylePrompt(null);
     setLastUsedStyleName(null);
   }, []);
 

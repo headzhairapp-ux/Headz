@@ -135,7 +135,7 @@ export const addStylishWatermark = async (imageDataUrl: string): Promise<string>
       ctx.globalAlpha = 0.40;
       const patternSize = fontSize * 4;
       const numCols = Math.ceil(canvas.width / patternSize);
-      const numRows = Math.ceil(canvas.height / patternSize);
+      const numRows = 3;
 
       ctx.font = `bold ${fontSize * 0.8}px 'Segoe UI', Arial, sans-serif`;
       ctx.fillStyle = 'white';

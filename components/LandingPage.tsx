@@ -112,6 +112,7 @@ const LandingPage: React.FC = () => {
                   <img
                     src={item.before}
                     alt={`Before transformation ${index + 1}`}
+                    loading="lazy"
                     className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-0 ${activeIndex === index ? 'opacity-0' : ''}`}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -127,6 +128,7 @@ const LandingPage: React.FC = () => {
                   <img
                     src={item.after}
                     alt={`After transformation ${index + 1}`}
+                    loading="lazy"
                     className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-100 ${activeIndex === index ? 'opacity-100' : 'opacity-0'}`}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;

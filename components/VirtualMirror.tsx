@@ -410,14 +410,14 @@ const VirtualMirror: React.FC<VirtualMirrorProps> = ({
 
 
           {/* Style Grid - 2x3 Layout (6 images at a time) with Scroll */}
-          <div className="grid grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar animate-slide-in-right delay-300">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 max-h-[500px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar animate-slide-in-right delay-300">
             {displayStyles.map((style, index) => {
               return (
               <button
                 key={style.id}
                 onClick={() => onSelectStyle(style)}
                 disabled={isLoading}
-                  className={`group relative aspect-square bg-white hover:bg-gray-50 rounded-xl overflow-hidden border-2 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-[#E1262D] shadow-lg hover:shadow-xl animate-slide-in-up
+                  className={`group relative aspect-square bg-white hover:bg-gray-50 rounded-lg sm:rounded-xl overflow-hidden border-2 transition-all duration-300 transform sm:hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-white focus:ring-[#E1262D] shadow-md sm:shadow-lg hover:shadow-xl animate-slide-in-up
                     ${selectedStyleForHighlight?.id === style.id ? 'border-[#E1262D] shadow-[#E1262D]/15' : 'border-gray-200 hover:border-gray-300'}
                   ${isLoading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
                   style={{ animationDelay: `${index * 50}ms` }}

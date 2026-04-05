@@ -30,6 +30,7 @@ const ImageComparator: React.FC<ImageComparatorProps> = ({ originalImage, styled
   };
 
   const handleTouchStart = (e: TouchEvent) => {
+    e.preventDefault();
     isDragging.current = true;
   };
 
@@ -46,12 +47,15 @@ const ImageComparator: React.FC<ImageComparatorProps> = ({ originalImage, styled
   }, [handleMove]);
 
   const handleTouchMove = useCallback((e: globalThis.TouchEvent) => {
+    if (isDragging.current) {
+      e.preventDefault();
+    }
     handleMove(e.touches[0].clientX);
   }, [handleMove]);
 
   useEffect(() => {
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchmove', handleTouchMove);
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('mouseup', handleMouseUp);
     window.addEventListener('touchend', handleTouchEnd);
 
@@ -114,16 +118,16 @@ const ImageComparator: React.FC<ImageComparatorProps> = ({ originalImage, styled
         </button>
       </div>
 
-      {/* Slider Handle and Line */}
+      {/* Slider Handle and Line - wide touch target for mobile */}
       <div
-        className="absolute top-0 bottom-0 w-1 cursor-ew-resize"
-        style={{ left: `calc(${sliderPosition}% - 2px)` }}
+        className="absolute top-0 bottom-0 w-10 cursor-ew-resize z-10"
+        style={{ left: `calc(${sliderPosition}% - 20px)` }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       >
-        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 bg-gray-400/50"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/80 shadow-md backdrop-blur-sm flex items-center justify-center cursor-ew-resize transition-transform duration-200 group-hover:scale-110">
-          <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path></svg>
+        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 bg-white/70 shadow-sm"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 shadow-lg backdrop-blur-sm flex items-center justify-center cursor-ew-resize transition-transform duration-200 group-hover:scale-110">
+          <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7M9 19l7-7-7-7"></path></svg>
         </div>
       </div>
 

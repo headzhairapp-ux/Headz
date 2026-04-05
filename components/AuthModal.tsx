@@ -399,7 +399,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
       />
 
       {/* Modal Content */}
-      <div className="relative bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl animate-slide-in">
+      <div className="relative bg-white border border-gray-200 rounded-2xl p-5 sm:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-in">
         {/* Close Button */}
         <button
           onClick={handleClose}

@@ -24,16 +24,16 @@ const LandingPage: React.FC = () => {
     <div className="min-h-screen bg-white text-gray-900">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="HEADZ HAIR FIXING APP" className="h-32 -my-9 object-contain" />
-            <span className="text-xl font-bold text-[#E1262D]">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 py-2 sm:py-4 flex justify-between items-center">
+          <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+            <img src="/logo.png" alt="HEADZ" className="h-10 sm:h-14 object-contain flex-shrink-0" />
+            <span className="hidden sm:inline text-xl font-bold text-[#E1262D]">
               HEADZ HAIR FIXING APP
             </span>
           </div>
 
           {/* Auth Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             {user ? (
               <>
                 <span className="text-gray-900 text-sm hidden sm:block">
@@ -41,13 +41,13 @@ const LandingPage: React.FC = () => {
                 </span>
                 <Link
                   to="/app"
-                  className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg transition-colors border border-gray-200"
+                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg transition-colors border border-gray-200"
                 >
                   Open App
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 text-sm bg-[#E1262D] hover:bg-[#B91C1C] text-white font-medium rounded-lg transition-all"
+                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-[#E1262D] hover:bg-[#B91C1C] text-white font-medium rounded-lg transition-all"
                 >
                   Logout
                 </button>
@@ -56,13 +56,13 @@ const LandingPage: React.FC = () => {
               <>
                 <button
                   onClick={() => setShowAuthModal(true)}
-                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   Sign In
                 </button>
                 <button
                   onClick={() => setShowAuthModal(true)}
-                  className="px-4 py-2 text-sm bg-[#E1262D] hover:bg-[#B91C1C] text-white font-medium rounded-lg transition-all"
+                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-[#E1262D] hover:bg-[#B91C1C] text-white font-medium rounded-lg transition-all"
                 >
                   Sign Up
                 </button>
@@ -226,8 +226,8 @@ const LandingPage: React.FC = () => {
       <footer className="py-8 px-4 sm:px-6 border-t border-gray-200 bg-white">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="HEADZ HAIR FIXING APP" className="h-32 -my-9 object-contain" />
-            <span className="text-lg font-bold text-[#E1262D]">
+            <img src="/logo.png" alt="HEADZ" className="h-10 sm:h-14 object-contain" />
+            <span className="text-sm sm:text-lg font-bold text-[#E1262D]">
               HEADZ HAIR FIXING APP
             </span>
           </div>

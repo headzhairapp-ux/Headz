@@ -111,13 +111,13 @@ export const addStylishWatermark = async (imageDataUrl: string): Promise<string>
         canvas.width,
         canvas.height
       );
-      gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-      gradient.addColorStop(0.5, 'rgba(245, 245, 245, 1)');
-      gradient.addColorStop(1, 'rgba(255, 255, 255, 0.95)');
+      gradient.addColorStop(0, 'rgba(255, 255, 255, 0.75)');
+      gradient.addColorStop(0.5, 'rgba(245, 245, 245, 0.75)');
+      gradient.addColorStop(1, 'rgba(255, 255, 255, 0.70)');
 
-      // Add stronger shadow effect for better visibility
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-      ctx.shadowBlur = 10;
+      // Shadow effect for visibility
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.70)';
+      ctx.shadowBlur = 8;
       ctx.shadowOffsetX = 3;
       ctx.shadowOffsetY = 3;
 
@@ -132,7 +132,7 @@ export const addStylishWatermark = async (imageDataUrl: string): Promise<string>
 
       // Add subtle repeating pattern for extra protection
       ctx.save();
-      ctx.globalAlpha = 0.40;
+      ctx.globalAlpha = 0.30;
       const patternSize = fontSize * 4;
       const numCols = Math.ceil(canvas.width / patternSize);
       const numRows = 3;
@@ -152,6 +152,21 @@ export const addStylishWatermark = async (imageDataUrl: string): Promise<string>
         }
       }
 
+      ctx.restore();
+
+      // Add website URL at the bottom center
+      ctx.save();
+      const urlText = 'www.headzhairfixing.com';
+      const urlFontSize = fontSize * 0.55;
+      ctx.font = `${urlFontSize}px 'Segoe UI', Arial, sans-serif`;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(urlText, canvas.width / 2, canvas.height - urlFontSize * 0.5);
       ctx.restore();
 
       // Convert canvas back to data URL

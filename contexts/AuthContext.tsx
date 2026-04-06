@@ -39,7 +39,7 @@ interface AuthContextType {
   // Google Sign-In with Access Token (from useGoogleLogin hook)
   signInWithGoogleToken: (accessToken: string) => Promise<{ user: any | null; isNewUser: boolean; error: any }>;
   // Authenticate with Google (returns user info without logging in)
-  authenticateWithGoogle: (accessToken: string) => Promise<AuthenticateWithGoogleResult>;
+  authenticateWithGoogle: (accessToken: string, preDecodedInfo?: { email: string; firstName: string; lastName: string }) => Promise<AuthenticateWithGoogleResult>;
   // Set user after details form completion
   setUserLoggedIn: (userData: any) => void;
   // Profile methods
@@ -299,25 +299,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Authenticate with Google (returns user info without logging in)
   // Used by the new user details flow
-  const authenticateWithGoogle = async (accessToken: string): Promise<AuthenticateWithGoogleResult> => {
+  const authenticateWithGoogle = async (accessToken: string, preDecodedInfo?: { email: string; firstName: string; lastName: string }): Promise<AuthenticateWithGoogleResult> => {
     try {
-      // Fetch user info from Google API
-      console.log('Fetching Google userinfo with token:', accessToken?.substring(0, 20) + '...');
-      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      console.log('Google userinfo response status:', response.status);
-      const googleUser = await response.json();
-      console.log('Google user data:', googleUser.email, googleUser.error);
+      let googleUserInfo: GoogleUserInfo;
 
-      const googleUserInfo: GoogleUserInfo = {
-        email: googleUser.email,
-        firstName: googleUser.given_name || '',
-        lastName: googleUser.family_name || '',
-      };
+      if (preDecodedInfo) {
+        // Use pre-decoded info from JWT credential (GoogleLogin component)
+        googleUserInfo = preDecodedInfo;
+      } else {
+        // Fetch user info from Google API (useGoogleLogin access token)
+        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const googleUser = await response.json();
+        googleUserInfo = {
+          email: googleUser.email,
+          firstName: googleUser.given_name || '',
+          lastName: googleUser.family_name || '',
+        };
+      }
 
       // Check if user exists in DB (without creating)
-      const { exists, user: existingUser, error: checkError } = await checkUserByEmail(googleUser.email);
+      const { exists, user: existingUser, error: checkError } = await checkUserByEmail(googleUserInfo.email);
 
       // Check for blocked user error
       if (checkError && checkError.message?.includes('blocked')) {

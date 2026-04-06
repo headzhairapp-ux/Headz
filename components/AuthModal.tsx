@@ -137,7 +137,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
           setIsLoading(false);
           return;
         } else {
-          setError('Failed to sign in with Google. Please try again.');
+          console.error('Auth error details:', authError);
+          setError(authError.message || 'Failed to sign in with Google. Please try again.');
         }
         setIsLoading(false);
         return;

@@ -302,10 +302,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const authenticateWithGoogle = async (accessToken: string): Promise<AuthenticateWithGoogleResult> => {
     try {
       // Fetch user info from Google API
+      console.log('Fetching Google userinfo with token:', accessToken?.substring(0, 20) + '...');
       const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
+      console.log('Google userinfo response status:', response.status);
       const googleUser = await response.json();
+      console.log('Google user data:', googleUser.email, googleUser.error);
 
       const googleUserInfo: GoogleUserInfo = {
         email: googleUser.email,

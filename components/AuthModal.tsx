@@ -55,6 +55,7 @@ interface AuthModalProps {
   onClose: () => void;
   usageCount: number;
   reason?: 'limit' | 'download' | 'share';
+  mode?: 'signin' | 'signup';
   onAuthSuccess?: (userData: any) => void;
 }
 
@@ -63,6 +64,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   usageCount,
   reason = 'limit',
+  mode = 'signup',
   onAuthSuccess,
 }) => {
   const navigate = useNavigate();
@@ -137,7 +139,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
           setIsLoading(false);
           return;
         } else {
-          console.error('Auth error details:', authError);
           setError(authError.message || 'Failed to sign in with Google. Please try again.');
         }
         setIsLoading(false);
@@ -150,37 +151,48 @@ const AuthModal: React.FC<AuthModalProps> = ({
         return;
       }
 
-      // Store Google user info
+      // SIGN IN mode: existing users only, log in directly
+      if (mode === 'signin') {
+        if (newUser || !existingUser) {
+          setError('No account found. Please sign up first.');
+          setIsLoading(false);
+          return;
+        }
+        // Log in directly
+        setUserLoggedIn(existingUser);
+        setStep('success');
+        setTimeout(() => {
+          if (onAuthSuccess) onAuthSuccess(existingUser);
+          handleClose();
+        }, 500);
+        setIsLoading(false);
+        return;
+      }
+
+      // SIGN UP mode: show details form for both new and existing users
       setGoogleUserInfo(gUserInfo);
       setIsNewUser(newUser);
 
       if (newUser) {
-        // New user - show empty form
         setName('');
         setLocation('');
         setPhoneNumber('');
         setCountryCode(COUNTRY_CODES[0]);
         setExistingUserData(null);
       } else if (existingUser) {
-        // Existing user - pre-populate form with stored data
-        setExistingUserData(existingUser);
-        setName(existingUser.full_name || '');
-        setLocation(existingUser.location || '');
-        // Pre-populate phone data if available
-        if (existingUser.phone_number) {
-          setPhoneNumber(existingUser.phone_number);
-        }
-        if (existingUser.country_code) {
-          const foundCountry = COUNTRY_CODES.find(c => c.code === existingUser.country_code);
-          if (foundCountry) {
-            setCountryCode(foundCountry);
-          }
-        }
+        // Already has account - log in directly instead of showing form again
+        setUserLoggedIn(existingUser);
+        setStep('success');
+        setTimeout(() => {
+          if (onAuthSuccess) onAuthSuccess(existingUser);
+          handleClose();
+        }, 500);
+        setIsLoading(false);
+        return;
       }
 
-      // Go to user-details step
       setStep('user-details');
-    } catch (err) {
+    } catch (err: any) {
       setError('Failed to sign in with Google. Please try again.');
     }
 
@@ -367,20 +379,35 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Get title based on reason
+  // Get title based on mode and reason
   const getTitle = () => {
+    if (mode === 'signin') {
+      switch (reason) {
+        case 'download':
+          return 'Sign In to Download';
+        case 'share':
+          return 'Sign In to Share';
+        default:
+          return 'Welcome Back';
+      }
+    }
+    // signup mode
     switch (reason) {
       case 'download':
-        return 'Sign In to Continue';
+        return 'Sign Up to Download';
       case 'share':
-        return 'Sign In to Share';
+        return 'Sign Up to Share';
       default:
-        return 'Sign In';
+        return 'Create Account';
     }
   };
 
-  // Get subtitle based on reason
+  // Get subtitle based on mode and reason
   const getSubtitle = () => {
+    if (mode === 'signin') {
+      return 'Sign in with your Google account to continue';
+    }
+    // signup mode
     switch (reason) {
       case 'download':
         return 'Create a free account to download your styled images without watermarks';
@@ -446,7 +473,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Continue with Google
+              {mode === 'signin' ? 'Sign in with Google' : 'Sign up with Google'}
             </button>
 
             {/* Maybe Later */}

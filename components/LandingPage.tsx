@@ -7,6 +7,7 @@ const LandingPage: React.FC = () => {
   const { user, signOut } = useAuth();
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const handleLogout = async () => {
@@ -55,13 +56,13 @@ const LandingPage: React.FC = () => {
             ) : (
               <>
                 <button
-                  onClick={() => setShowAuthModal(true)}
+                  onClick={() => { setAuthMode('signin'); setShowAuthModal(true); }}
                   className="px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   Sign In
                 </button>
                 <button
-                  onClick={() => setShowAuthModal(true)}
+                  onClick={() => { setAuthMode('signup'); setShowAuthModal(true); }}
                   className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-[#E1262D] hover:bg-[#B91C1C] text-white font-medium rounded-lg transition-all"
                 >
                   Sign Up
@@ -247,6 +248,7 @@ const LandingPage: React.FC = () => {
         onClose={() => setShowAuthModal(false)}
         usageCount={0}
         reason="download"
+        mode={authMode}
       />
     </div>
   );

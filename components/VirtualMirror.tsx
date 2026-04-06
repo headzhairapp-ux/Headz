@@ -424,11 +424,11 @@ const VirtualMirror: React.FC<VirtualMirrorProps> = ({
                 aria-label={`Select style: ${style.name}`}
               >
                   {/* Hairstyle Preview Image */}
-                  <div className="absolute inset-0 flex items-center justify-center p-2">
+                  <div className="absolute inset-0 flex items-center justify-center p-2 overflow-hidden">
                     <img
                       src={style.thumbnailUrl}
                       alt={`${style.name} style preview`}
-                      className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
+                      className="w-full h-full object-contain rounded-lg transition-transform duration-300 group-hover:scale-105"
                       onError={(e) => {
                         // Fallback to a default image if the specific one fails to load
                         const target = e.target as HTMLImageElement;

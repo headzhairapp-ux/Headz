@@ -108,7 +108,11 @@
         <i data-lucide="plus" style="width:14px;height:14px"></i>Add
       </button>
     </div>
-    <div id="todoList" class="divide-y divide-slate-50 max-h-52 overflow-y-auto"></div>
+    <div id="todoList" class="divide-y divide-slate-50" style="max-height:208px;overflow:hidden;transition:max-height 0.3s ease;"></div>
+    <button id="todoExpandBtn" onclick="toggleTodoExpand()" class="hidden w-full py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 border-t border-slate-100 transition flex items-center justify-center gap-1">
+      <i data-lucide="chevron-down" id="todoExpandIcon" style="width:13px;height:13px;transition:transform 0.2s;"></i>
+      <span id="todoExpandLabel">Show all</span>
+    </button>
     <div id="todoEmpty" class="hidden px-5 py-5 text-center text-slate-400 text-sm">Nothing scheduled for this day — add a task above.</div>
     <div id="todoLoading" class="px-5 py-5 text-center text-slate-400 text-sm">Loading…</div>
   </div>
@@ -474,6 +478,7 @@ function switchTodoTab(tab) {
     tab = 'pick';
   }
   document.querySelectorAll('.todo-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  resetTodoExpand();
   fetchTodos();
 }
 
@@ -494,7 +499,7 @@ async function fetchTodos() {
   if (pending > 0) { badge.textContent = pending; badge.classList.remove('hidden'); }
   else badge.classList.add('hidden');
 
-  if (!todos.length) { emptyEl.classList.remove('hidden'); return; }
+  if (!todos.length) { emptyEl.classList.remove('hidden'); resetTodoExpand(); return; }
 
   listEl.innerHTML = todos.map(t => `
     <div class="flex items-center gap-3 px-5 py-2.5 hover:bg-slate-50 group ${t.done ? 'opacity-50' : ''}">
@@ -508,6 +513,36 @@ async function fetchTodos() {
     </div>
   `).join('');
   window.bniRenderIcons && window.bniRenderIcons();
+
+  // Show expand button only when content overflows the collapsed height
+  requestAnimationFrame(() => {
+    const btn = document.getElementById('todoExpandBtn');
+    if (listEl.scrollHeight > 208) btn.classList.remove('hidden');
+    else btn.classList.add('hidden');
+  });
+}
+
+let _todoExpanded = false;
+function toggleTodoExpand() {
+  const listEl = document.getElementById('todoList');
+  const icon   = document.getElementById('todoExpandIcon');
+  const label  = document.getElementById('todoExpandLabel');
+  _todoExpanded = !_todoExpanded;
+  listEl.style.maxHeight  = _todoExpanded ? listEl.scrollHeight + 'px' : '208px';
+  listEl.style.overflow   = _todoExpanded ? 'visible' : 'hidden';
+  icon.style.transform    = _todoExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+  label.textContent       = _todoExpanded ? 'Collapse' : 'Show all';
+}
+function resetTodoExpand() {
+  _todoExpanded = false;
+  const listEl = document.getElementById('todoList');
+  if (listEl) { listEl.style.maxHeight = '208px'; listEl.style.overflow = 'hidden'; }
+  const icon  = document.getElementById('todoExpandIcon');
+  const label = document.getElementById('todoExpandLabel');
+  if (icon)  icon.style.transform = 'rotate(0deg)';
+  if (label) label.textContent    = 'Show all';
+  const btn = document.getElementById('todoExpandBtn');
+  if (btn) btn.classList.add('hidden');
 }
 
 async function addTodo() {

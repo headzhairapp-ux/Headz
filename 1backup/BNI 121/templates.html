@@ -513,14 +513,26 @@ function seedMissingTemplates() {
   }).catch(e => console.warn('template seed check failed', e));
 }
 
+function seedsAsRows() {
+  return SEED_TEMPLATES.map((t, idx) => ({
+    id: t.id, title: t.title, type: t.type, channel: t.channel,
+    body: t.body('', '', '', ''), color: t.color, hidden: false,
+    sort_order: (idx + 1) * 10, created_at: new Date().toISOString(),
+  }));
+}
+
 async function loadTemplates() {
   const { data, error } = await window.sb
     .from('bni_templates')
     .select('*')
     .order('sort_order')
     .order('created_at');
-  if (error) { console.warn('loadTemplates failed', error); window.bniToast && window.bniToast('Failed to load templates', 'error'); return; }
-  TEMPLATES = data || [];
+  if (error) {
+    console.warn('loadTemplates failed (table may not exist), using built-in seeds:', error.message);
+    TEMPLATES = seedsAsRows();
+    return;
+  }
+  TEMPLATES = (data && data.length) ? data : seedsAsRows();
 }
 
 // ── Personalisation ──────────────────────────────────────────────────────────

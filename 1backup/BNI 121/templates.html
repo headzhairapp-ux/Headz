@@ -496,30 +496,21 @@ let TEMPLATES = [];         // rows from bni_templates
 let activeFilter = 'all';
 let editingId = null;       // id currently in the modal, null = new
 
-// ── Seed first-load (upserts missing IDs, never overwrites user edits) ───────
-async function ensureSeeded() {
-  const { data: existing, error } = await window.sb
-    .from('bni_templates')
-    .select('id');
-  if (error) { console.warn('template seed check failed', error); return; }
-
-  const existingIds = new Set((existing || []).map(r => r.id));
-  const missing = SEED_TEMPLATES.filter(t => !existingIds.has(t.id));
-  if (!missing.length) return;
-
-  const rows = missing.map((t, idx) => ({
-    id: t.id,
-    title: t.title,
-    type: t.type,
-    channel: t.channel,
-    body: t.body('', '', '', ''),
-    color: t.color,
-    hidden: false,
-    sort_order: (existingIds.size + idx + 1) * 10,
-  }));
-  const { error: seedErr } = await window.sb.from('bni_templates').insert(rows);
-  if (seedErr) console.warn('template seed failed', seedErr);
-  else window.bniToast && window.bniToast(`Added ${rows.length} new template${rows.length > 1 ? 's' : ''}`, 'success');
+// ── Seed missing templates in background (never blocks template rendering) ────
+function seedMissingTemplates() {
+  window.sb.from('bni_templates').select('id').then(({ data: existing }) => {
+    const existingIds = new Set((existing || []).map(r => r.id));
+    const missing = SEED_TEMPLATES.filter(t => !existingIds.has(t.id));
+    if (!missing.length) return;
+    const rows = missing.map((t, idx) => ({
+      id: t.id, title: t.title, type: t.type, channel: t.channel,
+      body: t.body('', '', '', ''), color: t.color, hidden: false,
+      sort_order: (existingIds.size + idx + 1) * 10,
+    }));
+    window.sb.from('bni_templates').insert(rows).then(({ error }) => {
+      if (error) console.warn('template seed failed', error);
+    });
+  }).catch(e => console.warn('template seed check failed', e));
 }
 
 async function loadTemplates() {
@@ -737,7 +728,7 @@ document.getElementById('p_company').value = urlP.get('company') || '';
 document.getElementById('p_city').value    = urlP.get('city')    || '';
 
 (async () => {
-  await ensureSeeded();
+  seedMissingTemplates(); // fire-and-forget, never blocks rendering
   await Promise.all([loadTemplates(), window.loadSettings && window.loadSettings()]);
   renderTemplates();
 })();

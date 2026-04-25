@@ -20,18 +20,29 @@
     check();
   };
 
-  // ─── Navigation config ─────────────────────────────────────────────────────
-  const LINKS = [
-    { href: '/bni/dashboard.html',      icon: 'sunrise',        label: 'Today',           desc: 'Daily to-do list and follow-up queue — your morning starting point' },
-    { href: '/bni/pipeline.html',       icon: 'trello',         label: 'Pipeline',         desc: 'Visual kanban board — drag contacts across stages from Identified to Converted' },
-    { href: '/bni/tracker.html',        icon: 'clipboard-list', label: 'Contact Tracker',  desc: 'Full contact list — add, search, filter by status or city, manage leads' },
-    { href: '/bni/zoom-completed.html', icon: 'video',          label: 'Zoom Meetings',    desc: 'Log of completed 121 Zoom calls — record outcomes and set follow-ups' },
-    { href: '/bni/followup.html',       icon: 'repeat',         label: 'Follow-ups',       desc: 'All scheduled appointments — see who needs a nudge and log meeting results' },
-    { href: '/bni/templates.html',      icon: 'mail',           label: 'Templates',        desc: 'Ready-to-send WhatsApp & email messages — personalise once, copy for any contact' },
-    { href: '/bni/proposals.html',     icon: 'file-check',     label: 'Proposals',        desc: 'Pending proposal approvals — assignees upload, Dr. Murali reviews and approves' },
-    { href: '/bni/members.html',        icon: 'users',          label: 'All Members',      desc: 'BNI chapter member directory — browse and search all chapter members' },
-    { href: '/bni/settings.html',       icon: 'settings',       label: 'Settings',         desc: 'Configure WhatsApp API, AI, and other integrations for this CRM' },
+  // ─── Navigation config (grouped) ───────────────────────────────────────────
+  const NAV_GROUPS = [
+    { title: 'Daily',      items: [
+      { href: '/bni/dashboard.html',      icon: 'sunrise',        label: 'Today',           desc: 'Daily to-do list and follow-up queue — your morning starting point' },
+      { href: '/bni/followup.html',       icon: 'repeat',         label: 'Follow-ups',      desc: 'All scheduled appointments — see who needs a nudge and log meeting results' },
+    ]},
+    { title: 'Pipeline',   items: [
+      { href: '/bni/pipeline.html',       icon: 'trello',         label: 'Pipeline',        desc: 'Visual kanban board — drag contacts across stages from Identified to Converted' },
+      { href: '/bni/tracker.html',        icon: 'clipboard-list', label: 'Contact Tracker', desc: 'Full contact list — add, search, filter by status or city, manage leads' },
+      { href: '/bni/proposals.html',      icon: 'file-check',     label: 'Proposals',       desc: 'Pending proposal approvals — assignees upload, Dr. Murali reviews and approves' },
+    ]},
+    { title: 'Meetings',   items: [
+      { href: '/bni/zoom-completed.html', icon: 'video',          label: 'Zoom Meetings',   desc: 'Log of completed 121 Zoom calls — record outcomes and set follow-ups' },
+      { href: '/bni/members-met.html',    icon: 'user-check',     label: 'Members Met',     desc: 'Compact roster of everyone you have completed a Zoom 121 with — name, category, chapter, city, mobile, date' },
+      { href: '/bni/members.html',        icon: 'users',          label: 'All Members',     desc: 'BNI chapter member directory — browse and search all chapter members' },
+    ]},
+    { title: 'Tools',      items: [
+      { href: '/bni/my-card.html',        icon: 'id-card',        label: 'My BNI Card',     desc: 'Your sharable BNI 121 introduction card — copy text, share on WhatsApp, download as PDF' },
+      { href: '/bni/templates.html',      icon: 'mail',           label: 'Templates',       desc: 'Ready-to-send WhatsApp & email messages — personalise once, copy for any contact' },
+      { href: '/bni/settings.html',       icon: 'settings',       label: 'Settings',        desc: 'Configure WhatsApp API, AI, and other integrations for this CRM' },
+    ]},
   ];
+  const LINKS = NAV_GROUPS.flatMap(g => g.items);
 
   // ─── Shared theme CSS ──────────────────────────────────────────────────────
   const THEME_CSS = `
@@ -49,9 +60,12 @@
       background:var(--bni-bg) !important;
       color:var(--bni-text);
       margin-left:240px;
+      padding-top:56px;
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
+      transition:margin-left 0.22s ease;
     }
+    body.bni-sidebar-applied.bni-sidebar-collapsed { margin-left:0 !important; }
     body.bni-sidebar-applied .md\\:ml-60,body.bni-sidebar-applied .ml-60,
     body.bni-sidebar-applied .md\\:ml-56,body.bni-sidebar-applied .ml-56 { margin-left:0 !important; }
 
@@ -182,25 +196,102 @@
     body.bni-sidebar-applied h1 { letter-spacing:-0.02em; }
     body.bni-sidebar-applied h2 { letter-spacing:-0.015em; }
 
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
       body.bni-sidebar-applied { margin-left:0 !important; }
+    }
+
+    /* Touch-friendly minimums on mobile */
+    @media (max-width: 640px) {
+      body.bni-sidebar-applied button,
+      body.bni-sidebar-applied .qf-btn,
+      body.bni-sidebar-applied .action-btn,
+      body.bni-sidebar-applied a.action-btn {
+        min-height:38px;
+      }
     }
   `;
 
   const SIDEBAR_CSS = `
+    /* Top bar (always visible — hamburger toggles sidebar on every viewport) */
+    #bni-mobile-bar {
+      display:flex;
+      position:fixed; top:0; left:0; right:0; height:56px;
+      background:rgba(255,255,255,0.92);
+      backdrop-filter:saturate(1.3) blur(10px);
+      -webkit-backdrop-filter:saturate(1.3) blur(10px);
+      border-bottom:1px solid var(--bni-border);
+      z-index:65;
+      align-items:center; justify-content:space-between;
+      padding:0 14px;
+      transition:left 0.22s ease;
+    }
+    body.bni-sidebar-applied:not(.bni-sidebar-collapsed) #bni-mobile-bar { left:240px; }
+    body.bni-sidebar-applied.bni-sidebar-collapsed #bni-mobile-bar { left:0; }
+    #bni-mobile-bar .mb-title { font-size:14px; font-weight:600; color:#0f172a; letter-spacing:-0.01em; display:flex; align-items:center; gap:10px; min-width:0; }
+    #bni-mobile-bar .mb-title > span:last-child { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #bni-mobile-bar .mb-logo {
+      width:30px; height:30px; border-radius:9px;
+      background:linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);
+      color:#fff; font-weight:800; font-size:12px;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 2px 8px rgba(37,99,235,0.3);
+      flex-shrink:0;
+    }
+    /* On desktop with the sidebar visible, the BK logo is redundant — hide it. */
+    body.bni-sidebar-applied:not(.bni-sidebar-collapsed) #bni-mobile-bar .mb-logo { display:none; }
+    @media (max-width: 900px) {
+      body.bni-sidebar-applied:not(.bni-sidebar-collapsed) #bni-mobile-bar .mb-logo { display:flex; }
+    }
+    #bni-hamburger {
+      width:44px; height:44px; border-radius:10px;
+      background:#0f172a; border:none;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; color:#fff;
+      box-shadow:0 2px 6px rgba(15,23,42,0.18);
+      flex-shrink:0;
+    }
+    #bni-hamburger:active { transform:scale(0.96); }
+    #bni-hamburger [data-lucide], #bni-hamburger svg { width:22px; height:22px; }
+    #bni-sidebar-backdrop {
+      display:none; position:fixed; inset:0;
+      background:rgba(15,23,42,0.45);
+      backdrop-filter:blur(2px); z-index:55;
+      animation:bni-fade 0.18s ease;
+    }
+    @keyframes bni-fade { from{opacity:0;} to{opacity:1;} }
+    @keyframes bni-slide { from{transform:translateX(-100%);} to{transform:translateX(0);} }
+
     #bni-sidebar-root {
       position:fixed; top:0; left:0; bottom:0; width:240px;
       background:#ffffff; border-right:1px solid var(--bni-border);
       display:flex; flex-direction:column;
       font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
-      z-index:50;
+      z-index:60;
       box-shadow:var(--bni-shadow-xs);
+      transform:translateX(0);
+      transition:transform 0.22s ease;
     }
+    body.bni-sidebar-collapsed #bni-sidebar-root { transform:translateX(-100%); }
     #bni-sidebar-root .bs-header {
       padding:18px 20px 16px;
       border-bottom:1px solid #f1f5f9;
       display:flex; align-items:center; gap:12px;
     }
+    #bni-sidebar-root .bs-close {
+      display:none;
+      margin-left:auto;
+      width:32px; height:32px; border-radius:8px;
+      background:transparent; border:1px solid var(--bni-border);
+      cursor:pointer; color:#64748b;
+      align-items:center; justify-content:center;
+    }
+    #bni-sidebar-root .bs-close:hover { background:#f1f5f9; color:#0f172a; }
+    #bni-sidebar-root .bs-group-title {
+      font-size:10.5px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase;
+      color:#94a3b8;
+      padding:14px 14px 6px;
+    }
+    #bni-sidebar-root .bs-group:first-child .bs-group-title { padding-top:6px; }
     #bni-sidebar-root .bs-logo {
       width:40px; height:40px; flex-shrink:0;
       border-radius:11px;
@@ -237,39 +328,96 @@
       font-weight:500;
     }
     #bni-sidebar-root .bs-footer-dot { width:6px; height:6px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,0.18); }
-    @media (max-width: 768px) {
-      #bni-sidebar-root {
-        position:relative; width:100%; height:auto;
-        border-right:0; border-bottom:1px solid var(--bni-border);
-      }
-      #bni-sidebar-root nav { flex-direction:row; flex-wrap:nowrap; overflow-x:auto; padding:8px; gap:4px; }
-      #bni-sidebar-root .bs-link { white-space:nowrap; padding:6px 10px; font-size:12.5px; }
-      #bni-sidebar-root .bs-footer { display:none; }
+    @media (max-width: 900px) {
+      /* On narrow viewports the sidebar is hidden by default and acts as a drawer. */
+      body.bni-sidebar-applied:not(.bni-sidebar-open) #bni-sidebar-root { transform:translateX(-100%); }
+      body.bni-sidebar-applied.bni-sidebar-open #bni-sidebar-root { transform:translateX(0); box-shadow:0 0 30px rgba(15,23,42,0.18); width:280px; }
+      body.bni-sidebar-applied.bni-sidebar-open #bni-sidebar-backdrop { display:block; }
+      body.bni-sidebar-applied.bni-sidebar-collapsed #bni-sidebar-root { transform:translateX(-100%); }
+      body.bni-sidebar-applied #bni-mobile-bar { left:0 !important; }
+      #bni-sidebar-root .bs-close { display:flex; }
     }
   `;
 
   function renderHTML() {
     const current = (location.pathname || '').toLowerCase();
-    const items = LINKS.map(l => {
+    const renderItem = (l) => {
       const active = current.endsWith(l.href.toLowerCase()) ? 'active' : '';
       return `<a class="bs-link ${active}" href="${l.href}" title="${l.desc}"><i data-lucide="${l.icon}"></i>${l.label}</a>`;
-    }).join('');
+    };
+    const groups = NAV_GROUPS.map(g => `
+      <div class="bs-group">
+        <div class="bs-group-title">${g.title}</div>
+        ${g.items.map(renderItem).join('')}
+      </div>`).join('');
+    const activeLabel = (LINKS.find(l => current.endsWith(l.href.toLowerCase())) || {}).label || 'BNI 121';
     return `
+      <div id="bni-mobile-bar">
+        <div class="mb-title"><span class="mb-logo">BK</span><span>${activeLabel}</span></div>
+        <button id="bni-hamburger" aria-label="Open menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="bni-sidebar-backdrop"></div>
       <aside id="bni-sidebar-root">
         <div class="bs-header">
           <div class="bs-logo">BK</div>
-          <div>
+          <div style="flex:1; min-width:0;">
             <div class="bs-title">Dr. BK Murali</div>
             <div class="bs-subtitle">BNI 121 · AI Tools</div>
           </div>
+          <button class="bs-close" aria-label="Close menu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
-        <nav>${items}</nav>
+        <nav>${groups}</nav>
         <div class="bs-footer">
           <span>v2 · Supabase</span>
           <span class="bs-footer-dot" title="Connected"></span>
         </div>
       </aside>
     `;
+  }
+
+  function bindDrawer() {
+    const root = document.getElementById('bni-sidebar-root');
+    const backdrop = document.getElementById('bni-sidebar-backdrop');
+    const burger = document.getElementById('bni-hamburger');
+    const close = root && root.querySelector('.bs-close');
+    if (!root) return;
+
+    const isMobile = () => window.matchMedia('(max-width: 900px)').matches;
+    const body = document.body;
+
+    // Hamburger:
+    //   • Mobile  — toggles `bni-sidebar-open` (drawer slides in over content).
+    //   • Desktop — toggles `bni-sidebar-collapsed` (sidebar slides off, content reclaims width).
+    const toggle = () => {
+      if (isMobile()) body.classList.toggle('bni-sidebar-open');
+      else body.classList.toggle('bni-sidebar-collapsed');
+    };
+    const closeAll = () => {
+      body.classList.remove('bni-sidebar-open');
+      // Don't auto-uncollapse on desktop — user explicitly chose that state.
+    };
+
+    burger && burger.addEventListener('click', toggle);
+    backdrop && backdrop.addEventListener('click', closeAll);
+    close && close.addEventListener('click', () => {
+      if (isMobile()) body.classList.remove('bni-sidebar-open');
+      else body.classList.add('bni-sidebar-collapsed');
+    });
+
+    // Close mobile drawer after navigating; on desktop, leave state alone.
+    root.querySelectorAll('.bs-link').forEach(a => a.addEventListener('click', () => {
+      if (isMobile()) body.classList.remove('bni-sidebar-open');
+    }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+    // If user resizes from mobile→desktop while drawer is open, drop the open state.
+    window.addEventListener('resize', () => {
+      if (!isMobile()) body.classList.remove('bni-sidebar-open');
+    });
   }
 
   function removeLegacySidebars() {
@@ -336,10 +484,18 @@
     removeLegacySidebars();
     const mount = document.getElementById('bni-sidebar-mount');
     const html = renderHTML();
-    if (mount) mount.outerHTML = html;
-    else document.body.insertAdjacentHTML('afterbegin', html);
+    // renderHTML returns multiple sibling elements (mobile bar + backdrop + aside);
+    // outerHTML assignment is unreliable for multi-root strings, so insert as siblings
+    // then drop the mount placeholder.
+    if (mount) {
+      mount.insertAdjacentHTML('beforebegin', html);
+      mount.remove();
+    } else {
+      document.body.insertAdjacentHTML('afterbegin', html);
+    }
     document.body.classList.add('bni-sidebar-applied');
     removeLegacyLogoutButtons();
+    bindDrawer();
     window.bniRenderIcons();
   }
 

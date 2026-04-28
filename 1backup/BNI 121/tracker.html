@@ -545,6 +545,26 @@ async function saveContact(e) {
     window.bniToast('Failed to save: ' + error.message, 'error');
     return;
   }
+
+  // Persist the meeting date into bni_contact_details so it powers
+  // dashboard "today/upcoming" and zoom-completed cards.
+  const meetingDateRaw = uiContact.meetingDate || '';
+  if (meetingDateRaw) {
+    const isoDate = meetingDateRaw.slice(0, 10);                    // YYYY-MM-DD
+    const isoTime = meetingDateRaw.slice(11, 16) || null;           // HH:MM
+    const detailPayload = {
+      contact_id: nextId,
+      next_date:  isoDate,
+      ...(isoTime ? { meeting_time: isoTime } : {}),
+    };
+    const { error: dErr } = await window.sb
+      .from('bni_contact_details')
+      .upsert(detailPayload, { onConflict: 'contact_id' });
+    if (dErr) {
+      window.bniToast('Saved contact, but date sync failed: ' + dErr.message, 'error');
+    }
+  }
+
   closeModal();
   window.bniToast(existingId ? 'Contact updated' : 'Contact added', 'success');
   await refreshContacts();

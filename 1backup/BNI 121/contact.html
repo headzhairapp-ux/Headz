@@ -88,7 +88,9 @@ async function loadContact() {
     .from('bni_contact_details').select('*').eq('contact_id', id).maybeSingle();
   _detail = d || { contact_id: id, followups: [], pdfs: [], photo: '', about: '', linkedin: '', website: '', priority: 'Normal', next_date: null,
     financial_proposal_sent_at: null, technical_proposal_sent_at: null, commercial_proposal_sent_at: null,
-    financial_proposal_url: '', technical_proposal_url: '', commercial_proposal_url: '' };
+    financial_proposal_url: '', technical_proposal_url: '', commercial_proposal_url: '',
+    meeting_outcome: null, proposal_reply_received_at: null,
+    sentiment: null, sentiment_note: '' };
   render();
 }
 
@@ -139,6 +141,8 @@ function render() {
             ${renderHeaderFollowUpChip(d.next_date)}
           </div>
           <div class="text-slate-600 mt-1">${c.company || '—'}${c.city ? ' · ' + c.city : ''}</div>
+          ${renderProgressBar(c, d)}
+          ${renderSentimentBar(d)}
           <div class="flex items-center gap-4 mt-3 text-sm flex-wrap">
             ${(() => {
               const phones = window.contactPhones(c);
@@ -500,6 +504,102 @@ function renderHeaderFollowUpChip(iso) {
     </span>`;
 }
 
+// ── Header progress bar: meeting outcome + 3 proposal types + reply ─────────
+function renderProgressBar(c, d) {
+  const stepDef = (key, label, active, ts) => {
+    const tip = ts ? `Set ${new Date(ts).toLocaleDateString('en-IN')}` : 'Click to mark';
+    const bg  = active ? '#15803d' : '#f1f5f9';
+    const fg  = active ? '#ffffff' : '#475569';
+    const br  = active ? '#15803d' : '#cbd5e1';
+    return `<button type="button" onclick="toggleProgress('${key}')"
+              title="${tip}"
+              style="background:${bg};color:${fg};border:1.5px solid ${br};padding:4px 10px;border-radius:999px;font-size:0.7rem;font-weight:700;letter-spacing:0.02em;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+              ${active ? '<i data-lucide=\"check\" style=\"width:11px;height:11px\"></i>' : '<i data-lucide=\"circle\" style=\"width:10px;height:10px\"></i>'}
+              ${label}
+            </button>`;
+  };
+
+  const outcome   = (d.meeting_outcome || '').toLowerCase();
+  const metDone   = c.status === 'Met' || outcome === 'completed';
+  const resched   = outcome === 'rescheduled';
+  return `
+    <div class="flex items-center gap-2 mt-3 flex-wrap" id="hdrProgressBar">
+      <span style="font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:0.08em;text-transform:uppercase;">Progress</span>
+      ${stepDef('zoom_completed', 'Zoom Completed', metDone, d.updated_at)}
+      ${stepDef('rescheduled',    'Rescheduled',    resched, d.updated_at)}
+      ${stepDef('financial_proposal_sent_at',  'Meeting Proposal',    !!d.financial_proposal_sent_at,  d.financial_proposal_sent_at)}
+      ${stepDef('technical_proposal_sent_at',  'Technical Proposal',  !!d.technical_proposal_sent_at,  d.technical_proposal_sent_at)}
+      ${stepDef('commercial_proposal_sent_at', 'Commercial Proposal', !!d.commercial_proposal_sent_at, d.commercial_proposal_sent_at)}
+      ${stepDef('proposal_reply_received_at',  'Reply Received',      !!d.proposal_reply_received_at,  d.proposal_reply_received_at)}
+    </div>`;
+}
+
+async function toggleProgress(key) {
+  const nowIso = new Date().toISOString();
+  if (key === 'zoom_completed') {
+    const newOutcome = _detail.meeting_outcome === 'completed' ? null : 'completed';
+    _detail.meeting_outcome = newOutcome;
+    if (newOutcome === 'completed') {
+      // Also flip contact status to "Met" so it appears on Zoom Meetings Done page.
+      const prev = _contact.status;
+      _contact.status = 'Met';
+      await window.sb.from('bni_contacts').update({ status: 'Met' }).eq('id', _contact.id);
+      if (prev !== 'Met') window.logActivity?.(_contact.id, 'Status', `${prev} → Met`);
+    }
+  } else if (key === 'rescheduled') {
+    _detail.meeting_outcome = _detail.meeting_outcome === 'rescheduled' ? null : 'rescheduled';
+  } else {
+    // Toggle one of the timestamp columns: financial / technical / commercial / reply.
+    _detail[key] = _detail[key] ? null : nowIso;
+  }
+  await persistDetail();
+  render();
+  window.bniToast('Progress updated', 'success');
+}
+
+// ── Sentiment bar: positive / neutral / negative + free-text note ───────────
+function renderSentimentBar(d) {
+  const v = (d.sentiment || '').toLowerCase();
+  const opt = (val, label, emoji, on) => {
+    const palette = {
+      positive: { bg:'#ecfdf5', fg:'#047857', br:'#a7f3d0' },
+      neutral:  { bg:'#f1f5f9', fg:'#475569', br:'#cbd5e1' },
+      negative: { bg:'#fef2f2', fg:'#b91c1c', br:'#fecaca' },
+    }[val] || { bg:'#f1f5f9', fg:'#475569', br:'#cbd5e1' };
+    const bg = on ? palette.fg : palette.bg;
+    const fg = on ? '#fff'    : palette.fg;
+    const br = on ? palette.fg : palette.br;
+    return `<button type="button" onclick="setSentiment('${val}')"
+              style="background:${bg};color:${fg};border:1.5px solid ${br};padding:4px 11px;border-radius:999px;font-size:0.72rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+              <span>${emoji}</span>${label}
+            </button>`;
+  };
+  return `
+    <div class="flex items-center gap-2 mt-2 flex-wrap" id="hdrSentimentBar">
+      <span style="font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:0.08em;text-transform:uppercase;">Sentiment</span>
+      ${opt('positive', 'Positive', '😊', v === 'positive')}
+      ${opt('neutral',  'Neutral',  '😐', v === 'neutral' || !v)}
+      ${opt('negative', 'Negative', '😠', v === 'negative')}
+      <input id="hdrSentimentNote" value="${escapeAttr(d.sentiment_note || '')}"
+             placeholder="Why this sentiment? (optional)"
+             onblur="setSentimentNote(this.value)"
+             style="flex:1;min-width:180px;border:1px solid #e2e8f0;border-radius:8px;padding:5px 10px;font-size:0.75rem;color:#0f172a;background:#f8fafc;" />
+    </div>`;
+}
+
+async function setSentiment(val) {
+  _detail.sentiment = (_detail.sentiment === val) ? null : val;
+  await persistDetail();
+  render();
+  window.bniToast('Sentiment updated', 'success');
+}
+
+async function setSentimentNote(text) {
+  if ((_detail.sentiment_note || '') === (text || '')) return;
+  _detail.sentiment_note = text || '';
+  await persistDetail();
+}
+
 // ── Prominent follow-up banner ──────────────────────────────────────────────
 function renderFollowUpBanner(iso) {
   const today = new Date().toISOString().slice(0,10);
@@ -731,6 +831,10 @@ async function persistDetail() {
     financial_proposal_url:      _detail.financial_proposal_url  || '',
     technical_proposal_url:      _detail.technical_proposal_url  || '',
     commercial_proposal_url:     _detail.commercial_proposal_url || '',
+    meeting_outcome:             _detail.meeting_outcome           || null,
+    proposal_reply_received_at:  _detail.proposal_reply_received_at || null,
+    sentiment:                   _detail.sentiment                  || null,
+    sentiment_note:              _detail.sentiment_note             || '',
   };
   const { error } = await window.sb.from('bni_contact_details').upsert(payload, { onConflict: 'contact_id' });
   if (error) window.bniToast('Detail save failed: ' + error.message, 'error');

@@ -64,6 +64,9 @@
         <button onclick="exportCSV()" class="bg-green-50 text-green-700 border border-green-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-100 transition">
            Export CSV
         </button>
+        <button onclick="openCardScan()" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-purple-700 transition shadow-sm inline-flex items-center gap-1.5" title="Scan a business card with your camera">
+          📷 Scan Card
+        </button>
         <button onclick="openAddModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition shadow-sm">
           + Add Contact
         </button>
@@ -741,6 +744,165 @@ init();
       </div>
     </div>
   </div>
+
+  <!-- ── Card scan modal ──────────────────────────────────────────────────── -->
+  <div id="cardScanModal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 max-h-[95vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <div class="text-[10px] uppercase tracking-wider font-bold text-purple-600">📷 Card scan</div>
+          <h3 class="text-lg font-bold text-slate-900">Scan a business card</h3>
+        </div>
+        <button onclick="closeCardScan()" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+      </div>
+      <div id="scanStage1">
+        <p class="text-sm text-slate-600 mb-3">Point your camera at the card. The image is sent to Claude Vision and the extracted fields pre-fill the contact form — nothing is uploaded anywhere else.</p>
+        <video id="scanVideo" autoplay playsinline class="w-full rounded-lg bg-black border border-slate-200" style="aspect-ratio:4/3;object-fit:cover;"></video>
+        <div class="flex gap-2 mt-3">
+          <button onclick="captureCard()" id="scanCaptureBtn" class="flex-1 bg-purple-600 text-white py-2.5 rounded-lg font-semibold hover:bg-purple-700 inline-flex items-center justify-center gap-2"><span>📸</span>Capture</button>
+          <label class="flex-shrink-0 px-4 py-2.5 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer">
+            Upload
+            <input type="file" id="scanUpload" accept="image/*" capture="environment" class="hidden" onchange="onScanUpload(event)" />
+          </label>
+        </div>
+      </div>
+      <div id="scanStage2" class="hidden">
+        <img id="scanPreview" class="w-full rounded-lg border border-slate-200" />
+        <div id="scanStatus" class="mt-3 text-sm text-slate-600"></div>
+        <div id="scanFields" class="mt-3 hidden space-y-2 text-sm"></div>
+        <div class="flex gap-2 mt-3">
+          <button onclick="useScannedFields()" id="scanUseBtn" class="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 hidden">Use these fields</button>
+          <button onclick="retakeScan()" class="px-4 py-2.5 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50">Retake</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // ── Business-card scanner via Claude Vision ──────────────────────────────
+  let _scanStream = null;
+  let _scanFields = null;
+
+  async function openCardScan() {
+    document.getElementById('cardScanModal').classList.remove('hidden');
+    document.getElementById('scanStage1').classList.remove('hidden');
+    document.getElementById('scanStage2').classList.add('hidden');
+    try {
+      _scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } } });
+      document.getElementById('scanVideo').srcObject = _scanStream;
+    } catch (e) {
+      window.bniToast?.('Camera unavailable — use Upload instead.', 'error');
+    }
+  }
+
+  function closeCardScan() {
+    document.getElementById('cardScanModal').classList.add('hidden');
+    if (_scanStream) { _scanStream.getTracks().forEach(t => t.stop()); _scanStream = null; }
+  }
+
+  function retakeScan() {
+    document.getElementById('scanStage2').classList.add('hidden');
+    document.getElementById('scanStage1').classList.remove('hidden');
+    if (!_scanStream) openCardScan();
+  }
+
+  async function captureCard() {
+    const v = document.getElementById('scanVideo');
+    const c = document.createElement('canvas');
+    c.width  = v.videoWidth  || 1280;
+    c.height = v.videoHeight || 960;
+    c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+    const dataUrl = c.toDataURL('image/jpeg', 0.85);
+    if (_scanStream) { _scanStream.getTracks().forEach(t => t.stop()); _scanStream = null; }
+    showScanResult(dataUrl);
+  }
+
+  function onScanUpload(ev) {
+    const f = ev.target.files?.[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = e => showScanResult(e.target.result);
+    r.readAsDataURL(f);
+  }
+
+  async function showScanResult(dataUrl) {
+    document.getElementById('scanStage1').classList.add('hidden');
+    document.getElementById('scanStage2').classList.remove('hidden');
+    document.getElementById('scanPreview').src = dataUrl;
+    document.getElementById('scanStatus').innerHTML = '<span class="inline-flex items-center gap-2"><span class="animate-spin">⏳</span>Reading card with Claude Vision…</span>';
+    document.getElementById('scanFields').classList.add('hidden');
+    document.getElementById('scanUseBtn').classList.add('hidden');
+
+    let key = localStorage.getItem('bni_anthropic_key');
+    if (!key) {
+      key = prompt('Enter your Anthropic API key (stored locally only):');
+      if (!key) { document.getElementById('scanStatus').textContent = 'Cancelled — no API key.'; return; }
+      localStorage.setItem('bni_anthropic_key', key.trim());
+    }
+
+    try {
+      const b64 = dataUrl.split(',')[1];
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 600,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } },
+              { type: 'text', text: 'Extract the business-card fields. Return STRICT JSON only — no prose, no markdown — with these keys (use empty string if not present): {"first":"","last":"","company":"","title":"","email":"","phone":"","website":"","city":"","chapter":""}. Phone should be the most prominent mobile number, normalized with country code if visible. Chapter is only set if a BNI chapter name is visible. Output ONLY the JSON object.' }
+            ]
+          }]
+        })
+      });
+      const data = await resp.json();
+      const txt = (data?.content?.[0]?.text || '').trim();
+      const m = txt.match(/\{[\s\S]*\}/);
+      const json = m ? JSON.parse(m[0]) : null;
+      if (!json) throw new Error('Could not parse: ' + txt.slice(0, 100));
+      _scanFields = json;
+      document.getElementById('scanStatus').innerHTML = '<span class="text-green-700 font-semibold">✓ Read successfully</span>';
+      document.getElementById('scanFields').classList.remove('hidden');
+      document.getElementById('scanFields').innerHTML = Object.entries(json)
+        .filter(([_, v]) => v)
+        .map(([k, v]) => `<div class="flex gap-2"><div class="text-xs uppercase tracking-wider text-slate-500 w-20 flex-shrink-0">${k}</div><div class="font-medium text-slate-800">${v}</div></div>`)
+        .join('') || '<div class="text-slate-500 italic">No fields detected — try a clearer image.</div>';
+      document.getElementById('scanUseBtn').classList.remove('hidden');
+    } catch (e) {
+      document.getElementById('scanStatus').innerHTML = '<span class="text-red-600">Failed: ' + (e.message || e) + '</span>';
+    }
+  }
+
+  function useScannedFields() {
+    if (!_scanFields) return;
+    closeCardScan();
+    openAddModal();
+    setTimeout(() => {
+      const set = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+      set('f_name',     ((_scanFields.first || '') + ' ' + (_scanFields.last || '')).trim());
+      set('f_company',  _scanFields.company);
+      set('f_phone',    _scanFields.phone);
+      set('f_email',    _scanFields.email);
+      set('f_city',     _scanFields.city);
+      set('f_chapter',  _scanFields.chapter);
+      set('f_specialty', _scanFields.title);
+      set('f_website',  _scanFields.website);
+      const status = document.getElementById('f_status'); if (status) status.value = 'Identified';
+    }, 100);
+  }
+
+  // Honor ?scan=1 deep link from PWA shortcut
+  if (new URLSearchParams(location.search).get('scan') === '1') {
+    setTimeout(openCardScan, 300);
+  }
+  </script>
 
   <script src="bni-sidebar.js"></script>
 </body>

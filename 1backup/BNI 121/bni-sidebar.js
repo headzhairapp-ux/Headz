@@ -6,6 +6,24 @@
 //   - Applies shared theme CSS (top bar, cards, tables, stat cards, buttons)
 
 (function () {
+  // ─── PWA: link manifest, theme color, and register service worker ──────────
+  if (!document.querySelector('link[rel="manifest"]')) {
+    const m = document.createElement('link');
+    m.rel = 'manifest'; m.href = '/bni/manifest.json';
+    document.head.appendChild(m);
+    const tc = document.createElement('meta');
+    tc.name = 'theme-color'; tc.content = '#1e3a8a';
+    document.head.appendChild(tc);
+    const ac = document.createElement('meta');
+    ac.name = 'apple-mobile-web-app-capable'; ac.content = 'yes';
+    document.head.appendChild(ac);
+  }
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/bni/sw.js', { scope: '/bni/' }).catch(() => {});
+    });
+  }
+
   // ─── Load Lucide icons from CDN ────────────────────────────────────────────
   if (!window.__lucideLoading) {
     window.__lucideLoading = true;

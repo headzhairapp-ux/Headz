@@ -45,6 +45,9 @@
     <div class="flex items-center gap-2 no-print">
       <input id="searchInput" type="text" placeholder="Search name, company, chapter, city…" class="w-72" />
       <select id="segmentFilter" class="w-40"><option value="">All categories</option></select>
+      <label class="inline-flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
+        <input type="checkbox" id="showHidden" /> <span class="text-slate-700">Show hidden duplicates</span>
+      </label>
       <button onclick="exportCSV()" class="inline-flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium"><i data-lucide="file-spreadsheet"></i>CSV</button>
       <button onclick="exportPDF()" class="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"><i data-lucide="file-down"></i>Download PDF</button>
     </div>
@@ -150,9 +153,11 @@ function populateSegmentFilter() {
 }
 
 function getFiltered() {
-  const search = (document.getElementById('searchInput').value || '').trim().toLowerCase();
-  const seg    = document.getElementById('segmentFilter').value || '';
+  const search     = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+  const seg        = document.getElementById('segmentFilter').value || '';
+  const showHidden = !!document.getElementById('showHidden')?.checked;
   return _contacts.filter(isMet).filter(c => {
+    if (!showHidden && c.hidden) return false;
     if (seg && c.segment !== seg) return false;
     if (search) {
       const blob = [c.first, c.last, c.company, c.city, c.chapter, extractChapter(c), c.segment, ...(window.contactPhones?.(c) || [])]
@@ -314,6 +319,7 @@ function exportCSV() {
 
 document.getElementById('searchInput').addEventListener('input', render);
 document.getElementById('segmentFilter').addEventListener('change', render);
+document.getElementById('showHidden').addEventListener('change', render);
 
 loadAll();
 </script>

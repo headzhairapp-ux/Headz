@@ -43,6 +43,23 @@ if [ ! -d "$TARGET" ]; then
   exit 1
 fi
 
+# ── self-update: pull the latest deploy.sh from GitHub on every run ─────────
+# Lets the cron's local /usr/local/bin/bni-deploy.sh stay in sync with the
+# repo without the user re-running BNI_INSTALL_CRON=1 every time the deploy
+# logic changes. Skipped if BNI_NO_SELF_UPDATE=1 (used by the re-exec).
+if [ "${BNI_NO_SELF_UPDATE:-0}" != "1" ] && [ -w "$0" ]; then
+  LATEST="$(curl -sL --max-time 10 "$RAW_BASE/1backup/BNI%20121/deploy.sh" 2>/dev/null || true)"
+  if [ -n "$LATEST" ]; then
+    CUR="$(cat "$0" 2>/dev/null || true)"
+    if [ "$LATEST" != "$CUR" ]; then
+      printf '%s' "$LATEST" > "$0.new"
+      chmod +x "$0.new"
+      mv "$0.new" "$0"
+      exec env BNI_NO_SELF_UPDATE=1 "$0" "$@"
+    fi
+  fi
+fi
+
 # ── only-deploy-on-change check (cheap remote SHA peek) ─────────────────────
 REMOTE_SHA="$(git ls-remote "$REPO_URL" main 2>/dev/null | awk '{print $1}')"
 LOCAL_SHA="$(cat "$TARGET/.deployed-sha" 2>/dev/null || true)"

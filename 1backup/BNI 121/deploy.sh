@@ -7,51 +7,70 @@
 #   Edits the deploy target by setting BNI_TARGET=/path/to/bni before piping.
 #   Default target: /var/www/bni
 #
-# What it does:
-#   1. Clones the repo into a temp folder
-#   2. Copies "1backup/BNI 121/" contents into the target dir (preserving perms)
-#   3. Skips overwriting files that are newer in the target (rsync -u or cp -n fallback)
-#   4. Prints the file list it touched and a "DEPLOYED" line.
+#   Cron-friendly: only redeploys when the remote main commit SHA differs
+#   from the SHA recorded in $TARGET/.deployed-sha. Re-running with no new
+#   commits exits silently.
+#
+# Auto-deploy install (runs deploy every minute when there's a new commit):
+#     curl -sL .../deploy.sh | BNI_INSTALL_CRON=1 bash
 
 set -euo pipefail
 
 TARGET="${BNI_TARGET:-/var/www/bni}"
 TMPDIR="${TMPDIR:-/tmp}/bni-deploy-$$"
 REPO_URL="https://github.com/chatgptnotes/bni121.git"
+RAW_BASE="https://raw.githubusercontent.com/chatgptnotes/bni121/main"
 SUBDIR="1backup/BNI 121"
+LOG="${BNI_LOG:-/var/log/bni-deploy.log}"
 
-echo "──────────────────────────────────────────────"
-echo "BNI 121 deploy"
-echo "  source : $REPO_URL  (branch: main)"
-echo "  target : $TARGET"
-echo "──────────────────────────────────────────────"
+# ── auto-install cron mode ──────────────────────────────────────────────────
+if [ "${BNI_INSTALL_CRON:-0}" = "1" ]; then
+  SCRIPT_PATH="/usr/local/bin/bni-deploy.sh"
+  echo "→ installing cron-driven auto-deploy"
+  curl -sL "$RAW_BASE/1backup/BNI%20121/deploy.sh" -o "$SCRIPT_PATH"
+  chmod +x "$SCRIPT_PATH"
+  CRON_LINE="* * * * * BNI_TARGET=$TARGET $SCRIPT_PATH >> $LOG 2>&1"
+  ( crontab -l 2>/dev/null | grep -v 'bni-deploy.sh' ; echo "$CRON_LINE" ) | crontab -
+  echo "✓ cron installed:"
+  echo "  $CRON_LINE"
+  echo "  log: $LOG"
+  echo "  uninstall: crontab -l | grep -v bni-deploy.sh | crontab -"
+  exit 0
+fi
 
 if [ ! -d "$TARGET" ]; then
   echo "ERROR: target directory $TARGET does not exist"
-  echo "  Set BNI_TARGET=/your/path before piping, e.g.:"
-  echo "  BNI_TARGET=/srv/bni curl -sL .../deploy.sh | bash"
   exit 1
 fi
+
+# ── only-deploy-on-change check (cheap remote SHA peek) ─────────────────────
+REMOTE_SHA="$(git ls-remote "$REPO_URL" main 2>/dev/null | awk '{print $1}')"
+LOCAL_SHA="$(cat "$TARGET/.deployed-sha" 2>/dev/null || true)"
+if [ -n "$REMOTE_SHA" ] && [ "$REMOTE_SHA" = "$LOCAL_SHA" ]; then
+  # No new commits — silent exit so cron output stays clean.
+  exit 0
+fi
+
+echo "──────────────────────────────────────────────"
+echo "BNI 121 deploy — $(date '+%Y-%m-%d %H:%M:%S %Z')"
+echo "  source : $REPO_URL  (main @ ${REMOTE_SHA:0:8})"
+echo "  target : $TARGET"
+echo "──────────────────────────────────────────────"
 
 mkdir -p "$TMPDIR"
 trap 'rm -rf "$TMPDIR"' EXIT
 
-echo "→ cloning repo (shallow)…"
 git clone --depth 1 --quiet "$REPO_URL" "$TMPDIR/repo"
-
 SRC="$TMPDIR/repo/$SUBDIR/"
-if [ ! -d "$SRC" ]; then
-  echo "ERROR: expected directory not found in repo: $SUBDIR"
-  exit 2
-fi
+[ -d "$SRC" ] || { echo "ERROR: $SUBDIR not in repo"; exit 2; }
 
-echo "→ syncing files into $TARGET (.bak created for any overwrite)…"
 if command -v rsync >/dev/null 2>&1; then
   rsync -av --backup --suffix=.bak "$SRC" "$TARGET/"
 else
   cp -av "$SRC." "$TARGET/"
 fi
 
+echo "$REMOTE_SHA" > "$TARGET/.deployed-sha"
 echo
-echo "✓ DEPLOYED  $(date '+%Y-%m-%d %H:%M:%S %Z')"
+echo "✓ DEPLOYED  $(date '+%Y-%m-%d %H:%M:%S %Z')   sha=${REMOTE_SHA:0:8}"
 echo "  Visit:  https://hopetech.me/bni/teams.html"

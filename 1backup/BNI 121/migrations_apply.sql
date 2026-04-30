@@ -29,5 +29,28 @@ alter table bni_contacts add column if not exists referred_by_id text references
 alter table bni_contacts add column if not exists referred_to    text not null default '';   -- comma-separated names of people the contact has referred TO Murali (free-text; can also be ids when linked)
 create index if not exists bni_contacts_referred_by_idx on bni_contacts (referred_by_id);
 
+-- ── WhatsApp drip scheduler ────────────────────────────────────────────────
+create table if not exists bni_drip_schedule (
+  id            uuid primary key default gen_random_uuid(),
+  contact_id    text not null references bni_contacts(id) on delete cascade,
+  template_id   text not null,
+  scheduled_at  timestamptz not null,
+  sent_at       timestamptz,
+  cancelled_at  timestamptz,
+  channel       text not null default 'WhatsApp',
+  body_preview  text not null default '',
+  error         text,
+  created_by    text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists bni_drip_due_idx
+  on bni_drip_schedule (scheduled_at)
+  where sent_at is null and cancelled_at is null;
+create index if not exists bni_drip_contact_idx on bni_drip_schedule (contact_id);
+
+alter table bni_drip_schedule enable row level security;
+drop policy if exists "bni_drip_anon_all" on bni_drip_schedule;
+create policy "bni_drip_anon_all" on bni_drip_schedule for all to anon using (true) with check (true);
+
 -- Tell PostgREST to reload its schema cache so the new columns are visible immediately.
 notify pgrst, 'reload schema';

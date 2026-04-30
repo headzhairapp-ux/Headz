@@ -216,6 +216,33 @@ function render() {
       </div>
     </section>
 
+    <!-- WhatsApp drip scheduler -->
+    <section class="glass rounded-2xl p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="section-title m-0">WhatsApp drip sequence</h3>
+        <button onclick="scheduleStandardDrip()" class="text-xs px-3 py-1 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700">+ Standard 3-step drip</button>
+      </div>
+      <p class="text-xs text-slate-500 mb-3">Auto-send WhatsApp messages on a schedule. Uses templates from the Templates page; placeholders <code>{first}</code> and <code>{company}</code> are filled in. Worker runs every 5 minutes.</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Template</label>
+          <select id="drip_template" class="w-full text-sm border rounded px-2 py-1.5"></select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Date</label>
+          <input id="drip_date" type="date" class="w-full text-sm border rounded px-2 py-1.5" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Time</label>
+          <input id="drip_time" type="time" value="09:30" class="w-full text-sm border rounded px-2 py-1.5" />
+        </div>
+        <div class="flex items-end">
+          <button onclick="scheduleDrip()" class="w-full bg-emerald-600 text-white py-1.5 rounded-lg text-sm font-bold hover:bg-emerald-700">Schedule</button>
+        </div>
+      </div>
+      <div id="drip_list" class="space-y-1.5"></div>
+    </section>
+
     <!-- Referral graph -->
     <section class="glass rounded-2xl p-6">
       <div class="flex items-center justify-between mb-3">
@@ -346,7 +373,93 @@ function render() {
 
   populateChapterDatalist();
   populateReferralPicker();
+  populateDrip();
   setTimeout(() => window.bniRenderIcons && window.bniRenderIcons(), 0);
+}
+
+// ── WhatsApp drip scheduling ────────────────────────────────────────────────
+let _dripTemplates = [];
+async function populateDrip() {
+  const sel = document.getElementById('drip_template');
+  if (!sel) return;
+  if (!_dripTemplates.length) {
+    const { data } = await window.sb.from('bni_templates')
+      .select('id,title,body,channel').eq('hidden', false).order('sort_order');
+    _dripTemplates = (data || []).filter(t => (t.channel || '').toLowerCase().includes('whatsapp'));
+  }
+  sel.innerHTML = _dripTemplates.length
+    ? _dripTemplates.map(t => `<option value="${t.id}">${escapeAttr(t.title)}</option>`).join('')
+    : '<option value="">— No WhatsApp templates configured —</option>';
+
+  const today = new Date(); today.setDate(today.getDate() + 1);
+  document.getElementById('drip_date').value = today.toISOString().slice(0,10);
+
+  // Render scheduled drips for this contact
+  const { data: drips } = await window.sb.from('bni_drip_schedule')
+    .select('*').eq('contact_id', _contact.id).order('scheduled_at');
+  const list = document.getElementById('drip_list');
+  if (!drips || !drips.length) {
+    list.innerHTML = '<p class="text-xs text-slate-400 italic">No drips scheduled.</p>';
+    return;
+  }
+  list.innerHTML = drips.map(d => {
+    const tmpl = _dripTemplates.find(t => t.id === d.template_id);
+    const tmplName = tmpl ? tmpl.title : d.template_id;
+    let badge, color;
+    if (d.cancelled_at) { badge = 'CANCELLED'; color = '#94a3b8'; }
+    else if (d.error)   { badge = 'FAILED';    color = '#b91c1c'; }
+    else if (d.sent_at) { badge = 'SENT';      color = '#15803d'; }
+    else                { badge = 'SCHEDULED'; color = '#1d4ed8'; }
+    const when = new Date(d.scheduled_at).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+    return `<div class="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg text-sm">
+      <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style="background:${color}18;color:${color};border:1px solid ${color}55">${badge}</span>
+      <span class="font-semibold text-slate-800">${escapeText(tmplName)}</span>
+      <span class="text-slate-500 text-xs">${when}</span>
+      ${d.error ? `<span class="text-xs text-red-600 truncate" title="${escapeAttr(d.error)}">— ${escapeText(d.error.slice(0,40))}</span>` : ''}
+      ${!d.sent_at && !d.cancelled_at ? `<button onclick="cancelDrip('${d.id}')" class="ml-auto text-xs text-red-600 hover:underline">Cancel</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function scheduleDrip() {
+  const tid = document.getElementById('drip_template').value;
+  const date = document.getElementById('drip_date').value;
+  const time = document.getElementById('drip_time').value || '09:30';
+  if (!tid || !date) { window.bniToast('Pick a template and a date', 'error'); return; }
+  const scheduled_at = new Date(`${date}T${time}:00`).toISOString();
+  const { error } = await window.sb.from('bni_drip_schedule').insert({
+    contact_id: _contact.id, template_id: tid, scheduled_at,
+  });
+  if (error) { window.bniToast('Schedule failed: ' + error.message, 'error'); return; }
+  window.bniToast('Drip scheduled', 'success');
+  populateDrip();
+}
+
+async function scheduleStandardDrip() {
+  const wa = _dripTemplates;
+  if (wa.length < 1) { window.bniToast('Add WhatsApp templates first', 'error'); return; }
+  // Pick up to 3 templates by typical drip-step naming
+  const pick = (kw) => wa.find(t => (t.title||'').toLowerCase().includes(kw)) || null;
+  const t1 = pick('thank') || pick('day 1') || wa[0];
+  const t2 = pick('value') || pick('day 7') || wa[Math.min(1, wa.length-1)];
+  const t3 = pick('referral') || pick('day 14') || wa[Math.min(2, wa.length-1)];
+  const now = new Date();
+  const at = (days, hh, mm) => { const d = new Date(now); d.setDate(d.getDate()+days); d.setHours(hh,mm,0,0); return d.toISOString(); };
+  const rows = [
+    { contact_id:_contact.id, template_id:t1.id, scheduled_at: at(1,  9, 30) },
+    { contact_id:_contact.id, template_id:t2.id, scheduled_at: at(7, 10, 30) },
+    { contact_id:_contact.id, template_id:t3.id, scheduled_at: at(14, 10, 30) },
+  ];
+  const { error } = await window.sb.from('bni_drip_schedule').insert(rows);
+  if (error) { window.bniToast('Schedule failed: ' + error.message, 'error'); return; }
+  window.bniToast('3-step drip scheduled (1, 7, 14 days)', 'success');
+  populateDrip();
+}
+
+async function cancelDrip(id) {
+  if (!confirm('Cancel this scheduled message?')) return;
+  await window.sb.from('bni_drip_schedule').update({ cancelled_at: new Date().toISOString() }).eq('id', id);
+  populateDrip();
 }
 
 // ── Referral picker + back-references ─────────────────────────────────────

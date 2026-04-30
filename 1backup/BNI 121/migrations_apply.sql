@@ -20,5 +20,9 @@ alter table bni_contact_details add column if not exists sentiment              
 -- sentiment values: 'positive' | 'neutral' | 'negative' | null
 alter table bni_contact_details add column if not exists sentiment_note              text not null default '';
 
+-- ── team assignment (Team A / B / C / D) on bni_contacts ──
+alter table bni_contacts add column if not exists team text;
+-- team values: 'A' | 'B' | 'C' | 'D' | null
+
 -- Tell PostgREST to reload its schema cache so the new columns are visible immediately.
 notify pgrst, 'reload schema';

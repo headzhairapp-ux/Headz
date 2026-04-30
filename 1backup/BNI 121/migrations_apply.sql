@@ -52,5 +52,20 @@ alter table bni_drip_schedule enable row level security;
 drop policy if exists "bni_drip_anon_all" on bni_drip_schedule;
 create policy "bni_drip_anon_all" on bni_drip_schedule for all to anon using (true) with check (true);
 
+-- ── Zoom webhook audit log ─────────────────────────────────────────────────
+create table if not exists bni_zoom_events (
+  id                 uuid primary key default gen_random_uuid(),
+  event_type         text not null,
+  host_email         text,
+  topic              text,
+  matched_contact_id text,
+  raw                jsonb,
+  received_at        timestamptz not null default now()
+);
+create index if not exists bni_zoom_events_received_idx on bni_zoom_events (received_at desc);
+alter table bni_zoom_events enable row level security;
+drop policy if exists "bni_zoom_anon_all" on bni_zoom_events;
+create policy "bni_zoom_anon_all" on bni_zoom_events for all to anon using (true) with check (true);
+
 -- Tell PostgREST to reload its schema cache so the new columns are visible immediately.
 notify pgrst, 'reload schema';

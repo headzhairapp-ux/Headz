@@ -65,9 +65,16 @@ SRC="$TMPDIR/repo/$SUBDIR/"
 [ -d "$SRC" ] || { echo "ERROR: $SUBDIR not in repo"; exit 2; }
 
 if command -v rsync >/dev/null 2>&1; then
-  rsync -av --backup --suffix=.bak "$SRC" "$TARGET/"
+  # --exclude=index.html: the root index.html is the public hopetech.me
+  # landing page, owned outside this repo. Never overwrite it.
+  rsync -av --backup --suffix=.bak --exclude='index.html' "$SRC" "$TARGET/"
 else
-  cp -av "$SRC." "$TARGET/"
+  # cp fallback — same exclusion via a temp filtered copy of $SRC.
+  TMPSRC="$TMPDIR/sync"
+  mkdir -p "$TMPSRC"
+  cp -a "$SRC"/. "$TMPSRC/"
+  rm -f "$TMPSRC/index.html"
+  cp -av "$TMPSRC/." "$TARGET/"
 fi
 
 echo "$REMOTE_SHA" > "$TARGET/.deployed-sha"

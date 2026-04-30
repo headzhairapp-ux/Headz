@@ -82,7 +82,32 @@
   </div>
 
   <!-- Stats strip -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6" id="statsRow"></div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4" id="statsRow"></div>
+
+  <!-- Weekly goals strip -->
+  <div class="glass rounded-2xl p-4 mb-6">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <div class="text-xs text-slate-400 uppercase tracking-wide font-bold">This week's goals</div>
+        <div class="text-sm text-slate-500" id="weekRangeLabel"></div>
+      </div>
+      <button onclick="document.getElementById('goalSettings').classList.toggle('hidden')" class="text-xs text-blue-600 hover:underline">Adjust targets</button>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3" id="goalsRow"></div>
+    <div id="goalSettings" class="hidden mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 md:grid-cols-5 gap-2">
+      <label class="text-xs flex flex-col gap-1"><span class="text-slate-500 font-semibold">1-2-1s</span>
+        <input id="t_meets" type="number" min="0" class="border rounded px-2 py-1 text-sm" /></label>
+      <label class="text-xs flex flex-col gap-1"><span class="text-slate-500 font-semibold">Proposals out</span>
+        <input id="t_props" type="number" min="0" class="border rounded px-2 py-1 text-sm" /></label>
+      <label class="text-xs flex flex-col gap-1"><span class="text-slate-500 font-semibold">Replies</span>
+        <input id="t_replies" type="number" min="0" class="border rounded px-2 py-1 text-sm" /></label>
+      <label class="text-xs flex flex-col gap-1"><span class="text-slate-500 font-semibold">Conversions</span>
+        <input id="t_conv" type="number" min="0" class="border rounded px-2 py-1 text-sm" /></label>
+      <label class="text-xs flex flex-col gap-1"><span class="text-slate-500 font-semibold">Pipeline (₹)</span>
+        <input id="t_pipe" type="number" min="0" step="1000" class="border rounded px-2 py-1 text-sm" /></label>
+      <button onclick="saveGoalTargets()" class="md:col-span-5 mt-1 bg-blue-600 text-white text-xs font-bold py-1.5 rounded hover:bg-blue-700">Save targets</button>
+    </div>
+  </div>
 
   <!-- TO-DO LIST -->
   <div class="glass mb-5 overflow-hidden" id="todoPanel">
@@ -174,7 +199,7 @@ function isCompletedToday(detail) {
 async function fetchAll() {
   const [contactsRes, detailsRes] = await Promise.all([
     window.sb.from('bni_contacts').select('*').eq('hidden', false),
-    window.sb.from('bni_contact_details').select('contact_id,next_date,photo,followups,priority,zoom_recording_url,meeting_time'),
+    window.sb.from('bni_contact_details').select('contact_id,next_date,photo,followups,priority,zoom_recording_url,meeting_time,financial_proposal_sent_at,technical_proposal_sent_at,commercial_proposal_sent_at,proposal_reply_received_at,sentiment'),
   ]);
   _contacts = contactsRes.data || [];
   _details  = Object.fromEntries((detailsRes.data || []).map(d => [d.contact_id, d]));
@@ -214,6 +239,108 @@ function renderStats(allCandidates) {
       </div>
     </div>
   `).join('');
+}
+
+// ── Weekly goals (Monday→Sunday by default) ────────────────────────────────
+const DEFAULT_TARGETS = { meets: 8, props: 3, replies: 2, conv: 1, pipe: 100000 };
+function loadTargets() {
+  try { return { ...DEFAULT_TARGETS, ...(JSON.parse(localStorage.getItem('bni_weekly_targets') || '{}')) }; }
+  catch { return DEFAULT_TARGETS; }
+}
+function saveGoalTargets() {
+  const t = {
+    meets:   Number(document.getElementById('t_meets').value)   || 0,
+    props:   Number(document.getElementById('t_props').value)   || 0,
+    replies: Number(document.getElementById('t_replies').value) || 0,
+    conv:    Number(document.getElementById('t_conv').value)    || 0,
+    pipe:    Number(document.getElementById('t_pipe').value)    || 0,
+  };
+  localStorage.setItem('bni_weekly_targets', JSON.stringify(t));
+  document.getElementById('goalSettings').classList.add('hidden');
+  renderGoals();
+  window.bniToast?.('Weekly targets saved', 'success');
+}
+
+function weekBounds() {
+  const d = new Date();
+  const day = (d.getDay() + 6) % 7;        // 0 = Mon … 6 = Sun
+  d.setDate(d.getDate() - day);
+  d.setHours(0,0,0,0);
+  const start = d.toISOString().slice(0, 10);
+  const e = new Date(d); e.setDate(e.getDate() + 7);
+  const end = e.toISOString().slice(0, 10);
+  return { start, end };
+}
+
+function fmtMoneyShort(n) {
+  if (n >= 10000000) return '₹' + (n/10000000).toFixed(1) + 'Cr';
+  if (n >=   100000) return '₹' + (n/100000).toFixed(1)   + 'L';
+  if (n >=     1000) return '₹' + (n/1000).toFixed(0)     + 'K';
+  return '₹' + n;
+}
+
+function renderGoals() {
+  const t = loadTargets();
+  // Pre-populate the targets form so "Adjust targets" shows current values.
+  document.getElementById('t_meets').value   = t.meets;
+  document.getElementById('t_props').value   = t.props;
+  document.getElementById('t_replies').value = t.replies;
+  document.getElementById('t_conv').value    = t.conv;
+  document.getElementById('t_pipe').value    = t.pipe;
+
+  const { start, end } = weekBounds();
+  document.getElementById('weekRangeLabel').textContent =
+    new Date(start).toLocaleDateString('en-IN', { day:'numeric', month:'short' }) + ' – ' +
+    new Date(new Date(end).getTime() - 86400000).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+
+  const inWeek = (iso) => iso && iso >= start && iso < end;
+  const detailsList = Object.values(_details);
+
+  const meetsDone = _contacts.filter(c => {
+    const d = _details[c.id];
+    if (!d) return false;
+    return d.meeting_outcome === 'completed' && d.next_date && inWeek(d.next_date);
+  }).length;
+
+  const propsOut = detailsList.filter(d =>
+    inWeek((d.financial_proposal_sent_at  || '').slice(0,10)) ||
+    inWeek((d.technical_proposal_sent_at  || '').slice(0,10)) ||
+    inWeek((d.commercial_proposal_sent_at || '').slice(0,10))
+  ).length;
+
+  const replies = detailsList.filter(d => inWeek((d.proposal_reply_received_at || '').slice(0,10))).length;
+
+  const conversions = _contacts.filter(c => c.status === 'Converted' &&
+    (c.updated_at || '').slice(0,10) >= start &&
+    (c.updated_at || '').slice(0,10) < end).length;
+
+  const pipeline = _contacts
+    .filter(c => ['Met','Follow-up','Meeting Scheduled'].includes(c.status))
+    .reduce((sum, c) => sum + (Number(c.deal_value) || 0) * ((Number(c.deal_probability) || 50) / 100), 0);
+
+  const items = [
+    { label: '1-2-1s done',     val: meetsDone,   target: t.meets,   color: '#7c3aed' },
+    { label: 'Proposals out',   val: propsOut,    target: t.props,   color: '#1d4ed8' },
+    { label: 'Replies in',      val: replies,     target: t.replies, color: '#0891b2' },
+    { label: 'Conversions',     val: conversions, target: t.conv,    color: '#15803d' },
+    { label: 'Pipeline value',  val: pipeline,    target: t.pipe,    color: '#c2410c', money: true },
+  ];
+
+  document.getElementById('goalsRow').innerHTML = items.map(it => {
+    const pct = it.target > 0 ? Math.min(100, Math.round((it.val / it.target) * 100)) : 0;
+    const valDisp    = it.money ? fmtMoneyShort(Math.round(it.val))    : it.val;
+    const targetDisp = it.money ? fmtMoneyShort(it.target)             : it.target;
+    return `<div class="bg-white border border-slate-200 rounded-xl p-3" style="box-shadow:0 1px 3px rgba(15,23,42,0.04);">
+      <div class="text-[10px] uppercase tracking-wider font-bold text-slate-500">${it.label}</div>
+      <div class="flex items-baseline gap-1 mt-1">
+        <span class="text-xl font-extrabold" style="color:${it.color}">${valDisp}</span>
+        <span class="text-xs text-slate-400">/ ${targetDisp}</span>
+      </div>
+      <div class="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div style="width:${pct}%;background:${it.color};height:100%;border-radius:999px;transition:width 0.3s;"></div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function followupDateTileHTML(iso) {
@@ -326,6 +453,7 @@ function render() {
   });
 
   renderStats(filtered);
+  renderGoals();
 
   const overdue = filtered.filter(c => c._d.next_date < today);
   const todayList = filtered.filter(c => c._d.next_date === today);

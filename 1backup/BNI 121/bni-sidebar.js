@@ -35,6 +35,7 @@
       { href: '/bni/zoom-completed.html', icon: 'video',          label: 'Zoom Meetings',   desc: 'Log of completed 121 Zoom calls — record outcomes and set follow-ups' },
       { href: '/bni/members-met.html',    icon: 'user-check',     label: 'Members Met',     desc: 'Compact roster of everyone you have completed a Zoom 121 with — name, category, chapter, city, mobile, date' },
       { href: '/bni/teams.html',          icon: 'layers',         label: 'Teams (A/B/C/D)', desc: 'Team-wise rosters from the Apr 2026 handwritten lists — auto-fetches profile data' },
+      { href: '/bni/referrals.html',      icon: 'git-branch',     label: 'Referral Network', desc: 'Who introduced whom — top referrers, referral chains, and cold-contact list' },
       { href: '/bni/members.html',        icon: 'users',          label: 'All Members',     desc: 'BNI chapter member directory — browse and search all chapter members' },
     ]},
     { title: 'Tools',      items: [

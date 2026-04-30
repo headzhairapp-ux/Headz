@@ -216,6 +216,28 @@ function render() {
       </div>
     </section>
 
+    <!-- Referral graph -->
+    <section class="glass rounded-2xl p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="section-title m-0">Referrals</h3>
+        <a href="referrals.html" class="text-xs text-blue-600 hover:underline">View full network →</a>
+      </div>
+      <div class="kv"><span class="k">Referred by</span><span class="v">
+        <select id="ef_referred_by" class="w-full">
+          <option value="">— No-one (cold contact)</option>
+        </select>
+        <div class="text-xs text-slate-400 mt-1">Who introduced you to this person?</div>
+      </span></div>
+      <div class="kv"><span class="k">Has referred TO Murali</span><span class="v">
+        <input id="ef_referred_to" value="${escapeAttr(c.referred_to || '')}" placeholder="Names of people they introduced you to (comma-separated)" class="w-full" />
+        <div class="text-xs text-slate-400 mt-1">Track outbound referrals from this contact.</div>
+      </span></div>
+      <div id="referredByMeBox" class="mt-3 hidden">
+        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">People referred via this contact</div>
+        <div id="referredByMeList" class="flex flex-wrap gap-2"></div>
+      </div>
+    </section>
+
     <!-- Deal / opportunity tracking -->
     <section class="glass rounded-2xl p-6">
       <div class="flex items-center justify-between mb-3">
@@ -323,7 +345,43 @@ function render() {
   `;
 
   populateChapterDatalist();
+  populateReferralPicker();
   setTimeout(() => window.bniRenderIcons && window.bniRenderIcons(), 0);
+}
+
+// ── Referral picker + back-references ─────────────────────────────────────
+let _allContactsForReferrals = [];
+async function populateReferralPicker() {
+  const sel = document.getElementById('ef_referred_by');
+  if (!sel) return;
+  if (!_allContactsForReferrals.length) {
+    const { data } = await window.sb.from('bni_contacts')
+      .select('id,first,last,company,referred_by_id')
+      .eq('hidden', false);
+    _allContactsForReferrals = data || [];
+  }
+  const others = _allContactsForReferrals.filter(x => x.id !== _contact.id);
+  others.sort((a,b) => ((a.first||'')+(a.last||'')).localeCompare((b.first||'')+(b.last||'')));
+  sel.innerHTML = '<option value="">— No-one (cold contact)</option>' +
+    others.map(x => {
+      const name = ((x.first||'') + ' ' + (x.last||'')).trim();
+      const co = x.company ? ` · ${x.company}` : '';
+      const sel = x.id === _contact.referred_by_id ? ' selected' : '';
+      return `<option value="${x.id}"${sel}>${name}${co}</option>`;
+    }).join('');
+
+  const referees = _allContactsForReferrals.filter(x => x.referred_by_id === _contact.id);
+  const box  = document.getElementById('referredByMeBox');
+  const list = document.getElementById('referredByMeList');
+  if (referees.length) {
+    box.classList.remove('hidden');
+    list.innerHTML = referees.map(x => {
+      const name = ((x.first||'') + ' ' + (x.last||'')).trim();
+      return `<a href="contact.html?id=${x.id}" class="px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-xs font-semibold hover:bg-blue-100">${name}${x.company ? ` · ${x.company}` : ''}</a>`;
+    }).join('');
+  } else {
+    box.classList.add('hidden');
+  }
 }
 
 function escapeAttr(s)  { return String(s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
@@ -921,6 +979,8 @@ async function saveContact() {
     deal_value:        get('ef_deal_value') ? Number(get('ef_deal_value')) : null,
     deal_close_date:   get('ef_deal_close_date') || null,
     deal_probability:  get('ef_deal_probability') !== '' ? Number(get('ef_deal_probability')) : null,
+    referred_by_id:    get('ef_referred_by') || null,
+    referred_to:       get('ef_referred_to').trim(),
   };
   const prevStatus = _contact.status;
   if (updates.chapter && window.ensureChapter) await window.ensureChapter(updates.chapter, updates.city);

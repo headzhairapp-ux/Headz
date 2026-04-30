@@ -167,6 +167,24 @@
   <div id="sections" class="space-y-5"></div>
 </main>
 
+<!-- Pre-meeting AI Brief modal -->
+<div id="briefModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-start justify-between mb-3">
+      <div>
+        <div class="text-[10px] uppercase tracking-wider font-bold text-purple-600">Pre-meeting brief</div>
+        <h3 id="briefName" class="text-xl font-bold text-slate-900"></h3>
+      </div>
+      <button onclick="closeBrief()" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+    </div>
+    <div id="briefContent" class="text-sm text-slate-700 space-y-3"></div>
+    <div class="flex gap-2 mt-5 pt-4 border-t border-slate-100">
+      <button id="briefAiBtn" onclick="runAiBrief()" class="flex-1 bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700 inline-flex items-center justify-center gap-1.5 text-sm"><i data-lucide="sparkles"></i>Generate AI talking points</button>
+      <button onclick="closeBrief()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 text-sm">Close</button>
+    </div>
+  </div>
+</div>
+
 <style>
   .scope-btn { padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1.5px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; transition: all 0.12s; }
   .scope-btn:hover { border-color: #2563eb; color: #2563eb; }
@@ -239,6 +257,137 @@ function renderStats(allCandidates) {
       </div>
     </div>
   `).join('');
+}
+
+// ── Pre-meeting AI brief ────────────────────────────────────────────────────
+let _briefContact = null;
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function openBrief(id) {
+  const c = _contacts.find(x => x.id === id);
+  if (!c) return;
+  _briefContact = c;
+  const d = _details[id] || {};
+  const name = ((c.first||'') + ' ' + (c.last||'')).trim() || '(no name)';
+  document.getElementById('briefName').textContent = name;
+
+  const today = todayISO();
+  const lastFup = (d.followups || []).slice().sort((a,b)=> (b.date||'').localeCompare(a.date||''))[0];
+  const lastDate = lastFup?.date || (c.updated_at || '').slice(0,10);
+  const daysSince = lastDate ? Math.max(0, Math.round((new Date(today) - new Date(lastDate))/86400000)) : null;
+
+  const sentiment = (d.sentiment || '').toLowerCase();
+  const sentEmoji = sentiment === 'positive' ? '😊 Positive' : sentiment === 'negative' ? '😠 Negative' : sentiment === 'neutral' ? '😐 Neutral' : '— Not set';
+
+  const proposals = [
+    d.financial_proposal_sent_at  && 'Meeting',
+    d.technical_proposal_sent_at  && 'Technical',
+    d.commercial_proposal_sent_at && 'Commercial',
+  ].filter(Boolean).join(', ') || '—';
+  const reply = d.proposal_reply_received_at ? 'Yes' : 'Not yet';
+
+  const lastNote = lastFup?.note || c.notes || '';
+  const segments = [
+    ['Status',      `<span class="font-semibold">${escapeHtml(c.status || '—')}</span>${c.segment ? ` · <span class="text-slate-500">${escapeHtml(c.segment)}</span>` : ''}`],
+    ['Company',     escapeHtml(c.company || '—') + (c.city ? ` · ${escapeHtml(c.city)}` : '')],
+    ['Sentiment',   sentEmoji + (d.sentiment_note ? ` <span class="text-slate-500">— ${escapeHtml(d.sentiment_note)}</span>` : '')],
+    ['Last touch',  daysSince != null ? `${daysSince} day${daysSince===1?'':'s'} ago${lastFup?.type ? ` · ${escapeHtml(lastFup.type)}` : ''}` : '—'],
+    ['Proposals',   `Sent: ${proposals} · Reply: ${reply}`],
+    ['Phone',       (window.contactPhones?.(c) || []).join(' / ') || '—'],
+    ['Email',       escapeHtml(c.email || '—')],
+  ];
+
+  const factsHTML = `<div class="grid grid-cols-3 gap-y-2 gap-x-3 text-sm">
+    ${segments.map(([k,v]) => `
+      <div class="text-slate-400 text-xs uppercase tracking-wider font-bold col-span-1">${k}</div>
+      <div class="col-span-2">${v}</div>`).join('')}
+  </div>`;
+  const notesHTML = lastNote ? `<div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-700"><div class="font-bold text-slate-500 uppercase tracking-wider mb-1">Last notes</div>${escapeHtml(lastNote).replace(/\n/g,'<br>')}</div>` : '';
+  document.getElementById('briefContent').innerHTML = factsHTML + notesHTML + '<div id="briefAi" class="hidden"></div>';
+  document.getElementById('briefAiBtn').disabled = false;
+  document.getElementById('briefAiBtn').innerHTML = '<i data-lucide="sparkles"></i>Generate AI talking points';
+  document.getElementById('briefModal').classList.remove('hidden');
+  setTimeout(() => window.bniRenderIcons && window.bniRenderIcons(), 0);
+}
+
+function closeBrief() {
+  document.getElementById('briefModal').classList.add('hidden');
+  _briefContact = null;
+}
+
+async function runAiBrief() {
+  if (!_briefContact) return;
+  const c = _briefContact;
+  const d = _details[c.id] || {};
+  let key = localStorage.getItem('bni_anthropic_key');
+  if (!key) {
+    key = prompt('Enter your Anthropic API key (stored locally in this browser only):');
+    if (!key) return;
+    localStorage.setItem('bni_anthropic_key', key.trim());
+  }
+
+  const btn = document.getElementById('briefAiBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i>Thinking…';
+  window.bniRenderIcons && window.bniRenderIcons();
+
+  const ctx = `Contact: ${(c.first||'')+' '+(c.last||'')} · ${c.company||''} · ${c.city||''}
+Status: ${c.status} · Segment: ${c.segment||'—'}
+Sentiment: ${d.sentiment||'unset'}${d.sentiment_note ? ' — '+d.sentiment_note : ''}
+Proposals sent: ${[d.financial_proposal_sent_at && 'meeting',d.technical_proposal_sent_at && 'technical',d.commercial_proposal_sent_at && 'commercial'].filter(Boolean).join(', ') || 'none'}
+Reply received: ${d.proposal_reply_received_at ? 'yes' : 'no'}
+Notes: ${(c.notes||'').slice(0,500)}
+Recent follow-ups: ${(d.followups||[]).slice(-3).map(f=>`${f.date} ${f.type}: ${f.note||''}`).join(' | ')}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 600,
+        messages: [{
+          role: 'user',
+          content: `You are preparing Dr. BK Murali (BNI member, AI consulting + hospital software) for a 1-2-1 Zoom call. Below is everything we know about the contact.
+
+Produce a tight pre-meeting brief in plain markdown:
+1. **Open with** — one warm 10-word hook based on what's known.
+2. **Talking points** — 3 bullets, specific to their company/segment/sentiment. Reference proposal status if relevant.
+3. **The ask** — one concrete next step Murali should propose, calibrated to their stage.
+4. **Watch out** — one risk or thing to NOT bring up given the sentiment/history.
+
+Be concrete. No filler. No "Hello [Name]". Output markdown only.
+
+CONTACT CONTEXT:
+${ctx}`
+        }]
+      })
+    });
+    const data = await resp.json();
+    const text = data?.content?.[0]?.text || data?.error?.message || 'No response';
+    const html = text
+      .replace(/^### (.*)$/gm, '<h4 class="font-bold text-purple-700 mt-3">$1</h4>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^- /gm, '• ')
+      .replace(/\n/g, '<br>');
+    document.getElementById('briefAi').classList.remove('hidden');
+    document.getElementById('briefAi').innerHTML = `<div class="mt-4 p-4 rounded-xl border border-purple-200 bg-purple-50 text-sm">${html}</div>`;
+    btn.innerHTML = '<i data-lucide="refresh-cw"></i>Regenerate';
+    btn.disabled = false;
+    window.bniRenderIcons && window.bniRenderIcons();
+  } catch (e) {
+    btn.innerHTML = '<i data-lucide="alert-triangle"></i>Failed — retry';
+    btn.disabled = false;
+    window.bniToast?.('AI brief failed: ' + e.message, 'error');
+  }
 }
 
 // ── Weekly goals (Monday→Sunday by default) ────────────────────────────────
@@ -422,6 +571,7 @@ function rowHTML(c) {
           <button class="action-btn act-wa" onclick="toggleWa(event, this)"><i data-lucide="message-circle"></i>WhatsApp <i data-lucide="chevron-down" style="width:11px;height:11px"></i></button>
           <div class="wa-dropdown-menu">${waOptions}</div>
         </div>` : ''}
+        <button class="action-btn" style="background:#f5f3ff;color:#6d28d9;border-color:#ddd6fe" onclick="openBrief('${c.id}')" title="Pre-meeting brief"><i data-lucide="sparkles"></i>Brief</button>
         <button class="action-btn act-done" onclick="markDone('${c.id}')" title="Clear reminder and log as contacted"><i data-lucide="check"></i>Done</button>
         <div class="wa-dropdown">
           <button class="action-btn act-snooze" onclick="toggleWa(event, this)" title="Snooze reminder"><i data-lucide="alarm-clock"></i>Snooze</button>

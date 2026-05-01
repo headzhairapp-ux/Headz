@@ -16,9 +16,12 @@ TARGET_PY=/var/www/bni/zoom_webhook.py
 
 prompt_secret() {
   local var="$1" label="$2"
-  if [ -z "${!var:-}" ]; then
-    read -r -s -p "$label: " val; echo
-    declare -g "$var=$val"
+  local cur="${!var-}"
+  if [ -z "$cur" ]; then
+    read -r -s -p "$label: " val </dev/tty
+    echo
+    printf -v "$var" '%s' "$val"
+    export "$var"
   fi
 }
 

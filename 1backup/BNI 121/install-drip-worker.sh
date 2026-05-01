@@ -16,9 +16,14 @@ CRON_LINE="*/5 * * * * $WORKER >> /var/log/bni-drip.log 2>&1"
 
 prompt_secret() {
   local var="$1" label="$2"
-  if [ -z "${!var:-}" ]; then
-    read -r -s -p "$label: " val; echo
-    declare -g "$var=$val"
+  local cur="${!var-}"
+  if [ -z "$cur" ]; then
+    # Read from the controlling terminal even when this script is piped
+    # from curl (otherwise read sees EOF on stdin).
+    read -r -s -p "$label: " val </dev/tty
+    echo
+    printf -v "$var" '%s' "$val"
+    export "$var"
   fi
 }
 

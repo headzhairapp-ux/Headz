@@ -56,6 +56,11 @@
       { href: '/bni/referrals.html',      icon: 'git-branch',     label: 'Referral Network', desc: 'Who introduced whom — top referrers, referral chains, and cold-contact list' },
       { href: '/bni/members.html',        icon: 'users',          label: 'All Members',     desc: 'BNI chapter member directory — browse and search all chapter members' },
     ]},
+    { title: 'Engineering',items: [
+      { href: '/bni/dev-boards.html',     icon: 'kanban-square',  label: 'Boards',          desc: 'Kanban board of dev work items — drag to change state, click to edit' },
+      { href: '/bni/dev-backlog.html',    icon: 'list-todo',      label: 'Backlog',         desc: 'Prioritized list view of all work items with filters' },
+      { href: '/bni/dev-reports.html',    icon: 'bar-chart-3',    label: 'Reports',         desc: 'Per-developer load, velocity, type and priority breakdowns' },
+    ]},
     { title: 'Tools',      items: [
       { href: '/bni/my-card.html',        icon: 'id-card',        label: 'My BNI Card',     desc: 'Your sharable BNI 121 introduction card — copy text, share on WhatsApp, download as PDF' },
       { href: '/bni/templates.html',      icon: 'mail',           label: 'Templates',       desc: 'Ready-to-send WhatsApp & email messages — personalise once, copy for any contact' },

@@ -67,5 +67,81 @@ alter table bni_zoom_events enable row level security;
 drop policy if exists "bni_zoom_anon_all" on bni_zoom_events;
 create policy "bni_zoom_anon_all" on bni_zoom_events for all to anon using (true) with check (true);
 
+-- ── Engineering management (Azure DevOps clone) ───────────────────────────
+create table if not exists dev_projects (
+  id          text primary key,
+  name        text not null,
+  description text not null default '',
+  color       text not null default '#1e40af',
+  hidden      boolean not null default false,
+  created_at  timestamptz default now()
+);
+
+create table if not exists dev_work_items (
+  id           text primary key,
+  project_id   text references dev_projects(id) on delete cascade,
+  parent_id    text references dev_work_items(id) on delete set null,
+  type         text not null default 'Task',
+  title        text not null,
+  description  text not null default '',
+  state        text not null default 'To Do',
+  priority     text not null default 'Medium',
+  points       integer,
+  assignee_id  uuid references developers(id) on delete set null,
+  reporter_id  uuid references developers(id) on delete set null,
+  tags         text[] not null default '{}',
+  due_date     date,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+create index if not exists dev_work_items_proj_state_idx on dev_work_items (project_id, state);
+create index if not exists dev_work_items_assignee_idx   on dev_work_items (assignee_id);
+create index if not exists dev_work_items_priority_idx   on dev_work_items (priority);
+
+drop trigger if exists set_dev_work_items_updated_at on dev_work_items;
+create trigger set_dev_work_items_updated_at
+  before update on dev_work_items
+  for each row execute function update_updated_at();
+
+create table if not exists dev_comments (
+  id           uuid primary key default gen_random_uuid(),
+  item_id      text not null references dev_work_items(id) on delete cascade,
+  author_id    uuid references developers(id) on delete set null,
+  body         text not null,
+  created_at   timestamptz not null default now()
+);
+create index if not exists dev_comments_item_idx on dev_comments (item_id, created_at);
+
+create table if not exists dev_history (
+  id           uuid primary key default gen_random_uuid(),
+  item_id      text not null references dev_work_items(id) on delete cascade,
+  field        text not null,
+  old_value    text,
+  new_value    text,
+  changed_by   uuid references developers(id) on delete set null,
+  changed_at   timestamptz not null default now()
+);
+create index if not exists dev_history_item_idx on dev_history (item_id, changed_at desc);
+
+alter table dev_projects   enable row level security;
+alter table dev_work_items enable row level security;
+alter table dev_comments   enable row level security;
+alter table dev_history    enable row level security;
+drop policy if exists "dev_proj_anon_all"     on dev_projects;
+drop policy if exists "dev_items_anon_all"    on dev_work_items;
+drop policy if exists "dev_comments_anon_all" on dev_comments;
+drop policy if exists "dev_history_anon_all"  on dev_history;
+create policy "dev_proj_anon_all"     on dev_projects   for all to anon using (true) with check (true);
+create policy "dev_items_anon_all"    on dev_work_items for all to anon using (true) with check (true);
+create policy "dev_comments_anon_all" on dev_comments   for all to anon using (true) with check (true);
+create policy "dev_history_anon_all"  on dev_history    for all to anon using (true) with check (true);
+
+-- Seed default projects so the boards page has something to show on first load.
+insert into dev_projects (id, name, color) values
+  ('p_bni',      'BNI 121 CRM',     '#1e40af'),
+  ('p_drmhope',  'DrM Hope HMS',    '#7c3aed'),
+  ('p_general',  'General Tasks',   '#0ea5e9')
+on conflict (id) do nothing;
+
 -- Tell PostgREST to reload its schema cache so the new columns are visible immediately.
 notify pgrst, 'reload schema';

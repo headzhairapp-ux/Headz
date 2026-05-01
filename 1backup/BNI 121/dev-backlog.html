@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Backlog — DevOps · BNI 121</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family:'Inter',sans-serif; background:#f8fafc; color:#0f172a; }
+    .glass { background:white; border:1px solid #e2e8f0; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+    table { width:100%; border-collapse:collapse; }
+    th { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.06em; padding:10px 14px; text-align:left; background:#f8fafc; border-bottom:1px solid #e2e8f0; }
+    td { padding:10px 14px; border-bottom:1px solid #f1f5f9; font-size:14px; vertical-align:middle; }
+    tr:hover td { background:#f8fafc; }
+    .pri-Critical { color:#dc2626; font-weight:700; }
+    .pri-High     { color:#ea580c; font-weight:700; }
+    .pri-Medium   { color:#ca8a04; font-weight:600; }
+    .pri-Low      { color:#94a3b8; }
+    .state-pill { display:inline-block; padding:2px 9px; border-radius:999px; font-size:10px; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; }
+    .pts { font-size:11px; font-weight:800; padding:2px 8px; border-radius:999px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+  <main class="px-4 sm:px-8 py-6 max-w-[1400px] mx-auto">
+    <header class="mb-5 flex items-center justify-between flex-wrap gap-3">
+      <div>
+        <h1 class="text-2xl font-extrabold text-slate-900" style="letter-spacing:-0.02em">Backlog</h1>
+        <p class="text-slate-500 text-sm mt-0.5">Prioritized list of work items. Click a row to edit.</p>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <select id="projectSel" onchange="onProjectChange()" class="border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold bg-white"></select>
+        <select id="assigneeSel" onchange="render()" class="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white"><option value="">All assignees</option></select>
+        <select id="stateSel" onchange="render()" class="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+          <option value="">All states</option>
+          <option>To Do</option><option>In Progress</option><option>Review</option><option>Done</option>
+        </select>
+        <input id="searchInp" oninput="render()" type="text" placeholder="Search title / tag…" class="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white w-56" />
+        <a href="dev-boards.html" class="border border-slate-200 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50">Board view</a>
+      </div>
+    </header>
+
+    <div id="statsRow" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5"></div>
+
+    <div class="glass rounded-2xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table id="backlog">
+          <thead>
+            <tr>
+              <th>ID</th><th>Type</th><th>Title</th><th>State</th><th>Priority</th><th>Pts</th><th>Assignee</th><th>Due</th><th>Tags</th>
+            </tr>
+          </thead>
+          <tbody id="rows"><tr><td colspan="9" class="text-center py-8 text-slate-400">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="supabase-config.js"></script>
+  <script src="auth-guard.js"></script>
+  <script src="bni-sidebar.js"></script>
+  <script>
+  let _projects=[], _items=[], _devs=[], _projectId=null;
+  const STATE_BG = { 'To Do':'#f1f5f9', 'In Progress':'#dbeafe', 'Review':'#fef3c7', 'Done':'#dcfce7' };
+  const STATE_FG = { 'To Do':'#475569', 'In Progress':'#1e40af', 'Review':'#92400e', 'Done':'#15803d' };
+  const PRI_RANK = { Critical:1, High:2, Medium:3, Low:4 };
+
+  function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+
+  async function loadAll() {
+    const [{data: ps}, {data: items}] = await Promise.all([
+      window.sb.from('dev_projects').select('*').eq('hidden', false).order('name'),
+      window.sb.from('dev_work_items').select('*'),
+    ]);
+    _projects = ps || []; _items = items || []; _devs = window.BNI_DEVS || [];
+    _projectId = localStorage.getItem('dev_project') || (_projects[0] && _projects[0].id) || null;
+
+    document.getElementById('projectSel').innerHTML = _projects.map(p => `<option value="${p.id}"${p.id===_projectId?' selected':''}>${escapeHtml(p.name)}</option>`).join('');
+    document.getElementById('assigneeSel').innerHTML = '<option value="">All assignees</option><option value="__none__">— Unassigned —</option>' +
+      _devs.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
+    render();
+  }
+
+  function onProjectChange() {
+    _projectId = document.getElementById('projectSel').value;
+    localStorage.setItem('dev_project', _projectId);
+    render();
+  }
+
+  function devName(id) { const d = _devs.find(x => x.id === id); return d ? d.name : ''; }
+
+  function getFiltered() {
+    const a = document.getElementById('assigneeSel').value;
+    const s = document.getElementById('stateSel').value;
+    const q = (document.getElementById('searchInp').value || '').toLowerCase();
+    return _items
+      .filter(it => it.project_id === _projectId)
+      .filter(it => !s || it.state === s)
+      .filter(it => !a || (a === '__none__' ? !it.assignee_id : it.assignee_id === a))
+      .filter(it => !q || (it.title.toLowerCase().includes(q) || (it.tags||[]).join(',').toLowerCase().includes(q)))
+      .sort((x,y) => (PRI_RANK[x.priority]||9) - (PRI_RANK[y.priority]||9) || (x.due_date||'9').localeCompare(y.due_date||'9'));
+  }
+
+  function renderStats(list) {
+    const totals = list.reduce((acc, it) => {
+      acc.count++;
+      acc.points += it.points || 0;
+      acc[it.state] = (acc[it.state] || 0) + 1;
+      return acc;
+    }, { count:0, points:0 });
+    const cards = [
+      { label:'Total items',  val:totals.count,                   color:'#1e40af' },
+      { label:'Story points', val:totals.points,                  color:'#7c3aed' },
+      { label:'To Do',        val:totals['To Do']||0,             color:'#475569' },
+      { label:'In Progress',  val:totals['In Progress']||0,       color:'#1d4ed8' },
+      { label:'Done',         val:totals['Done']||0,              color:'#15803d' },
+    ];
+    document.getElementById('statsRow').innerHTML = cards.map(c => `<div class="glass rounded-xl px-4 py-3">
+      <div class="text-2xl font-extrabold" style="color:${c.color}">${c.val}</div>
+      <div class="text-[11px] uppercase tracking-wider font-bold text-slate-500 mt-0.5">${c.label}</div>
+    </div>`).join('');
+  }
+
+  function render() {
+    const list = getFiltered();
+    renderStats(list);
+    const rows = document.getElementById('rows');
+    if (!list.length) { rows.innerHTML = `<tr><td colspan="9" class="text-center py-10 text-slate-400">No work items match these filters.</td></tr>`; return; }
+    rows.innerHTML = list.map(it => `<tr onclick="location.href='dev-boards.html#${it.id}'" style="cursor:pointer">
+      <td class="font-mono text-xs text-slate-500">${escapeHtml(it.id)}</td>
+      <td><span class="text-xs font-bold ${it.type==='Bug'?'text-red-600':it.type==='Story'?'text-emerald-600':it.type==='Epic'?'text-purple-600':'text-blue-600'}">${escapeHtml(it.type)}</span></td>
+      <td class="font-semibold text-slate-800">${escapeHtml(it.title)}</td>
+      <td><span class="state-pill" style="background:${STATE_BG[it.state]||'#f1f5f9'};color:${STATE_FG[it.state]||'#475569'}">${escapeHtml(it.state)}</span></td>
+      <td class="pri-${it.priority}">${escapeHtml(it.priority)}</td>
+      <td>${it.points != null ? `<span class="pts">${it.points}</span>` : '<span class="text-slate-300">—</span>'}</td>
+      <td class="text-slate-700 text-xs">${escapeHtml(devName(it.assignee_id) || '—')}</td>
+      <td class="text-xs text-slate-500">${it.due_date || '—'}</td>
+      <td class="text-xs">${(it.tags||[]).slice(0,3).map(t => `<span class="px-1.5 py-0.5 mr-1 bg-slate-100 text-slate-600 rounded">${escapeHtml(t)}</span>`).join('')}</td>
+    </tr>`).join('');
+  }
+
+  async function init() {
+    await window.loadDevelopers?.();
+    await loadAll();
+  }
+  init();
+  </script>
+</body>
+</html>

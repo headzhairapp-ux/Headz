@@ -38,6 +38,8 @@
         </select>
         <input id="searchInp" oninput="render()" type="text" placeholder="Search title / tag…" class="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white w-56" />
         <a href="dev-boards.html" class="border border-slate-200 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50">Board view</a>
+        <select id="querySel" onchange="applyQuery(this.value)" class="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white" title="Saved queries"><option value="">— Saved queries —</option></select>
+        <button onclick="saveCurrentQuery()" class="border border-slate-200 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50" title="Save current filters as a named query">Save query</button>
         <button onclick="openImport()" class="border border-slate-200 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50" title="Import work items from Azure DevOps CSV export">Import CSV</button>
       </div>
     </header>
@@ -75,7 +77,7 @@
   <script src="auth-guard.js"></script>
   <script src="bni-sidebar.js"></script>
   <script>
-  let _projects=[], _items=[], _devs=[], _projectId=null;
+  let _projects=[], _items=[], _devs=[], _projectId=null, _queries=[];
   const STATE_BG = { 'To Do':'#f1f5f9', 'In Progress':'#dbeafe', 'Review':'#fef3c7', 'Done':'#dcfce7' };
   const STATE_FG = { 'To Do':'#475569', 'In Progress':'#1e40af', 'Review':'#92400e', 'Done':'#15803d' };
   const PRI_RANK = { Critical:1, High:2, Medium:3, Low:4 };
@@ -83,22 +85,71 @@
   function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
 
   async function loadAll() {
-    const [{data: ps}, {data: items}] = await Promise.all([
+    const [{data: ps}, {data: items}, {data: qs}] = await Promise.all([
       window.sb.from('dev_projects').select('*').eq('hidden', false).order('name'),
       window.sb.from('dev_work_items').select('*'),
+      window.sb.from('dev_queries').select('*').order('name'),
     ]);
-    _projects = ps || []; _items = items || []; _devs = window.BNI_DEVS || [];
+    _projects = ps || []; _items = items || []; _devs = window.BNI_DEVS || []; _queries = qs || [];
     _projectId = localStorage.getItem('dev_project') || (_projects[0] && _projects[0].id) || null;
 
     document.getElementById('projectSel').innerHTML = _projects.map(p => `<option value="${p.id}"${p.id===_projectId?' selected':''}>${escapeHtml(p.name)}</option>`).join('');
     document.getElementById('assigneeSel').innerHTML = '<option value="">All assignees</option><option value="__none__">— Unassigned —</option>' +
       _devs.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
+    refreshQueryPicker();
     render();
+  }
+
+  function refreshQueryPicker() {
+    const projQs = _queries.filter(q => q.project_id === _projectId);
+    const sel = document.getElementById('querySel');
+    sel.innerHTML = '<option value="">— Saved queries —</option>' +
+      projQs.map(q => `<option value="${q.id}">${escapeHtml(q.name)}</option>`).join('') +
+      (projQs.length ? '<option value="__delete__">— Delete saved query —</option>' : '');
+  }
+
+  function applyQuery(id) {
+    if (!id) return;
+    if (id === '__delete__') {
+      const projQs = _queries.filter(q => q.project_id === _projectId);
+      const opts = projQs.map(q => `${q.id} · ${q.name}`).join('\n');
+      const pick = prompt(`Paste an ID to delete:\n\n${opts}`);
+      document.getElementById('querySel').value = '';
+      if (!pick) return;
+      const qid = pick.trim().split(/\s/)[0];
+      window.sb.from('dev_queries').delete().eq('id', qid).then(loadAll);
+      return;
+    }
+    const q = _queries.find(x => x.id === id);
+    if (!q) return;
+    const f = q.filter_json || {};
+    document.getElementById('assigneeSel').value = f.assignee || '';
+    document.getElementById('stateSel').value    = f.state    || '';
+    document.getElementById('searchInp').value   = f.search   || '';
+    render();
+  }
+
+  async function saveCurrentQuery() {
+    const name = prompt('Name this saved query:');
+    if (!name) return;
+    const filter_json = {
+      assignee: document.getElementById('assigneeSel').value,
+      state:    document.getElementById('stateSel').value,
+      search:   document.getElementById('searchInp').value,
+    };
+    const id = `q_${Date.now().toString(36)}`;
+    const { error } = await window.sb.from('dev_queries').insert({
+      id, project_id: _projectId, name, filter_json, shared: true,
+    });
+    if (error) { alert('Failed: ' + error.message); return; }
+    await loadAll();
+    document.getElementById('querySel').value = id;
   }
 
   function onProjectChange() {
     _projectId = document.getElementById('projectSel').value;
     localStorage.setItem('dev_project', _projectId);
+    refreshQueryPicker();
     render();
   }
 

@@ -6,6 +6,8 @@
   <title>Work Item — DevOps · BNI 121</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     body { font-family:'Inter',sans-serif; background:#f8fafc; color:#0f172a; }
@@ -24,6 +26,30 @@
     .desc-edit { min-height:120px; }
     .child-row { padding:7px 10px; border:1px solid #e2e8f0; border-radius:8px; display:flex; align-items:center; gap:8px; margin-bottom:6px; }
     .child-row:hover { background:#f8fafc; }
+    .md-render { font-size:14px; color:#0f172a; line-height:1.55; }
+    .md-render h1, .md-render h2, .md-render h3 { font-weight:800; margin:0.6em 0 0.3em; letter-spacing:-0.01em; }
+    .md-render h1 { font-size:1.3em; } .md-render h2 { font-size:1.15em; } .md-render h3 { font-size:1.05em; }
+    .md-render p  { margin:0.4em 0; }
+    .md-render ul, .md-render ol { margin:0.4em 0 0.4em 1.4em; }
+    .md-render li { margin:0.15em 0; }
+    .md-render code { background:#f1f5f9; padding:1px 5px; border-radius:4px; font-size:0.9em; font-family:ui-monospace,monospace; }
+    .md-render pre { background:#0f172a; color:#e2e8f0; padding:10px 14px; border-radius:8px; overflow-x:auto; font-size:13px; margin:0.5em 0; }
+    .md-render pre code { background:transparent; padding:0; color:inherit; }
+    .md-render blockquote { border-left:3px solid #cbd5e1; padding-left:12px; color:#475569; margin:0.5em 0; }
+    .md-render a { color:#1d4ed8; text-decoration:underline; }
+    .md-render img { max-width:100%; border-radius:6px; }
+    .md-render table { border-collapse:collapse; margin:0.5em 0; }
+    .md-render th, .md-render td { border:1px solid #e2e8f0; padding:5px 9px; font-size:13px; }
+    .tab-btn { font-size:11px; font-weight:700; padding:4px 10px; border-radius:6px; cursor:pointer; background:transparent; border:1px solid transparent; color:#64748b; }
+    .tab-btn.active { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+    .att-card { display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid #e2e8f0; border-radius:8px; }
+    .att-card:hover { background:#f8fafc; }
+    .att-thumb { width:40px; height:40px; border-radius:6px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; color:#64748b; font-size:18px; flex-shrink:0; overflow:hidden; }
+    .att-thumb img { width:100%; height:100%; object-fit:cover; }
+    .drop-zone { border:2px dashed #cbd5e1; border-radius:10px; padding:18px; text-align:center; color:#94a3b8; transition:all 0.15s; }
+    .drop-zone.dragover { background:#eff6ff; border-color:#3b82f6; color:#1d4ed8; }
+    .timer-active { background:#dc2626; color:white; }
+    .timer-active:hover { background:#b91c1c; }
   </style>
 </head>
 <body>
@@ -56,8 +82,47 @@
         </div>
 
         <div class="glass rounded-2xl p-5 mb-4">
-          <div class="field-label mb-2">Description</div>
-          <textarea id="f_description" class="desc-edit w-full text-sm text-slate-800 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200" placeholder="Describe the work, acceptance criteria, links…"></textarea>
+          <div class="flex items-center justify-between mb-2">
+            <div class="field-label">Description</div>
+            <div class="flex gap-1">
+              <button type="button" class="tab-btn active" id="descTabEdit"    onclick="setDescTab('edit')">Edit</button>
+              <button type="button" class="tab-btn"        id="descTabPreview" onclick="setDescTab('preview')">Preview</button>
+            </div>
+          </div>
+          <textarea id="f_description" class="desc-edit w-full text-sm text-slate-800 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200" placeholder="Describe the work, acceptance criteria, links… Markdown supported (**bold**, `code`, lists, links, images)."></textarea>
+          <div id="descPreview" class="md-render hidden border border-slate-200 rounded-lg px-4 py-3 min-h-[120px]"></div>
+        </div>
+
+        <!-- Attachments -->
+        <div class="glass rounded-2xl p-5 mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="field-label">Attachments</div>
+            <span id="attCount" class="text-[10px] uppercase tracking-wider font-bold text-slate-400"></span>
+          </div>
+          <div id="attList" class="space-y-1.5 mb-2"></div>
+          <div id="dropZone" class="drop-zone" ondragover="onDropOver(event)" ondragleave="onDropLeave(event)" ondrop="onDrop(event)">
+            Drop files here or
+            <label class="text-blue-600 font-bold cursor-pointer">browse
+              <input type="file" id="fileInput" multiple class="hidden" onchange="onFilePick(event)" />
+            </label>
+            <div id="upStatus" class="text-xs text-slate-500 mt-1"></div>
+          </div>
+        </div>
+
+        <!-- Time tracking -->
+        <div class="glass rounded-2xl p-5 mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <div class="field-label">Time tracking</div>
+              <div class="text-xs text-slate-500 mt-0.5" id="timeTotal">—</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <select id="timerUser" class="text-xs border border-slate-200 rounded px-2 py-1.5"></select>
+              <button id="timerBtn" type="button" onclick="toggleTimer()" class="px-3 py-1.5 rounded-lg font-bold text-sm bg-emerald-600 text-white hover:bg-emerald-700">▶ Start</button>
+              <button type="button" onclick="logTimeManual()" class="px-3 py-1.5 rounded-lg font-bold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200" title="Log time manually">+ Manual</button>
+            </div>
+          </div>
+          <div id="worklogList" class="space-y-1 text-xs"></div>
         </div>
 
         <!-- Children -->
@@ -169,7 +234,7 @@
   <script src="auth-guard.js"></script>
   <script src="bni-sidebar.js"></script>
   <script>
-  let _id = null, _item = null, _devs = [], _sprints = [], _projectItems = [], _deps = [];
+  let _id = null, _item = null, _devs = [], _sprints = [], _projectItems = [], _deps = [], _attachments = [], _worklogs = [], _activeTimer = null;
   const TYPE_CLASS = { Story:'story', Task:'task', Bug:'bug', Epic:'epic' };
   const STATE_BG = { 'To Do':'#f1f5f9', 'In Progress':'#dbeafe', 'Review':'#fef3c7', 'Done':'#dcfce7' };
   const STATE_FG = { 'To Do':'#475569', 'In Progress':'#1e40af', 'Review':'#92400e', 'Done':'#15803d' };
@@ -186,32 +251,44 @@
     await window.loadDevelopers?.();
     _devs = window.BNI_DEVS || [];
 
-    const [{data: item}, {data: items}, {data: sprints}, {data: comments}, {data: history}, {data: deps}] = await Promise.all([
+    const [{data: item}, {data: items}, {data: sprints}, {data: comments}, {data: history}, {data: deps}, {data: attachments}, {data: worklogs}] = await Promise.all([
       window.sb.from('dev_work_items').select('*').eq('id', _id).maybeSingle(),
       window.sb.from('dev_work_items').select('id,title,type,state,project_id,parent_id'),
       window.sb.from('dev_sprints').select('*').order('start_date', { ascending: false }),
       window.sb.from('dev_comments').select('*').eq('item_id', _id).order('created_at'),
       window.sb.from('dev_history').select('*').eq('item_id', _id).order('changed_at', { ascending: false }).limit(40),
       window.sb.from('dev_dependencies').select('*').or(`from_id.eq.${_id},to_id.eq.${_id}`),
+      window.sb.from('dev_attachments').select('*').eq('item_id', _id).order('created_at', { ascending: false }),
+      window.sb.from('dev_worklog').select('*').eq('item_id', _id).order('started_at', { ascending: false }),
     ]);
     if (!item) { document.getElementById('loading').textContent = 'Work item not found.'; return; }
     _item = item;
     _projectItems = (items || []).filter(i => i.project_id === _item.project_id);
     _sprints      = (sprints || []).filter(s => s.project_id === _item.project_id);
 
-    _deps = deps || [];
+    _deps        = deps || [];
+    _attachments = attachments || [];
+    _worklogs    = worklogs || [];
     populateUI();
+    populateTimerUserPicker();
     renderChildren(items || []);
     renderComments(comments || []);
     renderHistory(history || []);
     renderGitRefs();
     renderDependencies();
+    renderAttachments();
+    renderWorklog();
 
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('content').classList.remove('hidden');
 
     document.getElementById('newComment').addEventListener('keydown', e => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); addComment(); }
+    });
+    // Paste-from-clipboard upload anywhere on the page.
+    window.addEventListener('paste', e => {
+      const files = [...(e.clipboardData?.files || [])];
+      if (files.length) { e.preventDefault(); uploadFiles(files); }
     });
   }
 
@@ -268,8 +345,29 @@
     if (!list.length) { node.innerHTML = '<p class="text-slate-400 text-xs italic">No comments yet.</p>'; return; }
     node.innerHTML = list.map(c => `<div class="border-l-4 border-blue-200 pl-3 pb-1">
       <div class="text-xs text-slate-500 mb-1"><span class="font-bold text-slate-700">${escapeHtml(devName(c.author_id) || 'anonymous')}</span> · ${fmtDate(c.created_at)}</div>
-      <div class="text-sm text-slate-800 whitespace-pre-wrap">${escapeHtml(c.body)}</div>
+      <div class="md-render">${renderMarkdown(c.body)}</div>
     </div>`).join('');
+  }
+
+  function renderMarkdown(text) {
+    if (!text) return '';
+    try {
+      const html = window.marked ? window.marked.parse(text, { breaks:true, gfm:true }) : escapeHtml(text).replace(/\n/g,'<br>');
+      return window.DOMPurify ? window.DOMPurify.sanitize(html) : html;
+    } catch {
+      return escapeHtml(text).replace(/\n/g,'<br>');
+    }
+  }
+
+  function setDescTab(t) {
+    const editing = (t === 'edit');
+    document.getElementById('descTabEdit').classList.toggle('active', editing);
+    document.getElementById('descTabPreview').classList.toggle('active', !editing);
+    document.getElementById('f_description').classList.toggle('hidden', !editing);
+    document.getElementById('descPreview').classList.toggle('hidden', editing);
+    if (!editing) {
+      document.getElementById('descPreview').innerHTML = renderMarkdown(document.getElementById('f_description').value) || '<em class="text-slate-400">No description.</em>';
+    }
   }
 
   function renderHistory(list) {
@@ -295,6 +393,155 @@
           </div>`;
         }).join('')
       : '<p class="text-slate-400 text-xs italic">No git references linked.</p>';
+  }
+
+  // ── Attachments ──────────────────────────────────────────────────────────
+  function fmtBytes(n) {
+    if (n == null) return '';
+    if (n < 1024) return n + ' B';
+    if (n < 1024*1024) return (n/1024).toFixed(1) + ' KB';
+    return (n/1024/1024).toFixed(1) + ' MB';
+  }
+  function isImg(mime) { return /^image\//.test(mime || ''); }
+
+  function renderAttachments() {
+    document.getElementById('attCount').textContent = _attachments.length ? `${_attachments.length} file${_attachments.length===1?'':'s'}` : '';
+    const node = document.getElementById('attList');
+    if (!_attachments.length) { node.innerHTML = ''; return; }
+    node.innerHTML = _attachments.map(a => `<div class="att-card">
+      <div class="att-thumb">${isImg(a.mime_type) ? `<img src="${escapeHtml(a.url)}" alt="" />` : '📎'}</div>
+      <div class="flex-1 min-w-0">
+        <a href="${escapeHtml(a.url)}" target="_blank" class="text-sm font-semibold text-slate-800 hover:text-blue-700 truncate block">${escapeHtml(a.name)}</a>
+        <div class="text-[10px] text-slate-400">${escapeHtml(devName(a.uploaded_by) || 'anon')} · ${fmtDate(a.created_at)} · ${fmtBytes(a.size_bytes)}</div>
+      </div>
+      <button onclick="deleteAttachment('${a.id}', '${escapeHtml(a.storage_path)}')" class="text-slate-400 hover:text-red-600 text-sm">×</button>
+    </div>`).join('');
+  }
+
+  function onDropOver(e)  { e.preventDefault(); e.currentTarget.classList.add('dragover'); }
+  function onDropLeave(e) { e.currentTarget.classList.remove('dragover'); }
+  function onDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('dragover');
+    if (e.dataTransfer.files?.length) uploadFiles(e.dataTransfer.files);
+  }
+  function onFilePick(e) { uploadFiles(e.target.files); e.target.value = ''; }
+
+  async function uploadFiles(files) {
+    const status = document.getElementById('upStatus');
+    for (const f of files) {
+      if (f.size > 25 * 1024 * 1024) { status.textContent = `${f.name} too large (>25 MB), skipped.`; continue; }
+      const safe = f.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `${_id}/${Date.now()}-${safe}`;
+      status.textContent = `Uploading ${f.name}…`;
+      const { data, error } = await window.sb.storage.from('dev-attachments').upload(path, f, { upsert: false, cacheControl: '31536000' });
+      if (error) { status.textContent = `Failed: ${error.message}`; continue; }
+      const { data: pub } = window.sb.storage.from('dev-attachments').getPublicUrl(path);
+      const author = document.getElementById('timerUser').value || null;
+      const { data: inserted, error: dbErr } = await window.sb.from('dev_attachments').insert({
+        item_id: _id, name: f.name, storage_path: path, url: pub.publicUrl,
+        size_bytes: f.size, mime_type: f.type, uploaded_by: author,
+      }).select().single();
+      if (dbErr) { status.textContent = `Saved file but DB row failed: ${dbErr.message}`; continue; }
+      _attachments.unshift(inserted);
+      logHistory('attachment', '', '+' + f.name);
+    }
+    status.textContent = '';
+    renderAttachments();
+  }
+
+  async function deleteAttachment(id, path) {
+    if (!confirm('Delete this attachment?')) return;
+    await window.sb.storage.from('dev-attachments').remove([path]);
+    await window.sb.from('dev_attachments').delete().eq('id', id);
+    _attachments = _attachments.filter(a => a.id !== id);
+    renderAttachments();
+  }
+
+  // ── Time tracking ────────────────────────────────────────────────────────
+  function populateTimerUserPicker() {
+    const sel = document.getElementById('timerUser');
+    const stored = localStorage.getItem('dev_timer_user') || '';
+    sel.innerHTML = '<option value="">— Anonymous —</option>' +
+      _devs.map(d => `<option value="${d.id}"${d.id===stored?' selected':''}>${escapeHtml(d.name)}</option>`).join('');
+    sel.onchange = () => localStorage.setItem('dev_timer_user', sel.value);
+  }
+
+  function totalMinutes() { return _worklogs.reduce((s, w) => s + (w.minutes || 0), 0); }
+  function fmtDuration(min) {
+    if (!min) return '0m';
+    const h = Math.floor(min / 60), m = min % 60;
+    return h ? `${h}h ${m}m` : `${m}m`;
+  }
+
+  function renderWorklog() {
+    _activeTimer = _worklogs.find(w => !w.ended_at && w.user_id === (document.getElementById('timerUser').value || null));
+    document.getElementById('timeTotal').textContent = `Total: ${fmtDuration(totalMinutes())}${_activeTimer ? ' · ⏱ running' : ''}`;
+    const btn = document.getElementById('timerBtn');
+    if (_activeTimer) {
+      btn.classList.add('timer-active');
+      btn.innerHTML = '■ Stop';
+    } else {
+      btn.classList.remove('timer-active');
+      btn.innerHTML = '▶ Start';
+    }
+    const node = document.getElementById('worklogList');
+    if (!_worklogs.length) { node.innerHTML = '<p class="text-slate-400 italic">No time logged yet.</p>'; return; }
+    const recent = _worklogs.slice(0, 10);
+    node.innerHTML = recent.map(w => `<div class="flex items-center gap-2 py-1 border-b border-slate-50 last:border-b-0">
+      <span class="font-bold text-slate-700">${fmtDuration(w.minutes || 0)}</span>
+      <span class="text-slate-500">${escapeHtml(devName(w.user_id) || 'anon')}</span>
+      <span class="text-slate-400">${fmtDate(w.started_at)}</span>
+      ${!w.ended_at ? '<span class="text-red-600 font-bold">⏱ running</span>' : ''}
+      <span class="text-slate-600 flex-1 truncate">${escapeHtml(w.notes || '')}</span>
+      <button onclick="deleteWorklog('${w.id}')" class="text-slate-300 hover:text-red-500">×</button>
+    </div>`).join('');
+  }
+
+  async function toggleTimer() {
+    const userId = document.getElementById('timerUser').value || null;
+    if (_activeTimer) {
+      const ended = new Date().toISOString();
+      const minutes = Math.max(1, Math.round((new Date(ended) - new Date(_activeTimer.started_at)) / 60000));
+      const { error } = await window.sb.from('dev_worklog').update({ ended_at: ended, minutes }).eq('id', _activeTimer.id);
+      if (error) { alert(error.message); return; }
+      logHistory('worklog', '', `+${minutes}m by ${devName(userId) || 'anon'}`);
+      const { data } = await window.sb.from('dev_worklog').select('*').eq('item_id', _id).order('started_at', { ascending: false });
+      _worklogs = data || [];
+      renderWorklog();
+    } else {
+      const started = new Date().toISOString();
+      const { data, error } = await window.sb.from('dev_worklog').insert({
+        item_id: _id, user_id: userId, started_at: started, notes: '',
+      }).select().single();
+      if (error) { alert(error.message); return; }
+      _worklogs.unshift(data);
+      renderWorklog();
+    }
+  }
+
+  async function logTimeManual() {
+    const minStr = prompt('Minutes spent (e.g. 45):');
+    const min = parseInt(minStr, 10);
+    if (!min || min <= 0) return;
+    const notes = prompt('Notes (optional):') || '';
+    const userId = document.getElementById('timerUser').value || null;
+    const now = new Date();
+    const start = new Date(now.getTime() - min * 60000).toISOString();
+    const { data, error } = await window.sb.from('dev_worklog').insert({
+      item_id: _id, user_id: userId, started_at: start, ended_at: now.toISOString(), minutes: min, notes,
+    }).select().single();
+    if (error) { alert(error.message); return; }
+    _worklogs.unshift(data);
+    logHistory('worklog', '', `+${min}m manual`);
+    renderWorklog();
+  }
+
+  async function deleteWorklog(id) {
+    if (!confirm('Delete this time entry?')) return;
+    await window.sb.from('dev_worklog').delete().eq('id', id);
+    _worklogs = _worklogs.filter(w => w.id !== id);
+    renderWorklog();
   }
 
   function depRowHTML(it) {

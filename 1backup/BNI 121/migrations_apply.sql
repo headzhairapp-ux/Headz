@@ -178,5 +178,65 @@ alter table dev_dependencies enable row level security;
 drop policy if exists "dev_deps_anon_all" on dev_dependencies;
 create policy "dev_deps_anon_all" on dev_dependencies for all to anon using (true) with check (true);
 
+-- ── Stage 4: attachments + worklog + saved queries ────────────────────────
+create table if not exists dev_attachments (
+  id            uuid primary key default gen_random_uuid(),
+  item_id       text not null references dev_work_items(id) on delete cascade,
+  name          text not null,
+  storage_path  text not null,
+  url           text not null,
+  size_bytes    bigint,
+  mime_type     text,
+  uploaded_by   uuid references developers(id) on delete set null,
+  created_at    timestamptz not null default now()
+);
+create index if not exists dev_attachments_item_idx on dev_attachments (item_id, created_at);
+
+create table if not exists dev_worklog (
+  id          uuid primary key default gen_random_uuid(),
+  item_id     text not null references dev_work_items(id) on delete cascade,
+  user_id     uuid references developers(id) on delete set null,
+  started_at  timestamptz not null,
+  ended_at    timestamptz,
+  minutes     integer,
+  notes       text not null default '',
+  created_at  timestamptz not null default now()
+);
+create index if not exists dev_worklog_item_idx on dev_worklog (item_id, started_at);
+create index if not exists dev_worklog_active_idx on dev_worklog (user_id) where ended_at is null;
+
+create table if not exists dev_queries (
+  id           text primary key,
+  project_id   text references dev_projects(id) on delete cascade,
+  name         text not null,
+  filter_json  jsonb not null default '{}',
+  owner_id     uuid references developers(id) on delete set null,
+  shared       boolean not null default true,
+  created_at   timestamptz not null default now()
+);
+create index if not exists dev_queries_proj_idx on dev_queries (project_id);
+
+alter table dev_attachments enable row level security;
+alter table dev_worklog     enable row level security;
+alter table dev_queries     enable row level security;
+drop policy if exists "dev_attachments_anon_all" on dev_attachments;
+drop policy if exists "dev_worklog_anon_all"     on dev_worklog;
+drop policy if exists "dev_queries_anon_all"     on dev_queries;
+create policy "dev_attachments_anon_all" on dev_attachments for all to anon using (true) with check (true);
+create policy "dev_worklog_anon_all"     on dev_worklog     for all to anon using (true) with check (true);
+create policy "dev_queries_anon_all"     on dev_queries     for all to anon using (true) with check (true);
+
+-- Storage bucket for attachments + open RLS so anon can upload/read.
+insert into storage.buckets (id, name, public)
+  values ('dev-attachments', 'dev-attachments', true)
+  on conflict (id) do nothing;
+
+drop policy if exists "dev-attachments anon read"   on storage.objects;
+drop policy if exists "dev-attachments anon insert" on storage.objects;
+drop policy if exists "dev-attachments anon delete" on storage.objects;
+create policy "dev-attachments anon read"   on storage.objects for select to anon using (bucket_id = 'dev-attachments');
+create policy "dev-attachments anon insert" on storage.objects for insert to anon with check (bucket_id = 'dev-attachments');
+create policy "dev-attachments anon delete" on storage.objects for delete to anon using (bucket_id = 'dev-attachments');
+
 -- Tell PostgREST to reload its schema cache so the new columns are visible immediately.
 notify pgrst, 'reload schema';

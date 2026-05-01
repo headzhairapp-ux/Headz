@@ -69,6 +69,28 @@
           <div id="childrenList"></div>
         </div>
 
+        <!-- Dependencies -->
+        <div class="glass rounded-2xl p-5 mb-4" id="depsBox">
+          <div class="field-label mb-3">Dependencies</div>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <div class="text-xs font-bold text-red-700 mb-2">⛔ Blocks</div>
+              <div id="blocksList" class="space-y-1.5 mb-2"></div>
+              <button onclick="openLinkDep('blocks')" class="text-xs text-blue-600 font-bold hover:underline">+ Add what this blocks</button>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-amber-700 mb-2">⏳ Blocked by</div>
+              <div id="blockedByList" class="space-y-1.5 mb-2"></div>
+              <button onclick="openLinkDep('blocked-by')" class="text-xs text-blue-600 font-bold hover:underline">+ Add what blocks this</button>
+            </div>
+          </div>
+          <div id="relatesBox" class="mt-3 pt-3 border-t border-slate-100 hidden">
+            <div class="text-xs font-bold text-slate-700 mb-2">Related</div>
+            <div id="relatesList" class="space-y-1.5"></div>
+          </div>
+          <div id="depWarning" class="mt-3 hidden p-2 rounded bg-red-50 border border-red-200 text-xs text-red-700"></div>
+        </div>
+
         <!-- Git refs -->
         <div class="glass rounded-2xl p-5 mb-4">
           <div class="field-label mb-2">Git references</div>
@@ -147,7 +169,7 @@
   <script src="auth-guard.js"></script>
   <script src="bni-sidebar.js"></script>
   <script>
-  let _id = null, _item = null, _devs = [], _sprints = [], _projectItems = [];
+  let _id = null, _item = null, _devs = [], _sprints = [], _projectItems = [], _deps = [];
   const TYPE_CLASS = { Story:'story', Task:'task', Bug:'bug', Epic:'epic' };
   const STATE_BG = { 'To Do':'#f1f5f9', 'In Progress':'#dbeafe', 'Review':'#fef3c7', 'Done':'#dcfce7' };
   const STATE_FG = { 'To Do':'#475569', 'In Progress':'#1e40af', 'Review':'#92400e', 'Done':'#15803d' };
@@ -164,23 +186,26 @@
     await window.loadDevelopers?.();
     _devs = window.BNI_DEVS || [];
 
-    const [{data: item}, {data: items}, {data: sprints}, {data: comments}, {data: history}] = await Promise.all([
+    const [{data: item}, {data: items}, {data: sprints}, {data: comments}, {data: history}, {data: deps}] = await Promise.all([
       window.sb.from('dev_work_items').select('*').eq('id', _id).maybeSingle(),
       window.sb.from('dev_work_items').select('id,title,type,state,project_id,parent_id'),
       window.sb.from('dev_sprints').select('*').order('start_date', { ascending: false }),
       window.sb.from('dev_comments').select('*').eq('item_id', _id).order('created_at'),
       window.sb.from('dev_history').select('*').eq('item_id', _id).order('changed_at', { ascending: false }).limit(40),
+      window.sb.from('dev_dependencies').select('*').or(`from_id.eq.${_id},to_id.eq.${_id}`),
     ]);
     if (!item) { document.getElementById('loading').textContent = 'Work item not found.'; return; }
     _item = item;
     _projectItems = (items || []).filter(i => i.project_id === _item.project_id);
     _sprints      = (sprints || []).filter(s => s.project_id === _item.project_id);
 
+    _deps = deps || [];
     populateUI();
     renderChildren(items || []);
     renderComments(comments || []);
     renderHistory(history || []);
     renderGitRefs();
+    renderDependencies();
 
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('content').classList.remove('hidden');
@@ -272,6 +297,83 @@
       : '<p class="text-slate-400 text-xs italic">No git references linked.</p>';
   }
 
+  function depRowHTML(it) {
+    return `<div class="flex items-center gap-2 px-2 py-1.5 border border-slate-200 rounded text-sm bg-slate-50">
+      <span class="font-mono text-[10px] text-slate-500">${escapeHtml(it.id)}</span>
+      <span class="state-pill" style="background:${STATE_BG[it.state]||'#f1f5f9'};color:${STATE_FG[it.state]||'#475569'};font-size:9px;padding:1px 6px">${escapeHtml(it.state)}</span>
+      <a href="dev-item.html?id=${encodeURIComponent(it.id)}" class="flex-1 truncate font-semibold text-slate-800 hover:text-blue-700 text-xs">${escapeHtml(it.title)}</a>
+      <button onclick="removeDep('${escapeHtml(it._fromId)}','${escapeHtml(it._toId)}','${escapeHtml(it._type)}')" class="text-slate-400 hover:text-red-600 text-xs">×</button>
+    </div>`;
+  }
+
+  function renderDependencies() {
+    // Items this one BLOCKS  -> deps where from_id=_id and type=blocks
+    // Items BLOCKED BY this  -> deps where to_id=_id and type=blocks
+    const blocks    = _deps.filter(d => d.from_id === _id && d.type === 'blocks');
+    const blockedBy = _deps.filter(d => d.to_id   === _id && d.type === 'blocks');
+    const relates   = _deps.filter(d => d.type === 'relates-to' || d.type === 'duplicates');
+
+    const lookup = id => _projectItems.find(i => i.id === id);
+    const decorate = (rows, getId, fromId, toId, type) => rows.map(d => {
+      const it = lookup(getId(d));
+      return it ? Object.assign({}, it, { _fromId: fromId(d), _toId: toId(d), _type: type(d) }) : null;
+    }).filter(Boolean);
+
+    const blocksRows    = decorate(blocks,    d=>d.to_id,   d=>d.from_id, d=>d.to_id,   d=>d.type);
+    const blockedByRows = decorate(blockedBy, d=>d.from_id, d=>d.from_id, d=>d.to_id,   d=>d.type);
+    const relatesRows   = decorate(relates,   d=>(d.from_id===_id?d.to_id:d.from_id), d=>d.from_id, d=>d.to_id, d=>d.type);
+
+    document.getElementById('blocksList').innerHTML = blocksRows.length
+      ? blocksRows.map(depRowHTML).join('')
+      : '<p class="text-slate-400 text-xs italic">Nothing blocked.</p>';
+    document.getElementById('blockedByList').innerHTML = blockedByRows.length
+      ? blockedByRows.map(depRowHTML).join('')
+      : '<p class="text-slate-400 text-xs italic">Not blocked.</p>';
+    if (relatesRows.length) {
+      document.getElementById('relatesBox').classList.remove('hidden');
+      document.getElementById('relatesList').innerHTML = relatesRows.map(depRowHTML).join('');
+    }
+
+    // Show a warning if this item is blocked by anything not yet Done.
+    const openBlockers = blockedByRows.filter(it => it.state !== 'Done');
+    const warn = document.getElementById('depWarning');
+    if (openBlockers.length) {
+      warn.classList.remove('hidden');
+      warn.innerHTML = `<strong>⛔ This item is blocked by ${openBlockers.length} open item${openBlockers.length>1?'s':''}.</strong> Saving with state="Done" will be rejected until those are resolved.`;
+    } else {
+      warn.classList.add('hidden');
+    }
+  }
+
+  async function openLinkDep(direction) {
+    // direction = 'blocks' (this item blocks X) or 'blocked-by' (X blocks this item)
+    const candidates = _projectItems.filter(i => i.id !== _id);
+    if (!candidates.length) { alert('No other items in this project.'); return; }
+    const opts = candidates.map(i => `${i.id} · [${i.state}] ${i.title}`).join('\n');
+    const pick = prompt(`Paste the ID of the item:\n\n${opts}`);
+    if (!pick) return;
+    const id = pick.trim().split(/\s/)[0];
+    const found = candidates.find(i => i.id === id);
+    if (!found) { alert('Not found.'); return; }
+    const from_id = direction === 'blocks' ? _id   : found.id;
+    const to_id   = direction === 'blocks' ? found.id : _id;
+    const { error } = await window.sb.from('dev_dependencies').insert({ from_id, to_id, type: 'blocks' });
+    if (error) { alert('Failed: ' + error.message); return; }
+    logHistory(direction === 'blocks' ? 'blocks' : 'blocked-by', '', found.id);
+    const { data } = await window.sb.from('dev_dependencies').select('*').or(`from_id.eq.${_id},to_id.eq.${_id}`);
+    _deps = data || [];
+    renderDependencies();
+  }
+
+  async function removeDep(fromId, toId, type) {
+    if (!confirm('Remove this link?')) return;
+    await window.sb.from('dev_dependencies').delete()
+      .eq('from_id', fromId).eq('to_id', toId).eq('type', type);
+    const { data } = await window.sb.from('dev_dependencies').select('*').or(`from_id.eq.${_id},to_id.eq.${_id}`);
+    _deps = data || [];
+    renderDependencies();
+  }
+
   async function addGitRef() {
     const url = document.getElementById('gitInput').value.trim();
     if (!url) return;
@@ -324,6 +426,16 @@
     const changes = fields.filter(f => String(_item[f] ?? '') !== String(newPayload[f] ?? ''));
     if (!changes.length && JSON.stringify(_item.tags||[]) === JSON.stringify(tags)) {
       alert('No changes to save.'); return;
+    }
+    // Block-guard: if moving to Done while still blocked, reject.
+    if (newPayload.state === 'Done' && _item.state !== 'Done') {
+      const openBlockers = _deps.filter(d => d.to_id === _id && d.type === 'blocks')
+        .map(d => _projectItems.find(i => i.id === d.from_id))
+        .filter(it => it && it.state !== 'Done');
+      if (openBlockers.length) {
+        alert('Cannot mark Done — still blocked by:\n' + openBlockers.map(b => `  • ${b.id} ${b.title}`).join('\n'));
+        return;
+      }
     }
     const btn = document.getElementById('saveBtn');
     btn.disabled = true; btn.textContent = 'Saving…';

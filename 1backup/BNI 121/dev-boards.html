@@ -124,6 +124,7 @@
   let _projects = [];
   let _items    = [];
   let _devs     = [];
+  let _deps     = [];
   let _projectId = null;
 
   function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
@@ -131,12 +132,14 @@
   function initials(name) { return (name||'?').split(/\s+/).map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
 
   async function loadAll() {
-    const [{data: ps}, {data: items}] = await Promise.all([
+    const [{data: ps}, {data: items}, {data: deps}] = await Promise.all([
       window.sb.from('dev_projects').select('*').eq('hidden', false).order('name'),
       window.sb.from('dev_work_items').select('*').order('created_at', { ascending: false }),
+      window.sb.from('dev_dependencies').select('*').eq('type', 'blocks'),
     ]);
     _projects = ps || [];
     _items    = items || [];
+    _deps     = deps || [];
     _devs     = (window.BNI_DEVS || []);
     _projectId = localStorage.getItem('dev_project') || (_projects[0] && _projects[0].id) || null;
 
@@ -183,10 +186,14 @@
     const cls = TYPE_CLASS[it.type] || 'task';
     const an = devName(it.assignee_id);
     const tags = (it.tags || []).slice(0, 3).map(t => `<span class="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">${escapeHtml(t)}</span>`).join(' ');
+    const openBlockerCount = _deps.filter(d => d.to_id === it.id)
+      .map(d => _items.find(x => x.id === d.from_id))
+      .filter(b => b && b.state !== 'Done').length;
     return `<div class="wi-card ${cls}" draggable="true" data-id="${it.id}" ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" onclick="if(event.shiftKey){openItem('${it.id}')}else{location.href='dev-item.html?id=${encodeURIComponent(it.id)}'}" title="Click → full detail · Shift+click → quick edit">
       <div class="flex items-center justify-between mb-1.5">
         <span class="type-icon type-${cls}">${escapeHtml(it.type)}</span>
         <div class="flex items-center gap-1.5">
+          ${openBlockerCount ? `<span title="Blocked by ${openBlockerCount} open item(s)" style="font-size:11px">⛔</span>` : ''}
           <span class="pri-dot pri-${it.priority}" title="${it.priority}"></span>
           ${it.points != null ? `<span class="pts">${it.points}</span>` : ''}
         </div>
@@ -238,6 +245,15 @@
     const newState = e.currentTarget.dataset.state;
     const item = _items.find(i => i.id === _draggingId);
     if (!item || item.state === newState) return;
+    if (newState === 'Done') {
+      const openBlockers = _deps.filter(d => d.to_id === item.id)
+        .map(d => _items.find(x => x.id === d.from_id))
+        .filter(b => b && b.state !== 'Done');
+      if (openBlockers.length) {
+        alert('⛔ Cannot move to Done — still blocked by:\n' + openBlockers.map(b => `  • ${b.id} ${b.title}`).join('\n'));
+        return;
+      }
+    }
     const oldState = item.state;
     item.state = newState;
     render();

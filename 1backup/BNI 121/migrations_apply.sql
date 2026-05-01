@@ -164,5 +164,19 @@ alter table dev_sprints enable row level security;
 drop policy if exists "dev_sprints_anon_all" on dev_sprints;
 create policy "dev_sprints_anon_all" on dev_sprints for all to anon using (true) with check (true);
 
+-- ── Stage 3: dependencies + saved queries ─────────────────────────────────
+create table if not exists dev_dependencies (
+  from_id  text not null references dev_work_items(id) on delete cascade,
+  to_id    text not null references dev_work_items(id) on delete cascade,
+  type     text not null default 'blocks',   -- blocks | relates-to | duplicates
+  created_at timestamptz not null default now(),
+  primary key (from_id, to_id, type)
+);
+create index if not exists dev_deps_to_idx on dev_dependencies (to_id);
+
+alter table dev_dependencies enable row level security;
+drop policy if exists "dev_deps_anon_all" on dev_dependencies;
+create policy "dev_deps_anon_all" on dev_dependencies for all to anon using (true) with check (true);
+
 -- Tell PostgREST to reload its schema cache so the new columns are visible immediately.
 notify pgrst, 'reload schema';

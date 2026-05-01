@@ -38,6 +38,7 @@
         </select>
         <input id="searchInp" oninput="render()" type="text" placeholder="Search title / tag…" class="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white w-56" />
         <a href="dev-boards.html" class="border border-slate-200 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50">Board view</a>
+        <button onclick="openImport()" class="border border-slate-200 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50" title="Import work items from Azure DevOps CSV export">Import CSV</button>
       </div>
     </header>
 
@@ -127,7 +128,7 @@
     renderStats(list);
     const rows = document.getElementById('rows');
     if (!list.length) { rows.innerHTML = `<tr><td colspan="9" class="text-center py-10 text-slate-400">No work items match these filters.</td></tr>`; return; }
-    rows.innerHTML = list.map(it => `<tr onclick="location.href='dev-boards.html#${it.id}'" style="cursor:pointer">
+    rows.innerHTML = list.map(it => `<tr onclick="location.href='dev-item.html?id=${encodeURIComponent(it.id)}'" style="cursor:pointer">
       <td class="font-mono text-xs text-slate-500">${escapeHtml(it.id)}</td>
       <td><span class="text-xs font-bold ${it.type==='Bug'?'text-red-600':it.type==='Story'?'text-emerald-600':it.type==='Epic'?'text-purple-600':'text-blue-600'}">${escapeHtml(it.type)}</span></td>
       <td class="font-semibold text-slate-800">${escapeHtml(it.title)}</td>
@@ -140,11 +141,108 @@
     </tr>`).join('');
   }
 
+  // ── CSV import (Azure DevOps "Export to CSV" output) ──────────────────────
+  function openImport() {
+    document.getElementById('importModal').classList.remove('hidden');
+    document.getElementById('importStatus').textContent = '';
+    document.getElementById('importTextarea').value = '';
+  }
+  function closeImport() { document.getElementById('importModal').classList.add('hidden'); }
+
+  function parseCSV(text) {
+    const rows = [];
+    let i = 0, row = [], cell = '', inQ = false;
+    while (i < text.length) {
+      const c = text[i];
+      if (inQ) {
+        if (c === '"' && text[i+1] === '"') { cell += '"'; i += 2; continue; }
+        if (c === '"') { inQ = false; i++; continue; }
+        cell += c; i++; continue;
+      }
+      if (c === '"') { inQ = true; i++; continue; }
+      if (c === ',') { row.push(cell); cell = ''; i++; continue; }
+      if (c === '\r') { i++; continue; }
+      if (c === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; i++; continue; }
+      cell += c; i++;
+    }
+    if (cell.length || row.length) { row.push(cell); rows.push(row); }
+    return rows;
+  }
+
+  async function runImport() {
+    const text = document.getElementById('importTextarea').value.trim();
+    if (!text) return;
+    const rows = parseCSV(text);
+    if (rows.length < 2) { document.getElementById('importStatus').textContent = 'No data found.'; return; }
+    const header = rows[0].map(h => h.trim().toLowerCase());
+    const idx = name => header.indexOf(name.toLowerCase());
+    const titleIdx    = idx('Title');
+    const typeIdx     = idx('Work Item Type') >= 0 ? idx('Work Item Type') : idx('Type');
+    const stateIdx    = idx('State');
+    const priorityIdx = idx('Priority');
+    const pointsIdx   = idx('Story Points') >= 0 ? idx('Story Points') : idx('Points');
+    const tagsIdx     = idx('Tags');
+    const descIdx     = idx('Description');
+    const assignIdx   = idx('Assigned To');
+    if (titleIdx < 0) { document.getElementById('importStatus').textContent = 'Could not find "Title" column.'; return; }
+
+    const stateMap = { 'new':'To Do', 'to do':'To Do', 'active':'In Progress', 'committed':'In Progress', 'in progress':'In Progress', 'resolved':'Review', 'review':'Review', 'closed':'Done', 'done':'Done', 'removed':'Done' };
+    const typeMap  = { 'user story':'Story', 'product backlog item':'Story', 'task':'Task', 'bug':'Bug', 'epic':'Epic', 'feature':'Epic' };
+    const priMap   = { '1':'Critical', '2':'High', '3':'Medium', '4':'Low', 'critical':'Critical', 'high':'High', 'medium':'Medium', 'low':'Low' };
+
+    const proj = _projects.find(p => p.id === _projectId);
+    const prefix = (proj?.id || 'p').replace(/^p_/, '').toUpperCase().slice(0, 4);
+    const taken = new Set(_items.map(i => i.id));
+    let nextN = (_items.filter(i => i.id.startsWith(prefix + '-')).map(i => parseInt(i.id.split('-')[1], 10)).filter(n => !isNaN(n)).reduce((m,n)=>Math.max(m,n), 0) || 0) + 1;
+    const mkId = () => { let id; do { id = `${prefix}-${nextN++}`; } while (taken.has(id)); taken.add(id); return id; };
+
+    const payload = [];
+    for (let r = 1; r < rows.length; r++) {
+      const row = rows[r];
+      if (!row[titleIdx]) continue;
+      const tagsStr = tagsIdx >= 0 ? (row[tagsIdx] || '') : '';
+      payload.push({
+        id:          mkId(),
+        project_id:  _projectId,
+        title:       row[titleIdx].trim(),
+        type:        typeMap[(row[typeIdx]||'').toLowerCase().trim()] || 'Task',
+        state:       stateMap[(row[stateIdx]||'').toLowerCase().trim()] || 'To Do',
+        priority:    priMap[(row[priorityIdx]||'').toString().toLowerCase().trim()] || 'Medium',
+        points:      pointsIdx >= 0 && row[pointsIdx] && !isNaN(Number(row[pointsIdx])) ? Number(row[pointsIdx]) : null,
+        description: descIdx >= 0 ? (row[descIdx] || '').replace(/<[^>]+>/g, ' ').slice(0, 2000) : '',
+        tags:        tagsStr ? tagsStr.split(/[;,]/).map(t => t.trim()).filter(Boolean) : [],
+      });
+    }
+    if (!payload.length) { document.getElementById('importStatus').textContent = 'No rows imported.'; return; }
+    document.getElementById('importStatus').textContent = `Importing ${payload.length} items…`;
+    const { error } = await window.sb.from('dev_work_items').insert(payload);
+    if (error) { document.getElementById('importStatus').textContent = 'Failed: ' + error.message; return; }
+    document.getElementById('importStatus').innerHTML = `<span class="text-green-600 font-bold">✓ Imported ${payload.length} items</span>`;
+    setTimeout(() => { closeImport(); loadAll(); }, 1200);
+  }
+
   async function init() {
     await window.loadDevelopers?.();
     await loadAll();
   }
   init();
   </script>
+
+  <!-- Import CSV modal -->
+  <div id="importModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-bold">Import Azure DevOps CSV</h3>
+        <button onclick="closeImport()" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+      </div>
+      <p class="text-sm text-slate-600 mb-3">In Azure DevOps: <strong>Boards → Queries → Open in Excel / Export to CSV</strong>. Then paste the CSV text below. Recognized columns: <code class="text-xs bg-slate-100 px-1 rounded">Title, Work Item Type, State, Priority, Story Points, Description, Tags</code>. Items land in the currently-selected project.</p>
+      <textarea id="importTextarea" rows="12" class="w-full border rounded-lg p-3 font-mono text-xs" placeholder="Paste CSV here…"></textarea>
+      <div id="importStatus" class="text-sm text-slate-600 mt-2 min-h-[1.25rem]"></div>
+      <div class="flex gap-2 mt-3">
+        <button onclick="runImport()" class="flex-1 bg-blue-700 text-white py-2 rounded-lg font-bold hover:bg-blue-800">Import</button>
+        <button onclick="closeImport()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

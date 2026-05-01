@@ -58,7 +58,8 @@
     ]},
     { title: 'Engineering',items: [
       { href: '/bni/dev-boards.html',     icon: 'kanban-square',  label: 'Boards',          desc: 'Kanban board of dev work items — drag to change state, click to edit' },
-      { href: '/bni/dev-backlog.html',    icon: 'list-todo',      label: 'Backlog',         desc: 'Prioritized list view of all work items with filters' },
+      { href: '/bni/dev-backlog.html',    icon: 'list-todo',      label: 'Backlog',         desc: 'Prioritized list view of all work items with filters + CSV import' },
+      { href: '/bni/dev-sprints.html',    icon: 'gauge',          label: 'Sprints',         desc: 'Sprint planning, capacity per developer, burndown chart' },
       { href: '/bni/dev-reports.html',    icon: 'bar-chart-3',    label: 'Reports',         desc: 'Per-developer load, velocity, type and priority breakdowns' },
     ]},
     { title: 'Tools',      items: [

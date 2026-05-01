@@ -183,7 +183,7 @@
     const cls = TYPE_CLASS[it.type] || 'task';
     const an = devName(it.assignee_id);
     const tags = (it.tags || []).slice(0, 3).map(t => `<span class="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">${escapeHtml(t)}</span>`).join(' ');
-    return `<div class="wi-card ${cls}" draggable="true" data-id="${it.id}" ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" onclick="openItem('${it.id}')">
+    return `<div class="wi-card ${cls}" draggable="true" data-id="${it.id}" ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" onclick="if(event.shiftKey){openItem('${it.id}')}else{location.href='dev-item.html?id=${encodeURIComponent(it.id)}'}" title="Click → full detail · Shift+click → quick edit">
       <div class="flex items-center justify-between mb-1.5">
         <span class="type-icon type-${cls}">${escapeHtml(it.type)}</span>
         <div class="flex items-center gap-1.5">

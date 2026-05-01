@@ -143,5 +143,26 @@ insert into dev_projects (id, name, color) values
   ('p_general',  'General Tasks',   '#0ea5e9')
 on conflict (id) do nothing;
 
+-- ── Stage 2: sprints + git refs on work items ─────────────────────────────
+create table if not exists dev_sprints (
+  id          text primary key,
+  project_id  text references dev_projects(id) on delete cascade,
+  name        text not null,
+  goal        text not null default '',
+  start_date  date not null,
+  end_date    date not null,
+  state       text not null default 'planned',     -- planned | active | completed
+  created_at  timestamptz not null default now()
+);
+create index if not exists dev_sprints_proj_idx on dev_sprints (project_id, start_date);
+
+alter table dev_work_items add column if not exists sprint_id text references dev_sprints(id) on delete set null;
+alter table dev_work_items add column if not exists git_refs  text[] not null default '{}';
+create index if not exists dev_work_items_sprint_idx on dev_work_items (sprint_id);
+
+alter table dev_sprints enable row level security;
+drop policy if exists "dev_sprints_anon_all" on dev_sprints;
+create policy "dev_sprints_anon_all" on dev_sprints for all to anon using (true) with check (true);
+
 -- Tell PostgREST to reload its schema cache so the new columns are visible immediately.
 notify pgrst, 'reload schema';

@@ -61,6 +61,10 @@
       { href: '/bni/dev-backlog.html',    icon: 'list-todo',      label: 'Backlog',         desc: 'Prioritized list view of all work items with filters + CSV import' },
       { href: '/bni/dev-sprints.html',    icon: 'gauge',          label: 'Sprints',         desc: 'Sprint planning, capacity per developer, burndown chart' },
       { href: '/bni/dev-reports.html',    icon: 'bar-chart-3',    label: 'Reports',         desc: 'Per-developer load, velocity, type and priority breakdowns' },
+      { href: '/bni/dev-tree.html',       icon: 'git-branch',     label: 'Hierarchy',       desc: 'Tree view of every work item by parent — Epic > Feature > Story > Task > Sub-task. Click an item to open it.' },
+      { href: '/bni/dev-calendar.html',   icon: 'calendar-days',  label: 'Calendar',        desc: 'Sprint bands and per-developer leave dots on a month grid — see resource availability at a glance' },
+      { href: '/bni/dev-retro.html',      icon: 'rotate-ccw',     label: 'Retrospective',   desc: 'Four L\'s retro per sprint: Liked, Learned, Lacked, Longed for. Captures team feedback at sprint end.' },
+      { href: '/bni/dev-glossary.html',   icon: 'book-open',      label: 'Glossary',        desc: 'Plain-English definitions for the Scrum / Agile vocabulary — Epic, Story, Task, PBI, sprint, velocity, ceremonies, metrics' },
       { href: '/bni/dev-toolkit.html',    icon: 'wrench',         label: 'Dev Toolkit',     desc: 'Confidential — Day-1 reading for new inductees: Claude Code token-saving toolkit (Graphify, scraper MCP, NotebookLM, Awesome Design, ccr) plus the three-brain provider switch' },
     ]},
     { title: 'Tools',      items: [

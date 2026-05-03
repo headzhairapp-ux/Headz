@@ -61,6 +61,7 @@
       { href: '/bni/dev-backlog.html',    icon: 'list-todo',      label: 'Backlog',         desc: 'Prioritized list view of all work items with filters + CSV import' },
       { href: '/bni/dev-sprints.html',    icon: 'gauge',          label: 'Sprints',         desc: 'Sprint planning, capacity per developer, burndown chart' },
       { href: '/bni/dev-reports.html',    icon: 'bar-chart-3',    label: 'Reports',         desc: 'Per-developer load, velocity, type and priority breakdowns' },
+      { href: '/bni/dev-toolkit.html',    icon: 'wrench',         label: 'Dev Toolkit',     desc: 'Confidential — Day-1 reading for new inductees: Claude Code token-saving toolkit (Graphify, scraper MCP, NotebookLM, Awesome Design, ccr) plus the three-brain provider switch' },
     ]},
     { title: 'Tools',      items: [
       { href: '/bni/my-card.html',        icon: 'id-card',        label: 'My BNI Card',     desc: 'Your sharable BNI 121 introduction card — copy text, share on WhatsApp, download as PDF' },

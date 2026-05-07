@@ -142,8 +142,6 @@ export async function createSmooth360Video(
           return;
         }
 
-        console.log(`Creating smooth 360° video with ${loadedImages.length} images, ${duration} seconds duration`);
-
         // Set canvas size
         const firstImg = loadedImages[0];
         canvas.width = firstImg.width;
@@ -166,7 +164,6 @@ export async function createSmooth360Video(
         recorder.onstop = () => {
           const blob = new Blob(chunks, { type: 'video/webm' });
           const videoURL = URL.createObjectURL(blob);
-          console.log('360° video created successfully');
           resolve(videoURL);
         };
 
@@ -230,7 +227,6 @@ export async function createSmooth360Video(
         };
 
         // Start animation
-        console.log('Starting 360° rotation animation...');
         animate();
       })
       .catch(reject);

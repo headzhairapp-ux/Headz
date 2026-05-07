@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "optimize:images": "node scripts/optimize-landing-images.mjs",
+    "generate:og": "node scripts/generate-og-image.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -17,6 +19,8 @@
     "@react-oauth/google": "^0.13.4",
     "@supabase/supabase-js": "^2.44.4",
     "@types/react-router-dom": "^5.3.3",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.8.2",
@@ -30,6 +34,7 @@
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.1.12",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"

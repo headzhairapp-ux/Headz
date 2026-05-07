@@ -69,7 +69,6 @@ const LandingPage: React.FC = () => {
         const { mode } = JSON.parse(stored);
         setAuthMode(mode || 'signup');
       }
-      console.log('[LandingPage] Opening auth modal from OAuth redirect');
       setShowAuthModal(true);
     }
   }, [oauthAccessToken, user]);
@@ -79,28 +78,28 @@ const LandingPage: React.FC = () => {
     await signOut();
   };
 
-  // Before/After image pairs - user will add their images to /public/landing/
+  // Before/After image pairs - WebP with JPG fallback for older browsers.
   const transformations: Array<{
-    before: string;
-    after: string;
+    before: { webp: string; jpg: string };
+    after: { webp: string; jpg: string };
     beforeAlt: string;
     afterAlt: string;
   }> = [
     {
-      before: '/landing/Before1.JPG',
-      after: '/landing/After1.JPG',
+      before: { webp: '/landing/Before1.webp', jpg: '/landing/Before1.opt.jpg' },
+      after: { webp: '/landing/After1.webp', jpg: '/landing/After1.opt.jpg' },
       beforeAlt: 'Customer photo before HEADZ hair fixing — thinning hair on the crown',
       afterAlt: 'Same customer after HEADZ hair fixing — full natural-looking hairline',
     },
     {
-      before: '/landing/Before2.jpg',
-      after: '/landing/After2.JPG',
+      before: { webp: '/landing/Before2.webp', jpg: '/landing/Before2.opt.jpg' },
+      after: { webp: '/landing/After2.webp', jpg: '/landing/After2.opt.jpg' },
       beforeAlt: 'Customer photo before HEADZ hair fixing — receding front hairline',
       afterAlt: 'Same customer after HEADZ hair fixing — restored front hairline with dense styled hair',
     },
     {
-      before: '/landing/Before3.JPG',
-      after: '/landing/After3.JPG',
+      before: { webp: '/landing/Before3.webp', jpg: '/landing/Before3.opt.jpg' },
+      after: { webp: '/landing/After3.webp', jpg: '/landing/After3.opt.jpg' },
       beforeAlt: 'Customer photo before HEADZ hair fixing — bald top with patchy sides',
       afterAlt: 'Same customer after HEADZ hair fixing — full styled hairstyle covering the crown',
     },
@@ -216,32 +215,37 @@ const LandingPage: React.FC = () => {
                   onClick={() => setActiveIndex(activeIndex === index ? null : index)}
                 >
                   {/* Before Image */}
-                  <img
-                    src={item.before}
-                    alt={item.beforeAlt}
-                    loading="lazy"
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-0 ${activeIndex === index ? 'opacity-0' : ''}`}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      target.parentElement?.classList.add('flex', 'items-center', 'justify-center');
-                      const placeholder = document.createElement('div');
-                      placeholder.className = 'text-gray-400 text-center p-4';
-                      placeholder.innerHTML = `<div class="text-4xl mb-2">+</div><div class="text-sm">Add before-${index + 1}.jpg</div>`;
-                      target.parentElement?.appendChild(placeholder);
-                    }}
-                  />
+                  <picture>
+                    <source srcSet={item.before.webp} type="image/webp" />
+                    <img
+                      src={item.before.jpg}
+                      alt={item.beforeAlt}
+                      loading="lazy"
+                      width={1200}
+                      height={1500}
+                      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-0 ${activeIndex === index ? 'opacity-0' : ''}`}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </picture>
                   {/* After Image */}
-                  <img
-                    src={item.after}
-                    alt={item.afterAlt}
-                    loading="lazy"
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-100 ${activeIndex === index ? 'opacity-100' : 'opacity-0'}`}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
+                  <picture>
+                    <source srcSet={item.after.webp} type="image/webp" />
+                    <img
+                      src={item.after.jpg}
+                      alt={item.afterAlt}
+                      loading="lazy"
+                      width={1200}
+                      height={1500}
+                      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-100 ${activeIndex === index ? 'opacity-100' : 'opacity-0'}`}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </picture>
                   {/* Labels */}
                   <div className="absolute bottom-4 left-4 right-4 flex justify-between">
                     <span className={`px-3 py-1 bg-white/80 text-gray-900 rounded-full text-xs font-medium transition-opacity duration-500 group-hover:opacity-0 ${activeIndex === index ? 'opacity-0' : ''}`}>

@@ -13,6 +13,7 @@ import { Hairstyle, HistoryItem } from '../types';
 import { editImageWithGemini, preloadImageData } from '../services/geminiService';
 import { uploadImage, saveGeneration, dataURLtoFile, trackDownload, trackShare, trackGeneration, trackCustomPrompt } from '../services/supabaseService';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { addStylishWatermark } from '../utils/watermark';
 import { useDocumentMeta } from '../utils/useDocumentMeta';
 
@@ -45,6 +46,7 @@ const HairstyleApp: React.FC = () => {
     setPendingAction,
     completeProfile,
   } = useAuth();
+  const { showToast } = useToast();
   const [userImageFile, setUserImageFile] = useState<File | null>(null);
   const [userImageData, setUserImageData] = useState<{ data: string; mimeType: string } | null>(null);
   const [currentStyledImage, setCurrentStyledImage] = useState<string | null>(null);
@@ -458,7 +460,8 @@ REQUIREMENTS:
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, [currentStyledImage, cleanStyledImage, user]);
+    showToast('Image saved to your downloads', 'success');
+  }, [currentStyledImage, cleanStyledImage, user, showToast]);
 
   const handleShare = useCallback(async () => {
     if (!currentStyledImage || !navigator.share) return;
@@ -488,16 +491,17 @@ REQUIREMENTS:
         if (user?.id) {
           trackShare(user.id).catch(console.error);
         }
+        showToast('Shared successfully', 'success');
       } else {
-        setError("Your browser doesn't support sharing files.");
+        showToast("Your browser doesn't support sharing files", 'error');
       }
     } catch (error) {
       console.error('Error sharing:', error);
       if ((error as DOMException).name !== 'AbortError') {
-        setError("Couldn't share the image. Please try again or download it instead.");
+        showToast("Couldn't share the image. Try downloading instead", 'error');
       }
     }
-  }, [currentStyledImage, cleanStyledImage, user]);
+  }, [currentStyledImage, cleanStyledImage, user, showToast]);
 
   // Handle auth success - execute the pending action with clean image
   const handleAuthSuccess = useCallback((authenticatedUser?: any) => {
@@ -516,6 +520,7 @@ REQUIREMENTS:
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        showToast('Image saved to your downloads', 'success');
       } else if (authModalReason === 'share' && navigator.share) {
         if (userId) {
           trackShare(userId).catch(console.error);
@@ -526,12 +531,12 @@ REQUIREMENTS:
             title: 'My New Look!',
             text: 'Check out my new hairstyle from HEADZ HAIR FIXING APP!',
             files: [file],
-          }).catch(console.error);
+          }).then(() => showToast('Shared successfully', 'success')).catch(console.error);
         }
       }
     }
     sessionStorage.removeItem('headz_styled_image');
-  }, [cleanStyledImage, authModalReason, user]);
+  }, [cleanStyledImage, authModalReason, user, showToast]);
 
   const handleStartOver = useCallback(() => {
     setUserImageFile(null);

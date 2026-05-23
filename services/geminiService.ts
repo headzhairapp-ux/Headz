@@ -1,4 +1,43 @@
-import { GoogleGenAI, Modality, GenerateContentResponse } from "@google/genai";
+// The Gemini API key now lives only on the server. The browser sends the
+// prepared image parts to /api/gemini, which performs the actual call.
+
+interface GeminiPart {
+  inlineData?: { data?: string; mimeType?: string };
+  text?: string;
+}
+
+interface GeminiContents {
+  parts: GeminiPart[];
+}
+
+interface GeminiProxyResponse {
+  candidates?: Array<{ content: { parts: GeminiPart[] } }>;
+  promptFeedback?: { blockReason?: string } | null;
+}
+
+// Calls the server-side proxy that holds the Gemini API key.
+const callGeminiProxy = async (
+  contents: GeminiContents
+): Promise<GeminiProxyResponse> => {
+  const res = await fetch('/api/gemini', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents }),
+  });
+
+  if (!res.ok) {
+    let message = `Image generation failed (${res.status}). Please try again.`;
+    try {
+      const data = await res.json();
+      if (data?.error) message = data.error;
+    } catch {
+      // response had no JSON body; keep the default message
+    }
+    throw new Error(message);
+  }
+
+  return res.json();
+};
 
 // Utility function to convert a file to a base64 string
 const fileToGenerativePart = async (file: File) => {
@@ -84,33 +123,21 @@ export const editImageWithGemini = async (
   prompt: string,
   preloadedData?: { data: string; mimeType: string }
 ): Promise<string> => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
-    if (!apiKey) {
-        throw new Error("GEMINI_API_KEY environment variable is not set. Please create a .env file with your Gemini API key.");
-    }
-    const ai = new GoogleGenAI({ apiKey });
-
   const imagePart = preloadedData
     ? { inlineData: { data: preloadedData.data, mimeType: preloadedData.mimeType } }
     : await fileToGenerativePart(imageFile);
 
-  let response: GenerateContentResponse;
+  let response: GeminiProxyResponse | undefined;
   let retryCount = 0;
   const maxRetries = 3;
 
   while (retryCount < maxRetries) {
     try {
-      response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            imagePart,
-            { text: prompt },
-          ],
-        },
-        config: {
-          responseModalities: [Modality.IMAGE, Modality.TEXT],
-        },
+      response = await callGeminiProxy({
+        parts: [
+          imagePart,
+          { text: prompt },
+        ],
       });
       break;
     } catch (error) {
@@ -130,6 +157,9 @@ export const editImageWithGemini = async (
   }
 
   // Check for valid response and candidates
+  if (!response) {
+      throw new Error("Failed to generate image after multiple attempts. Please try again.");
+  }
   if (!response.candidates || response.candidates.length === 0) {
       // This can happen if the prompt is blocked for safety reasons.
       const blockReason = response.promptFeedback?.blockReason;
@@ -159,12 +189,6 @@ export const editImageWithReference = async (
   referenceImageUrl: string,
   styleName: string
 ): Promise<string> => {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY environment variable is not set.");
-  }
-  const ai = new GoogleGenAI({ apiKey });
-
   const userImagePart = await fileToGenerativePart(imageFile);
   const referenceImagePart = await urlToGenerativePart(referenceImageUrl);
 
@@ -184,24 +208,18 @@ Style: ${styleName}
 
 Generate an edited version of Image 1 with the new hairstyle applied. The person must remain recognizable.`;
 
-  let response: GenerateContentResponse;
+  let response: GeminiProxyResponse | undefined;
   let retryCount = 0;
   const maxRetries = 3;
 
   while (retryCount < maxRetries) {
     try {
-      response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            userImagePart,
-            referenceImagePart,
-            { text: prompt },
-          ],
-        },
-        config: {
-          responseModalities: [Modality.IMAGE, Modality.TEXT],
-        },
+      response = await callGeminiProxy({
+        parts: [
+          userImagePart,
+          referenceImagePart,
+          { text: prompt },
+        ],
       });
       break;
     } catch (error) {
@@ -219,6 +237,9 @@ Generate an edited version of Image 1 with the new hairstyle applied. The person
     }
   }
 
+  if (!response) {
+    throw new Error("Failed to generate image after multiple attempts. Please try again.");
+  }
   if (!response.candidates || response.candidates.length === 0) {
     const blockReason = response.promptFeedback?.blockReason;
     if (blockReason) {

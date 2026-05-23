@@ -1,22 +1,22 @@
-import { GoogleGenAI, Modality } from '@google/genai';
-
 /**
  * Shared Gemini image-editing call.
  *
  * Used by both the production Vercel function (`api/gemini.ts`) and the local
- * Vite dev middleware (`vite.config.ts`) so the SDK logic lives in exactly one
- * place. The API key is supplied by the caller and never reaches the browser.
+ * Vite dev middleware (`vite.config.ts`). The API key is supplied by the caller
+ * and never reaches the browser.
+ *
+ * Implemented with a direct REST `fetch` (not the @google/genai SDK) so the
+ * Vercel serverless function has no ESM-only dependency to bundle — the SDK
+ * import was crashing the function at load time (FUNCTION_INVOCATION_FAILED).
  */
 
 export const DEFAULT_MODEL = 'gemini-2.5-flash-image';
 
+const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
+
 export interface GeminiPart {
   inlineData?: { data?: string; mimeType?: string };
   text?: string;
-}
-
-export interface GeminiContents {
-  parts: GeminiPart[];
 }
 
 export interface GeminiResult {
@@ -29,17 +29,43 @@ export const runGemini = async (
   contents: unknown,
   model?: string
 ): Promise<GeminiResult> => {
-  const ai = new GoogleGenAI({ apiKey });
-  const response = await ai.models.generateContent({
-    model: model || DEFAULT_MODEL,
-    contents: contents as never,
-    config: {
-      responseModalities: [Modality.IMAGE, Modality.TEXT],
-    },
-  });
+  const targetModel = model || DEFAULT_MODEL;
+
+  // The client sends a single Content object ({ parts: [...] }); the REST API
+  // expects an array of Content objects.
+  const contentsArray = Array.isArray(contents) ? contents : [contents];
+
+  const response = await fetch(
+    `${GEMINI_ENDPOINT}/${targetModel}:generateContent`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: JSON.stringify({
+        contents: contentsArray,
+        generationConfig: {
+          responseModalities: ['IMAGE', 'TEXT'],
+        },
+      }),
+    }
+  );
+
+  const data = (await response.json()) as {
+    candidates?: GeminiResult['candidates'];
+    promptFeedback?: GeminiResult['promptFeedback'];
+    error?: { message?: string };
+  };
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error?.message || `Gemini API request failed (${response.status}).`
+    );
+  }
 
   return {
-    candidates: (response.candidates ?? []) as GeminiResult['candidates'],
-    promptFeedback: response.promptFeedback ?? null,
+    candidates: data.candidates ?? [],
+    promptFeedback: data.promptFeedback ?? null,
   };
 };

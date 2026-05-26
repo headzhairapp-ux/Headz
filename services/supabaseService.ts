@@ -8,6 +8,10 @@ const getSupabaseClient = (): SupabaseClient => {
 // Number of days a pending access request stays valid before it expires.
 export const REQUEST_TTL_DAYS = 3;
 
+// style_name values that represent a user-typed custom prompt (vs a ready-made
+// hairstyle). Used by the super-admin Custom Prompts tab.
+const CUSTOM_PROMPT_STYLE_NAMES = ['AI Generated Style', 'Custom Style'];
+
 // Utility to convert data URL to File object
 export const dataURLtoFile = (dataurl: string, filename: string): File => {
     try {
@@ -968,7 +972,9 @@ export const searchUsersWithAnalytics = async (query: string): Promise<any[]> =>
     return data || [];
 };
 
-// Get users who have custom prompts (super admin only)
+// Get APPROVED users with an accurate custom-prompt count (super admin only).
+// The denormalized users.custom_prompt_count column is unreliable (inflated),
+// so the count is derived from the real `generations` rows the user wrote.
 export const getUsersWithCustomPrompts = async (): Promise<{
     id: string;
     email: string;
@@ -977,31 +983,48 @@ export const getUsersWithCustomPrompts = async (): Promise<{
 }[]> => {
     const supabase = getSupabaseClient();
 
-    // Verify super admin status
-    let currentUser = null;
-    try {
-        const storedUser = localStorage.getItem('styleMyHair_user');
-        if (storedUser) {
-            currentUser = JSON.parse(storedUser);
-        }
-    } catch (error) {
-        console.error('Error getting user from localStorage:', error);
-    }
+    await verifyCurrentSuperAdmin();
 
-    if (!currentUser || !currentUser.is_super_admin) {
-        throw new Error('Unauthorized: Super Admin privileges required');
-    }
-
-    const { data, error } = await supabase
+    // All approved users (the list shows everyone; 0 for those without prompts).
+    const { data: users, error: usersError } = await supabase
         .from('users')
-        .select('id, email, full_name, custom_prompt_count')
-        .gt('custom_prompt_count', 0)
-        .order('custom_prompt_count', { ascending: false });
+        .select('id, email, full_name')
+        .eq('is_approved', true);
 
-    if (error) {
-        console.error('Error fetching users with custom prompts:', error);
-        throw new Error(error.message);
+    if (usersError) {
+        console.error('Error fetching approved users:', usersError);
+        throw new Error(usersError.message);
     }
+
+    // Real custom-prompt generations (both user-typed prompt kinds).
+    const { data: gens, error: gensError } = await supabase
+        .from('generations')
+        .select('user_id')
+        .in('style_name', CUSTOM_PROMPT_STYLE_NAMES)
+        .not('user_id', 'is', null);
+
+    if (gensError) {
+        console.error('Error fetching custom-prompt generations:', gensError);
+        throw new Error(gensError.message);
+    }
+
+    const countByUser = new Map<string, number>();
+    for (const g of gens || []) {
+        if (g.user_id) countByUser.set(g.user_id, (countByUser.get(g.user_id) || 0) + 1);
+    }
+
+    const data = (users || [])
+        .map((u) => ({
+            id: u.id,
+            email: u.email,
+            full_name: u.full_name,
+            custom_prompt_count: countByUser.get(u.id) ?? 0,
+        }))
+        .sort(
+            (a, b) =>
+                b.custom_prompt_count - a.custom_prompt_count ||
+                (a.email || '').localeCompare(b.email || '')
+        );
 
     return data || [];
 };
@@ -1016,26 +1039,13 @@ export const getUserCustomPrompts = async (userId: string): Promise<{
 }[]> => {
     const supabase = getSupabaseClient();
 
-    // Verify super admin status
-    let currentUser = null;
-    try {
-        const storedUser = localStorage.getItem('styleMyHair_user');
-        if (storedUser) {
-            currentUser = JSON.parse(storedUser);
-        }
-    } catch (error) {
-        console.error('Error getting user from localStorage:', error);
-    }
-
-    if (!currentUser || !currentUser.is_super_admin) {
-        throw new Error('Unauthorized: Super Admin privileges required');
-    }
+    await verifyCurrentSuperAdmin();
 
     const { data, error } = await supabase
         .from('generations')
         .select('id, prompt, created_at, hairstyle_name')
         .eq('user_id', userId)
-        .eq('style_name', 'AI Generated Style')
+        .in('style_name', CUSTOM_PROMPT_STYLE_NAMES)
         .order('created_at', { ascending: false });
 
     if (error) {

@@ -123,8 +123,11 @@ const CustomPromptsTab: React.FC<CustomPromptsTabProps> = ({ loading: initialLoa
       {/* Summary */}
       <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
         <p className="text-gray-700">
-          <span className="text-[#E1262D] font-semibold">{users.length}</span> users with custom
-          prompts
+          <span className="text-[#E1262D] font-semibold">
+            {users.filter((u) => u.custom_prompt_count > 0).length}
+          </span>{' '}
+          of <span className="font-semibold">{users.length}</span> approved users have written
+          custom prompts
         </p>
       </div>
 
@@ -134,10 +137,15 @@ const CustomPromptsTab: React.FC<CustomPromptsTabProps> = ({ loading: initialLoa
           key={user.id}
           className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
         >
-          {/* User header - clickable to expand */}
+          {/* User header - clickable to expand (only when the user has prompts) */}
           <button
             onClick={() => handleToggleExpand(user.id)}
-            className="w-full p-4 flex justify-between items-center hover:bg-gray-50 transition-colors duration-200"
+            disabled={user.custom_prompt_count === 0}
+            className={`w-full p-4 flex justify-between items-center transition-colors duration-200 ${
+              user.custom_prompt_count === 0
+                ? 'cursor-default'
+                : 'hover:bg-gray-50 cursor-pointer'
+            }`}
           >
             <div className="text-left">
               <p className="text-gray-900 font-medium">
@@ -146,24 +154,32 @@ const CustomPromptsTab: React.FC<CustomPromptsTabProps> = ({ loading: initialLoa
               <p className="text-gray-500 text-sm">{user.email}</p>
             </div>
             <div className="flex items-center space-x-3">
-              <span className="px-3 py-1 bg-red-50 text-[#E1262D] rounded-full text-sm font-medium">
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  user.custom_prompt_count > 0
+                    ? 'bg-red-50 text-[#E1262D]'
+                    : 'bg-gray-100 text-gray-400'
+                }`}
+              >
                 {user.custom_prompt_count} prompt{user.custom_prompt_count !== 1 ? 's' : ''}
               </span>
-              <svg
-                className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
-                  expandedUserId === user.id ? 'rotate-180' : ''
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+              {user.custom_prompt_count > 0 && (
+                <svg
+                  className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+                    expandedUserId === user.id ? 'rotate-180' : ''
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              )}
             </div>
           </button>
 

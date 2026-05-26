@@ -11,7 +11,16 @@ interface PendingUser {
   country_code?: string;
   phone_number?: string;
   created_at: string;
+  request_status?: string;
+  request_expires_at?: string;
 }
+
+// Whole days remaining until a request expires (negative once overdue).
+const daysUntil = (iso?: string): number | null => {
+  if (!iso) return null;
+  const ms = new Date(iso).getTime() - Date.now();
+  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+};
 
 interface ApproveRequestsTabProps {
   onPendingCountChange: (count: number) => void;
@@ -39,6 +48,7 @@ const formatDate = (dateString: string) => {
 const ApproveRequestsTab: React.FC<ApproveRequestsTabProps> = ({ onPendingCountChange }) => {
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
@@ -51,11 +61,13 @@ const ApproveRequestsTab: React.FC<ApproveRequestsTabProps> = ({ onPendingCountC
   const loadPendingUsers = async () => {
     try {
       setLoading(true);
+      setError(null);
       const users = await getPendingUsers();
       setPendingUsers(users);
       onPendingCountChange(users.length);
     } catch (err) {
       console.error('Error loading pending users:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load pending requests.');
     } finally {
       setLoading(false);
     }
@@ -104,8 +116,32 @@ const ApproveRequestsTab: React.FC<ApproveRequestsTabProps> = ({ onPendingCountC
 
   return (
     <>
+      {/* Error Banner — never fail silently */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
+          <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div className="flex-1">
+            <p className="text-red-700 font-semibold">Couldn't load pending requests</p>
+            <p className="text-red-600 text-sm mt-0.5">{error}</p>
+            {/Unauthorized/i.test(error) && (
+              <p className="text-red-600 text-sm mt-1">
+                Your session may be out of date. Try signing out and signing back in as the super admin.
+              </p>
+            )}
+          </div>
+          <button
+            onClick={loadPendingUsers}
+            className="px-3 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Summary Bar */}
-      {!loading && (
+      {!loading && !error && (
         <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl flex items-center space-x-3">
           <svg className="w-5 h-5 text-yellow-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -154,6 +190,9 @@ const ApproveRequestsTab: React.FC<ApproveRequestsTabProps> = ({ onPendingCountC
                   Requested On
                 </th>
                 <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  Expires In
+                </th>
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Actions
                 </th>
               </tr>
@@ -167,12 +206,13 @@ const ApproveRequestsTab: React.FC<ApproveRequestsTabProps> = ({ onPendingCountC
                     <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-28"></div></td>
                     <td className="px-6 py-4 text-center"><div className="h-4 bg-gray-200 rounded w-20 mx-auto"></div></td>
                     <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-24 ml-auto"></div></td>
+                    <td className="px-6 py-4 text-center"><div className="h-4 bg-gray-200 rounded w-16 mx-auto"></div></td>
                     <td className="px-6 py-4 text-center"><div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div></td>
                   </tr>
                 ))
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                     {searchQuery ? 'No pending users found matching your search.' : 'No pending approval requests.'}
                   </td>
                 </tr>
@@ -200,6 +240,28 @@ const ApproveRequestsTab: React.FC<ApproveRequestsTabProps> = ({ onPendingCountC
                     </td>
                     <td className="px-6 py-4 text-right text-gray-500 text-sm whitespace-nowrap">
                       {u.created_at ? formatDate(u.created_at) : 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 text-center whitespace-nowrap">
+                      {(() => {
+                        const days = daysUntil(u.request_expires_at);
+                        if (days === null) {
+                          return <span className="text-gray-400 text-sm">—</span>;
+                        }
+                        const expiringSoon = days <= 1;
+                        return (
+                          <span
+                            className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                              expiringSoon
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-green-100 text-green-700'
+                            }`}
+                          >
+                            {days <= 0
+                              ? 'Today'
+                              : `${days} day${days !== 1 ? 's' : ''}`}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center space-x-2">

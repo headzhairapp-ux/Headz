@@ -5,6 +5,9 @@ const getSupabaseClient = (): SupabaseClient => {
     return sharedSupabase;
 }
 
+// Number of days a pending access request stays valid before it expires.
+export const REQUEST_TTL_DAYS = 3;
+
 // Utility to convert data URL to File object
 export const dataURLtoFile = (dataurl: string, filename: string): File => {
     try {
@@ -644,6 +647,22 @@ export const checkUserByEmail = async (email: string): Promise<{ exists: boolean
     }
 };
 
+// Fetch the latest user record by id, used to refresh a cached session so
+// flags like is_super_admin / is_approved / is_blocked are never stale.
+export const getUserByIdFresh = async (id: string): Promise<any | null> => {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase
+        .from('users')
+        .select('*, is_super_admin, is_admin')
+        .eq('id', id)
+        .maybeSingle();
+    if (error) {
+        console.error('Error refreshing user session:', error);
+        return null;
+    }
+    return data;
+};
+
 // Get or create user by email (used by Google sign-in)
 export const getOrCreateUserByEmail = async (email: string): Promise<{ user: any | null; isNewUser: boolean; error: any }> => {
     const supabase = getSupabaseClient();
@@ -666,8 +685,28 @@ export const getOrCreateUserByEmail = async (email: string): Promise<{ user: any
                 return { user: null, isNewUser: false, error: { message: 'Your account has been blocked. Please contact support.' } };
             }
 
-            // Check if user is pending approval
+            // Check if user is pending approval (revive the request if it expired)
             if (!existingUser.is_approved) {
+                const isExpired =
+                    existingUser.request_status === 'expired' ||
+                    (existingUser.request_expires_at &&
+                        new Date(existingUser.request_expires_at).getTime() < Date.now());
+
+                if (isExpired) {
+                    // Re-request: restart a fresh 3-day approval window.
+                    const newExpiry = new Date(
+                        Date.now() + REQUEST_TTL_DAYS * 24 * 60 * 60 * 1000
+                    ).toISOString();
+                    await supabase
+                        .from('users')
+                        .update({
+                            request_status: 'pending',
+                            request_expires_at: newExpiry,
+                            updated_at: new Date().toISOString(),
+                        })
+                        .eq('id', existingUser.id);
+                }
+
                 return { user: null, isNewUser: false, error: { message: 'Your account is pending admin approval. Please wait for approval before logging in.' } };
             }
 
@@ -713,6 +752,10 @@ export const createUserWithProfile = async (
     const supabase = getSupabaseClient();
 
     try {
+        const nowIso = new Date().toISOString();
+        // New requests must be approved within 3 days, else they expire.
+        const expiresIso = new Date(Date.now() + REQUEST_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
         const { data, error } = await supabase
             .from('users')
             .insert({
@@ -726,9 +769,11 @@ export const createUserWithProfile = async (
                 email_verified: true,
                 country_code: countryCode || null,
                 phone_number: phoneNumber || null,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                last_login_at: new Date().toISOString(),
+                request_status: 'pending',
+                request_expires_at: expiresIso,
+                created_at: nowIso,
+                updated_at: nowIso,
+                last_login_at: nowIso,
             })
             .select()
             .single();
@@ -1207,30 +1252,64 @@ export const getMonthlyUserRegistrations = async (): Promise<MonthlyCount[]> => 
 // Approval Functions (Super Admin)
 // ============================================
 
+/**
+ * Re-verifies the current user's super-admin status against the DATABASE
+ * rather than trusting the cached localStorage object, which can be stale
+ * (e.g. saved before is_super_admin was fetched, or from an older build).
+ * Throws if the live record is missing or not a super admin.
+ */
+const verifyCurrentSuperAdmin = async (): Promise<void> => {
+    // Dev-only escape hatch: grants super-admin on the local Vite dev server so
+    // the dashboard is testable without a real super-admin session. Gated on
+    // import.meta.env.DEV → has no effect in a production build.
+    if (import.meta.env.DEV && import.meta.env.VITE_DEV_SUPERADMIN === 'true') {
+        return;
+    }
+
+    const supabase = getSupabaseClient();
+
+    let stored: { id?: string; email?: string } | null = null;
+    try {
+        const raw = localStorage.getItem('styleMyHair_user');
+        if (raw) stored = JSON.parse(raw);
+    } catch (error) {
+        console.error('Error reading stored session:', error);
+    }
+
+    if (!stored || (!stored.id && !stored.email)) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+
+    const { data, error } = await (stored.id
+        ? supabase.from('users').select('is_super_admin').eq('id', stored.id).maybeSingle()
+        : supabase
+              .from('users')
+              .select('is_super_admin')
+              .eq('email', String(stored.email).toLowerCase())
+              .maybeSingle());
+
+    if (error) {
+        console.error('Error verifying super admin:', error);
+        throw new Error('Unable to verify Super Admin privileges. Please sign in again.');
+    }
+
+    if (!data || !data.is_super_admin) {
+        throw new Error('Unauthorized: Super Admin privileges required');
+    }
+};
+
 // Get pending users (unapproved, non-blocked)
 export const getPendingUsers = async (): Promise<any[]> => {
     const supabase = getSupabaseClient();
 
-    // Verify super admin status
-    let currentUser = null;
-    try {
-        const storedUser = localStorage.getItem('styleMyHair_user');
-        if (storedUser) {
-            currentUser = JSON.parse(storedUser);
-        }
-    } catch (error) {
-        console.error('Error getting user from localStorage:', error);
-    }
-
-    if (!currentUser || !currentUser.is_super_admin) {
-        throw new Error('Unauthorized: Super Admin privileges required');
-    }
+    await verifyCurrentSuperAdmin();
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, email, first_name, last_name, full_name, location, country_code, phone_number, created_at')
+        .select('id, email, first_name, last_name, full_name, location, country_code, phone_number, created_at, request_status, request_expires_at')
         .eq('is_approved', false)
         .eq('is_blocked', false)
+        .or('request_status.is.null,request_status.eq.pending')
         .order('created_at', { ascending: true });
 
     if (error) {
@@ -1245,26 +1324,26 @@ export const getPendingUsers = async (): Promise<any[]> => {
 export const approveUser = async (userId: string): Promise<void> => {
     const supabase = getSupabaseClient();
 
-    // Verify super admin status
-    let currentUser = null;
+    await verifyCurrentSuperAdmin();
+
+    // Resolve the approving super admin's id for the audit trail.
+    let approvedBy: string | undefined;
     try {
-        const storedUser = localStorage.getItem('styleMyHair_user');
-        if (storedUser) {
-            currentUser = JSON.parse(storedUser);
-        }
-    } catch (error) {
-        console.error('Error getting user from localStorage:', error);
+        const raw = localStorage.getItem('styleMyHair_user');
+        if (raw) approvedBy = JSON.parse(raw)?.id;
+    } catch {
+        // non-fatal: approval still proceeds without approved_by
     }
 
-    if (!currentUser || !currentUser.is_super_admin) {
-        throw new Error('Unauthorized: Super Admin privileges required');
-    }
-
+    const nowIso = new Date().toISOString();
     const { error } = await supabase
         .from('users')
         .update({
             is_approved: true,
-            updated_at: new Date().toISOString(),
+            request_status: 'approved',
+            approved_at: nowIso,
+            approved_by: approvedBy ?? null,
+            updated_at: nowIso,
         })
         .eq('id', userId);
 
@@ -1278,20 +1357,7 @@ export const approveUser = async (userId: string): Promise<void> => {
 export const rejectUser = async (userId: string): Promise<void> => {
     const supabase = getSupabaseClient();
 
-    // Verify super admin status
-    let currentUser = null;
-    try {
-        const storedUser = localStorage.getItem('styleMyHair_user');
-        if (storedUser) {
-            currentUser = JSON.parse(storedUser);
-        }
-    } catch (error) {
-        console.error('Error getting user from localStorage:', error);
-    }
-
-    if (!currentUser || !currentUser.is_super_admin) {
-        throw new Error('Unauthorized: Super Admin privileges required');
-    }
+    await verifyCurrentSuperAdmin();
 
     const { error } = await supabase
         .from('users')
@@ -1309,26 +1375,14 @@ export const rejectUser = async (userId: string): Promise<void> => {
 export const getPendingApprovalCount = async (): Promise<number> => {
     const supabase = getSupabaseClient();
 
-    // Verify super admin status
-    let currentUser = null;
-    try {
-        const storedUser = localStorage.getItem('styleMyHair_user');
-        if (storedUser) {
-            currentUser = JSON.parse(storedUser);
-        }
-    } catch (error) {
-        console.error('Error getting user from localStorage:', error);
-    }
-
-    if (!currentUser || !currentUser.is_super_admin) {
-        throw new Error('Unauthorized: Super Admin privileges required');
-    }
+    await verifyCurrentSuperAdmin();
 
     const { count, error } = await supabase
         .from('users')
         .select('id', { count: 'exact' })
         .eq('is_approved', false)
-        .eq('is_blocked', false);
+        .eq('is_blocked', false)
+        .or('request_status.is.null,request_status.eq.pending');
 
     if (error) {
         console.error('Error fetching pending approval count:', error);

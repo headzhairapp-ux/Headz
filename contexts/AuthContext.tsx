@@ -7,7 +7,13 @@ import {
   createUserWithProfile,
   updateUserProfile,
   signOutFromSupabase,
+  getUserByIdFresh,
 } from '../services/supabaseService';
+
+// Dev-only: treat the local session as super admin on the Vite dev server.
+// Gated on import.meta.env.DEV so it has no effect in production builds.
+const DEV_SUPERADMIN =
+  import.meta.env.DEV && import.meta.env.VITE_DEV_SUPERADMIN === 'true';
 
 interface GoogleUserInfo {
   email: string;
@@ -123,8 +129,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
-    // Check for stored user session in localStorage
-    const getInitialSession = () => {
+    // Restore the cached session immediately, then refresh it from the DB so
+    // flags (is_super_admin / is_approved / is_blocked) are never stale.
+    const getInitialSession = async () => {
       try {
         const storedUser = localStorage.getItem('styleMyHair_user');
         if (storedUser) {
@@ -132,7 +139,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(userData);
           setSession({ user: userData });
           setIsAdmin(userData.is_admin || false);
-          setIsSuperAdmin(userData.is_super_admin || false);
+          setIsSuperAdmin(DEV_SUPERADMIN || userData.is_super_admin || false);
+
+          // Refresh from the database in the background.
+          // Skip the synthetic dev super-admin (its id isn't a real UUID).
+          if (userData?.id && userData.id !== 'dev-super-admin') {
+            const fresh = await getUserByIdFresh(userData.id);
+            if (fresh) {
+              if (fresh.is_blocked) {
+                // Account blocked since last login — drop the session.
+                localStorage.removeItem('styleMyHair_user');
+                setUser(null);
+                setSession(null);
+                setIsAdmin(false);
+                setIsSuperAdmin(DEV_SUPERADMIN);
+              } else {
+                localStorage.setItem('styleMyHair_user', JSON.stringify(fresh));
+                setUser(fresh);
+                setSession({ user: fresh });
+                setIsAdmin(fresh.is_admin || false);
+                setIsSuperAdmin(DEV_SUPERADMIN || fresh.is_super_admin || false);
+              }
+            }
+          }
+        } else if (DEV_SUPERADMIN) {
+          // No session but dev flag on → synthesize a local super-admin so the
+          // dashboard (which requires a truthy user) is testable. Ephemeral:
+          // not written to localStorage, and has no effect in production.
+          const devUser = {
+            id: 'dev-super-admin',
+            email: 'dev-superadmin@local',
+            full_name: 'Dev Super Admin',
+            is_admin: true,
+            is_super_admin: true,
+          };
+          // Persist so the legacy localStorage-based super-admin gates also pass.
+          // Dev-only (gated on import.meta.env.DEV) → no effect in production.
+          localStorage.setItem('styleMyHair_user', JSON.stringify(devUser));
+          setUser(devUser);
+          setSession({ user: devUser });
+          setIsAdmin(true);
+          setIsSuperAdmin(true);
         }
       } catch (error) {
         console.error('Error loading stored session:', error);

@@ -85,11 +85,11 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose }) => 
   }, [onCapture, isCapturing]);
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm" role="dialog" aria-modal="true">
-      <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-2xl relative text-gray-900 border border-gray-200">
-        <h2 className="text-xl font-semibold mb-4 text-center">Camera Capture</h2>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm p-3 sm:p-4" role="dialog" aria-modal="true">
+      <div className="bg-white rounded-lg shadow-2xl p-4 sm:p-6 w-full max-w-2xl relative text-gray-900 border border-gray-200 flex flex-col max-h-[92dvh] overflow-hidden">
+        <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-center flex-shrink-0">Camera Capture</h2>
         {error ? (
-          <div className="text-center p-6">
+          <div className="text-center p-6 overflow-y-auto">
             {error === 'blocked' ? (
               <>
                 <div className="w-16 h-16 mx-auto mb-4 bg-red-50 rounded-full flex items-center justify-center">
@@ -126,7 +126,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose }) => 
             )}
           </div>
         ) : (
-          <div className="relative aspect-square w-full bg-black rounded-md overflow-hidden">
+          <div className="relative w-full aspect-square max-h-[60vh] mx-auto bg-black rounded-md overflow-hidden">
             <video
               ref={videoRef}
               autoPlay
@@ -137,7 +137,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose }) => 
           </div>
         )}
 
-        <div className="mt-6 flex justify-center items-center gap-4">
+        <div className="mt-4 sm:mt-6 flex justify-center items-center gap-4 flex-shrink-0">
           <button
             onClick={onClose}
             className="px-6 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white"

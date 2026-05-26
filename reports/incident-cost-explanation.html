@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Security Incident &amp; API Cost Explanation</title>
+<style>
+  :root {
+    --ink: #1a2230;
+    --muted: #5b6573;
+    --accent: #0d5bd1;
+    --accent-soft: #eaf1fd;
+    --line: #e2e6ec;
+    --warn: #b3431a;
+    --ok: #1f7a44;
+    --ok-soft: #e8f5ee;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    font-size: 12.5px;
+    line-height: 1.5;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .page { padding: 0 54px 24px; }
+
+  /* Header band */
+  .masthead {
+    background: linear-gradient(135deg, #0d3a8c 0%, #0d5bd1 100%);
+    color: #fff;
+    padding: 24px 54px 20px;
+    margin-bottom: 20px;
+  }
+  .masthead .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    font-size: 10.5px;
+    font-weight: 600;
+    opacity: 0.85;
+    margin-bottom: 8px;
+  }
+  .masthead h1 {
+    margin: 0;
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .meta {
+    display: flex;
+    gap: 34px;
+    margin-top: 18px;
+    font-size: 12px;
+  }
+  .meta .label { opacity: 0.75; display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+  .meta .val { font-weight: 600; }
+
+  h2 {
+    font-size: 14px;
+    margin: 13px 0 5px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  h2 .num {
+    background: var(--accent);
+    color: #fff;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    flex: 0 0 auto;
+  }
+  p { margin: 6px 0; }
+  strong { color: var(--ink); }
+
+  .callout {
+    background: var(--accent-soft);
+    border-left: 4px solid var(--accent);
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    margin: 6px 0 4px;
+  }
+
+  table.facts {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 4px;
+    font-size: 13px;
+  }
+  table.facts td {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  table.facts tr:first-child td { border-top: 1px solid var(--line); }
+  table.facts .amt {
+    text-align: right;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  table.facts tr.total td { background: #fbf4f0; color: var(--warn); }
+  table.facts tr.total .amt { color: var(--warn); }
+  table.facts tr.outstanding td { font-weight: 600; }
+
+  ul.actions { list-style: none; padding: 0; margin: 8px 0 4px; }
+  ul.actions li {
+    position: relative;
+    padding: 5px 0 5px 30px;
+    border-bottom: 1px dashed var(--line);
+  }
+  ul.actions li:last-child { border-bottom: none; }
+  ul.actions li::before {
+    content: "✓";
+    position: absolute;
+    left: 0; top: 7px;
+    width: 19px; height: 19px;
+    background: var(--ok-soft);
+    color: var(--ok);
+    border-radius: 50%;
+    font-size: 12px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  .status-strip {
+    background: var(--ok-soft);
+    border: 1px solid #c7e7d4;
+    border-radius: 8px;
+    padding: 13px 18px;
+    margin: 8px 0 4px;
+    color: #155f36;
+  }
+
+  .signoff { margin-top: 14px; padding-top: 10px; border-top: 2px solid var(--line); }
+  .signoff .name { font-weight: 700; font-size: 14px; }
+  .signoff .role { color: var(--muted); font-size: 12px; }
+
+  .footer {
+    margin-top: 10px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 10.5px;
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
+  }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <div class="eyebrow">Confidential · Incident Report</div>
+    <h1>Security Incident &amp; API Cost Explanation</h1>
+    <div class="meta">
+      <div><span class="label">Prepared for</span><span class="val">Headz Team</span></div>
+      <div><span class="label">Date</span><span class="val">23 May 2026</span></div>
+      <div><span class="label">Subject</span><span class="val">Google AI (Gemini) account charges</span></div>
+    </div>
+  </div>
+
+  <div class="page">
+    <h2><span class="num">1</span> Summary</h2>
+    <div class="callout">
+      A higher-than-usual charge of <strong>₹14,500</strong> was generated on the project's
+      Google AI (Gemini) account. After investigation, this was caused by
+      <strong>malicious, unauthorized activity</strong> — an outside party misused the
+      service's access credentials to run a large volume of automated requests. This charge
+      did <strong>not</strong> come from normal use of the Headz application by real users.
+    </div>
+
+    <h2><span class="num">2</span> What Happened</h2>
+    <p>
+      In plain terms: the "key" that allows the Headz app to use Google's AI service was
+      accessed and abused by an unauthorized third party. They sent a large number of
+      requests in a short period, which is what generated the unexpected cost. As soon as
+      this was detected, we acted immediately to stop it and secure the account.
+    </p>
+
+    <h2><span class="num">3</span> Current Cost Position</h2>
+    <table class="facts">
+      <tr class="total">
+        <td>Total charges generated by the malicious activity</td>
+        <td class="amt">₹14,500</td>
+      </tr>
+      <tr class="outstanding">
+        <td>Current outstanding amount</td>
+        <td class="amt">₹8,000</td>
+      </tr>
+      <tr>
+        <td>Account billing threshold</td>
+        <td class="amt">₹6,900</td>
+      </tr>
+    </table>
+
+    <h2><span class="num">4</span> Steps We Have Already Taken</h2>
+    <ul class="actions">
+      <li>Replaced (rotated) <strong>all access keys</strong>, so the old, exposed credentials no longer work.</li>
+      <li><strong>Changed all related account passwords.</strong></li>
+      <li><strong>Removed unwanted / unauthorized accounts</strong> and access.</li>
+      <li><strong>Secured the application</strong> so the credentials can no longer be accessed from the public side — closing the gap that allowed the misuse.</li>
+      <li><strong>Contacted the Google support team</strong> to review the matter and help resolve the charges.</li>
+    </ul>
+
+    <h2><span class="num">5</span> Current Position</h2>
+    <div class="status-strip">
+      The <strong>application is live and operating normally right now</strong>, with no
+      disruption to users. The vulnerability has been closed and no further unauthorized
+      charges can occur through the previous method. We are actively in touch with the
+      Google support team regarding the outstanding amount and will share updates as the
+      matter progresses.
+    </div>
+
+    <h2><span class="num">6</span> Closing</h2>
+    <p>
+      We took this matter seriously and responded quickly to contain it and protect the
+      project. Please feel free to reach out with any questions.
+    </p>
+
+    <div class="signoff">
+      <div class="name">Dr. Murali</div>
+      <div class="role">DRM Hope Software</div>
+    </div>
+
+    <div class="footer">
+      This document is confidential and prepared for the Headz Team. · 23 May 2026
+    </div>
+  </div>
+</body>
+</html>

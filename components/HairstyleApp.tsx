@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import Header from './Header';
 import Uploader from './Uploader';
 import TabSelector, { TabType } from './TabSelector';
@@ -12,6 +12,7 @@ import { AVAILABLE_HAIRSTYLES } from '../constants';
 import { Hairstyle, HistoryItem } from '../types';
 import { editImageWithGemini, preloadImageData } from '../services/geminiService';
 import { uploadImage, saveGeneration, dataURLtoFile, trackDownload, trackShare, trackGeneration, trackCustomPrompt } from '../services/supabaseService';
+import { deviceUsageTracker } from '../services/deviceUsageTracker';
 import { useAuth } from '../contexts/AuthContext';
 import { addStylishWatermark } from '../utils/watermark';
 import { useDocumentMeta } from '../utils/useDocumentMeta';
@@ -52,6 +53,10 @@ const HairstyleApp: React.FC = () => {
   const [cleanStyledImage, setCleanStyledImage] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [selectedStyle, setSelectedStyle] = useState<Hairstyle | null>(null);
+  // Maps prompt -> generated images, so re-selecting a style already tried this
+  // session costs nothing (no Gemini call). Intentionally in-memory only; cleared
+  // whenever a new photo is uploaded so results are never reused across photos.
+  const generationCacheRef = useRef<Map<string, { clean: string; watermarked: string }>>(new Map());
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -234,6 +239,8 @@ const HairstyleApp: React.FC = () => {
     setBaseStylePrompt(null);
     setLastUsedStyleName(null);
     setActiveTab('virtual-mirror');
+    // A new photo must not reuse the previous photo's cached generations
+    generationCacheRef.current.clear();
     // Pre-load image data immediately so it stays available across all style selections
     preloadImageData(file).then(data => setUserImageData(data)).catch(() => {/* will fall back to reading file directly */});
   };
@@ -241,14 +248,42 @@ const HairstyleApp: React.FC = () => {
   const applyStyleAndSave = useCallback(async (prompt: string, styleName: string, styleId: string, thumbnailUrl?: string) => {
     if (!userImageFile || isLoading || !sessionId) return;
 
+    const isViewAngle = / \((Front|Side|Back) View\)$/.test(styleName);
+    const normalizedStyleName = styleName.replace(/ \((Front|Side|Back) View\)/, '');
+
+    // Cache hit: this exact prompt was already generated for the current photo
+    // this session. Restore the stored images instantly — no Gemini call (and so
+    // no API cost), no re-upload, no re-save, no re-watermark.
+    const cached = generationCacheRef.current.get(prompt);
+    if (cached) {
+      setError(null);
+      setLastUsedPrompt(prompt);
+      if (!isViewAngle) {
+        setBaseStylePrompt(prompt);
+      }
+      setLastUsedStyleName(normalizedStyleName);
+      setCleanStyledImage(cached.clean);
+      setCurrentStyledImage(cached.watermarked);
+      setPreviousStyleName(styleName);
+      return;
+    }
+
+    // Anonymous users get a limited number of free generations before sign-in.
+    // (Signed-in users are unlimited; cache hits above never reach here, so
+    // re-selecting an already-generated style never consumes the free quota.)
+    if (!user && !deviceUsageTracker.canGenerate()) {
+      setAuthModalReason('limit');
+      setShowAuthModal(true);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setLastUsedPrompt(prompt);
-    const isViewAngle = / \((Front|Side|Back) View\)$/.test(styleName);
     if (!isViewAngle) {
       setBaseStylePrompt(prompt);
     }
-    setLastUsedStyleName(styleName.replace(/ \((Front|Side|Back) View\)/, ''));
+    setLastUsedStyleName(normalizedStyleName);
 
     try {
       // Always use the original uploaded image as the base for new style selections
@@ -265,6 +300,14 @@ const HairstyleApp: React.FC = () => {
 
       // Always watermark for display (everyone sees watermarked preview)
       const watermarkedImage = await addStylishWatermark(newStyledImage);
+
+      // Cache by prompt so re-selecting this style this session is free (no API call)
+      generationCacheRef.current.set(prompt, { clean: cleanImage, watermarked: watermarkedImage });
+
+      // Count this paid generation against the anonymous free quota
+      if (!user) {
+        deviceUsageTracker.incrementUsage();
+      }
 
       // Use clean image for DB storage (authenticated users only)
       const styledImageFile = dataURLtoFile(cleanImage, `styled-${styleId}-${userImageFile.name}`);
@@ -646,7 +689,7 @@ REQUIREMENTS:
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        usageCount={0}
+        usageCount={deviceUsageTracker.getUsageInfo().used}
         reason={authModalReason}
         onAuthSuccess={handleAuthSuccess}
       />

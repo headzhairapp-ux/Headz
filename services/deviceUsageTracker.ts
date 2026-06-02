@@ -62,13 +62,12 @@ export class DeviceUsageTracker {
   }
 
   public canGenerate(): boolean {
-    // Always allow generation - unlimited for everyone
-    return true;
+    // Anonymous users get MAX_FREE_GENERATIONS before sign-in is required
+    return !this.usageData.blocked && this.usageData.freeGenerations < MAX_FREE_GENERATIONS;
   }
 
   public getRemainingGenerations(): number {
-    // Return unlimited
-    return 999999;
+    return Math.max(0, MAX_FREE_GENERATIONS - this.usageData.freeGenerations);
   }
 
   public incrementUsage(): boolean {

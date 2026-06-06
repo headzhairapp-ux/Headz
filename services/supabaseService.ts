@@ -1107,6 +1107,73 @@ export const getUserDailyGenerations = async (userId: string): Promise<UserDaily
 };
 
 // ============================================
+// Anonymous (not-logged-in) Generation Analytics (Super Admin)
+// ============================================
+//
+// Anonymous generations are recorded server-side only in `gemini_calls`
+// (see api/gemini.ts and the dev middleware in vite.config.ts). These helpers
+// read that table for the Super Admin dashboard.
+
+// Total number of generations made by users who were NOT logged in.
+export const getAnonymousGenerationCount = async (): Promise<number> => {
+    const supabase = getSupabaseClient();
+
+    await verifyCurrentSuperAdmin();
+
+    const { count, error } = await supabase
+        .from('gemini_calls')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_anonymous', true);
+
+    if (error) {
+        console.error('Error fetching anonymous generation count:', error);
+        throw new Error(error.message);
+    }
+
+    return count || 0;
+};
+
+// Day-wise breakdown of anonymous generations (most-recent day first).
+export const getAnonymousDailyGenerations = async (): Promise<UserDailyGeneration[]> => {
+    const supabase = getSupabaseClient();
+
+    await verifyCurrentSuperAdmin();
+
+    const { data, error } = await supabase
+        .from('gemini_calls')
+        .select('created_at')
+        .eq('is_anonymous', true)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching anonymous daily generations:', error);
+        throw new Error(error.message);
+    }
+
+    // Group by local calendar day.
+    const countByDay = new Map<string, number>();
+    for (const row of data || []) {
+        if (!row.created_at) continue;
+        const day = new Date(row.created_at);
+        const key = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+        countByDay.set(key, (countByDay.get(key) || 0) + 1);
+    }
+
+    return Array.from(countByDay.entries())
+        .map(([date, count]) => ({
+            date,
+            label: new Date(`${date}T00:00:00`).toLocaleDateString('en-US', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            }),
+            count,
+        }))
+        .sort((a, b) => (a.date < b.date ? 1 : -1)); // most-recent day first
+};
+
+// ============================================
 // Weekly Analytics Functions (Super Admin)
 // ============================================
 

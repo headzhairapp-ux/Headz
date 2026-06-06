@@ -2,6 +2,7 @@ import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { runGemini } from './lib/geminiCore';
+import { recordGeminiCall } from './lib/recordGeminiCall';
 
 export default defineConfig(({ mode }) => {
   // Load all env vars (including non-VITE_ ones) for the dev-only API middleware.
@@ -37,7 +38,7 @@ export default defineConfig(({ mode }) => {
             req.on('data', (chunk) => chunks.push(chunk as Buffer));
             req.on('end', async () => {
               try {
-                const { contents, model } = JSON.parse(
+                const { contents, model, deviceId, userId } = JSON.parse(
                   Buffer.concat(chunks).toString('utf-8') || '{}'
                 );
                 if (!contents) {
@@ -46,6 +47,17 @@ export default defineConfig(({ mode }) => {
                   });
                 }
                 const result = await runGemini(apiKey, contents, model);
+                // Mirror the Vercel proxy: best-effort usage log (incl. anon).
+                await recordGeminiCall({
+                  supabaseUrl: env.SUPABASE_URL || env.VITE_SUPABASE_URL,
+                  supabaseKey:
+                    env.SUPABASE_SERVICE_ROLE_KEY ||
+                    env.SUPABASE_ANON_KEY ||
+                    env.VITE_SUPABASE_ANON_KEY,
+                  deviceId,
+                  userId,
+                  model: model || 'gemini-2.5-flash-image',
+                });
                 sendJson(200, result);
               } catch (error) {
                 const message =

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getSuperAdminStats, getAllUsersWithAnalytics, getWeeklyUserRegistrations, getWeeklyGenerations, getMonthlyUserRegistrations, getMonthlyGenerations, getPendingApprovalCount } from '../services/supabaseService';
+import { getSuperAdminStats, getAllUsersWithAnalytics, getWeeklyUserRegistrations, getWeeklyGenerations, getMonthlyUserRegistrations, getMonthlyGenerations, getPendingApprovalCount, getAnonymousGenerationCount } from '../services/supabaseService';
 import {
   SuperAdminSidebar,
   MobileTabBar,
@@ -22,6 +22,7 @@ const SuperAdminDashboard: React.FC = () => {
     totalDownloads: 0,
     totalShares: 0,
     totalGenerations: 0,
+    anonymousGenerations: 0,
     totalUsers: 0,
     totalCustomPrompts: 0,
     maleFavoriteStyle: null,
@@ -50,7 +51,7 @@ const SuperAdminDashboard: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const [statsData, usersData, weeklyUsersData, weeklyGenerationsData, monthlyUsersData, monthlyGenerationsData, pendingCountData] = await Promise.all([
+      const [statsData, usersData, weeklyUsersData, weeklyGenerationsData, monthlyUsersData, monthlyGenerationsData, pendingCountData, anonymousGenerationsData] = await Promise.all([
         getSuperAdminStats(),
         getAllUsersWithAnalytics(),
         getWeeklyUserRegistrations(),
@@ -58,10 +59,12 @@ const SuperAdminDashboard: React.FC = () => {
         getMonthlyUserRegistrations(),
         getMonthlyGenerations(),
         getPendingApprovalCount().catch(() => 0),
+        getAnonymousGenerationCount().catch(() => 0),
       ]);
 
       setStats({
         ...statsData,
+        anonymousGenerations: anonymousGenerationsData,
         weeklyUsers: weeklyUsersData,
         weeklyGenerations: weeklyGenerationsData,
         monthlyUsers: monthlyUsersData,

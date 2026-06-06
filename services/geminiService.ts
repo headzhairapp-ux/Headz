@@ -1,6 +1,8 @@
 // The Gemini API key now lives only on the server. The browser sends the
 // prepared image parts to /api/gemini, which performs the actual call.
 
+import { getDeviceId } from '../utils/deviceFingerprint';
+
 interface GeminiPart {
   inlineData?: { data?: string; mimeType?: string };
   text?: string;
@@ -15,14 +17,37 @@ interface GeminiProxyResponse {
   promptFeedback?: { blockReason?: string } | null;
 }
 
+// Identity sent alongside every generation so the server can record usage,
+// including for anonymous visitors. Read best-effort: never block a generation.
+const getCallIdentity = (): { deviceId: string | null; userId: string | null } => {
+  let deviceId: string | null = null;
+  let userId: string | null = null;
+  try {
+    deviceId = getDeviceId();
+  } catch {
+    // fingerprinting unavailable; leave deviceId null
+  }
+  try {
+    const storedUser = localStorage.getItem('styleMyHair_user');
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      userId = parsed?.id ?? null;
+    }
+  } catch {
+    // no/invalid stored user; treat as anonymous
+  }
+  return { deviceId, userId };
+};
+
 // Calls the server-side proxy that holds the Gemini API key.
 const callGeminiProxy = async (
   contents: GeminiContents
 ): Promise<GeminiProxyResponse> => {
+  const { deviceId, userId } = getCallIdentity();
   const res = await fetch('/api/gemini', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents }),
+    body: JSON.stringify({ contents, deviceId, userId }),
   });
 
   if (!res.ok) {

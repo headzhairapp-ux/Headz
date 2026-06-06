@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { StatCard, StyleCard } from './StatCard';
+import AnonymousGenerationsModal from './AnonymousGenerationsModal';
 import {
   LineChart,
   Line,
@@ -27,6 +28,7 @@ interface SuperAdminStats {
   totalDownloads: number;
   totalShares: number;
   totalGenerations: number;
+  anonymousGenerations: number;
   totalUsers: number;
   totalCustomPrompts: number;
   maleFavoriteStyle: string | null;
@@ -99,6 +101,7 @@ const LoadingSkeleton: React.FC = () => (
 const HomeTab: React.FC<HomeTabProps> = ({ stats, loading, onRefresh }) => {
   const [usersPeriod, setUsersPeriod] = useState<'weekly' | 'monthly'>('weekly');
   const [generationsPeriod, setGenerationsPeriod] = useState<'weekly' | 'monthly'>('weekly');
+  const [showAnonModal, setShowAnonModal] = useState(false);
 
   if (loading) {
     return <LoadingSkeleton />;
@@ -147,7 +150,7 @@ const HomeTab: React.FC<HomeTabProps> = ({ stats, loading, onRefresh }) => {
       </div>
 
       {/* User Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
         <StatCard
           title="Total Users"
           value={stats.totalUsers}
@@ -166,6 +169,18 @@ const HomeTab: React.FC<HomeTabProps> = ({ stats, loading, onRefresh }) => {
           icon={
             <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          }
+        />
+
+        <StatCard
+          title="Anonymous Generations"
+          value={stats.anonymousGenerations}
+          color="text-purple-500"
+          onClick={() => setShowAnonModal(true)}
+          icon={
+            <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           }
         />
@@ -355,6 +370,11 @@ const HomeTab: React.FC<HomeTabProps> = ({ stats, loading, onRefresh }) => {
           </a>
         </div>
       </div>
+
+      {/* Anonymous generations day-wise breakdown */}
+      {showAnonModal && (
+        <AnonymousGenerationsModal onClose={() => setShowAnonModal(false)} />
+      )}
     </>
   );
 };

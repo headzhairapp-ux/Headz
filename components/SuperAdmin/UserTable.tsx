@@ -29,6 +29,7 @@ interface UserTableProps {
   onPageChange: (page: number) => void;
   onItemsPerPageChange: (count: number) => void;
   onBlockToggle: (userId: string, currentlyBlocked: boolean, userName: string) => void;
+  onUserSelect: (user: UserWithAnalytics) => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -61,6 +62,7 @@ const UserTable: React.FC<UserTableProps> = ({
   onPageChange,
   onItemsPerPageChange,
   onBlockToggle,
+  onUserSelect,
 }) => {
   const totalPages = Math.ceil(filteredCount / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -147,7 +149,12 @@ const UserTable: React.FC<UserTableProps> = ({
               </tr>
             ) : (
               users.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={u.id}
+                  onClick={() => onUserSelect(u)}
+                  className="group hover:bg-red-50/40 transition-colors cursor-pointer"
+                  title="View daily generation breakdown"
+                >
                   <td className="px-4 py-4 text-center">
                     <span className="text-gray-700 font-medium">
                       {u.sr_no ?? '-'}
@@ -155,7 +162,7 @@ const UserTable: React.FC<UserTableProps> = ({
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
-                      <span className="text-gray-900 font-medium">
+                      <span className="text-gray-900 font-medium group-hover:text-[#E1262D]">
                         {u.full_name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'No Name'}
                       </span>
                       <span className="text-gray-500 text-sm">{u.email}</span>
@@ -194,7 +201,10 @@ const UserTable: React.FC<UserTableProps> = ({
                   </td>
                   <td className="px-4 py-4 text-center">
                     <button
-                      onClick={() => onBlockToggle(u.id, u.is_blocked || false, u.full_name || u.email)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onBlockToggle(u.id, u.is_blocked || false, u.full_name || u.email);
+                      }}
                       className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
                         u.is_blocked
                           ? 'bg-red-600 hover:bg-red-500 text-white'

@@ -45,6 +45,11 @@ const ExportModal: React.FC<ExportModalProps> = ({ users, onClose, onError }) =>
         });
       }
 
+      if (dataToExport.length === 0) {
+        onError('No users to export for the selected range');
+        return;
+      }
+
       // Build title based on date range
       let titleText = 'Headz Users';
       if (exportStartDate && exportEndDate) {
@@ -82,7 +87,23 @@ const ExportModal: React.FC<ExportModalProps> = ({ users, onClose, onError }) =>
       const dateRange = exportStartDate && exportEndDate
         ? `_${exportStartDate}_to_${exportEndDate}`
         : '';
-      XLSX.writeFile(workbook, `headz_users${dateRange}.xlsx`);
+      const filename = `headz_users${dateRange}.xlsx`;
+
+      // Build the file as a Blob and trigger the download via an anchor.
+      // XLSX.writeFile relies on environment auto-detection that can silently
+      // fail under some bundlers, producing an empty/no download.
+      const wbArray = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbArray], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
 
       onClose();
     } catch (err) {

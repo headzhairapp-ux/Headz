@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import UserSearchBar from './UserSearchBar';
 import UserTable from './UserTable';
 import ExportModal from './ExportModal';
+import UserDailyGenerationsModal from './UserDailyGenerationsModal';
 import { searchUsersWithAnalytics, toggleUserBlocked, getAllUsersWithAnalytics } from '../../services/supabaseService';
 
 interface UserWithAnalytics {
@@ -33,6 +34,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, loading, onError }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserWithAnalytics | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     userId: string;
@@ -153,12 +155,21 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, loading, onError }) => {
         onPageChange={setCurrentPage}
         onItemsPerPageChange={handleItemsPerPageChange}
         onBlockToggle={handleBlockToggle}
+        onUserSelect={setSelectedUser}
       />
+
+      {/* Daily Generations Modal */}
+      {selectedUser && (
+        <UserDailyGenerationsModal
+          user={selectedUser}
+          onClose={() => setSelectedUser(null)}
+        />
+      )}
 
       {/* Export Modal */}
       {showExportModal && (
         <ExportModal
-          users={users}
+          users={filteredUsers}
           onClose={() => setShowExportModal(false)}
           onError={onError}
         />

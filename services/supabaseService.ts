@@ -773,6 +773,8 @@ export const createUserWithProfile = async (
                 email_verified: true,
                 country_code: countryCode || null,
                 phone_number: phoneNumber || null,
+                is_approved: false,
+                is_blocked: false,
                 request_status: 'pending',
                 request_expires_at: expiresIso,
                 created_at: nowIso,
@@ -1056,6 +1058,54 @@ export const getUserCustomPrompts = async (userId: string): Promise<{
     return data || [];
 };
 
+// Per-day generation breakdown for a single user (super admin only).
+// Returns every calendar day on which the user generated at least one image,
+// most-recent day first, with the number of generations on that day.
+export interface UserDailyGeneration {
+    date: string;   // YYYY-MM-DD (local calendar day)
+    label: string;  // e.g. "Fri, Jun 6, 2026"
+    count: number;
+}
+
+export const getUserDailyGenerations = async (userId: string): Promise<UserDailyGeneration[]> => {
+    const supabase = getSupabaseClient();
+
+    await verifyCurrentSuperAdmin();
+
+    const { data, error } = await supabase
+        .from('generations')
+        .select('created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching user daily generations:', error);
+        throw new Error(error.message);
+    }
+
+    // Group by local calendar day.
+    const countByDay = new Map<string, number>();
+    for (const row of data || []) {
+        if (!row.created_at) continue;
+        const day = new Date(row.created_at);
+        const key = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+        countByDay.set(key, (countByDay.get(key) || 0) + 1);
+    }
+
+    return Array.from(countByDay.entries())
+        .map(([date, count]) => ({
+            date,
+            label: new Date(`${date}T00:00:00`).toLocaleDateString('en-US', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            }),
+            count,
+        }))
+        .sort((a, b) => (a.date < b.date ? 1 : -1)); // most-recent day first
+};
+
 // ============================================
 // Weekly Analytics Functions (Super Admin)
 // ============================================
@@ -1318,7 +1368,8 @@ export const getPendingUsers = async (): Promise<any[]> => {
         .from('users')
         .select('id, email, first_name, last_name, full_name, location, country_code, phone_number, created_at, request_status, request_expires_at')
         .eq('is_approved', false)
-        .eq('is_blocked', false)
+        // is_blocked can be NULL on rows created before it had a default; treat NULL as not-blocked.
+        .not('is_blocked', 'is', true)
         .or('request_status.is.null,request_status.eq.pending')
         .order('created_at', { ascending: true });
 
@@ -1391,7 +1442,8 @@ export const getPendingApprovalCount = async (): Promise<number> => {
         .from('users')
         .select('id', { count: 'exact' })
         .eq('is_approved', false)
-        .eq('is_blocked', false)
+        // is_blocked can be NULL on rows created before it had a default; treat NULL as not-blocked.
+        .not('is_blocked', 'is', true)
         .or('request_status.is.null,request_status.eq.pending');
 
     if (error) {

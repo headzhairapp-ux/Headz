@@ -72,6 +72,8 @@ const HairstyleApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('virtual-mirror');
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [isLeadCaptureComplete, setIsLeadCaptureComplete] = useState<boolean>(() => hasCompletedLeadCapture());
+  const [hasGeneratedFirstImage, setHasGeneratedFirstImage] = useState(false);
+  const [showLeadCapture, setShowLeadCapture] = useState(false);
 
   // Handler for tab changes - locks AI Generator and Gallery for non-logged-in users
   const handleTabChange = (tab: TabType) => {
@@ -350,6 +352,14 @@ const HairstyleApp: React.FC = () => {
       setCurrentStyledImage(watermarkedImage);
       setPreviousStyleName(styleName);
 
+      // Ask anonymous users for their details only after they have generated
+      // their first image. Authenticated users, including direct sign-ups,
+      // should never see this gate after signing in.
+      if (!user && !isLeadCaptureComplete && !hasGeneratedFirstImage) {
+        setHasGeneratedFirstImage(true);
+        setShowLeadCapture(true);
+      }
+
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
@@ -385,7 +395,7 @@ ${sqlToCreateTable}`
     } finally {
       setIsLoading(false);
     }
-  }, [userImageFile, userImageData, isLoading, currentStyledImage, sessionId, previousStyleName, user, isFreeUser]);
+  }, [userImageFile, userImageData, isLoading, currentStyledImage, sessionId, previousStyleName, user, isFreeUser, isLeadCaptureComplete, hasGeneratedFirstImage]);
 
   const handleStyleSelect = useCallback(async (style: Hairstyle) => {
     if (isLoading) return;
@@ -608,11 +618,14 @@ REQUIREMENTS:
     setError(null);
   }, []);
 
-  const leadCaptureGate = !isLeadCaptureComplete ? (
+  const leadCaptureGate = showLeadCapture && !user && !isLeadCaptureComplete ? (
     <LeadCaptureModal
       userId={user?.id ?? null}
       onCancel={() => navigate('/', { replace: true })}
-      onComplete={() => setIsLeadCaptureComplete(true)}
+      onComplete={() => {
+        setIsLeadCaptureComplete(true);
+        setShowLeadCapture(false);
+      }}
     />
   ) : null;
 

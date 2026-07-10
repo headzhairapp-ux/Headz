@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getAdminStats } from '../services/supabaseService';
 import UserManagement from './UserManagement';
+import LeadCaptures from './LeadCaptures';
 
 interface AdminStats {
   totalUsers: number;
@@ -14,7 +15,7 @@ interface AdminStats {
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, signOut, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'leads'>('dashboard');
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     totalAdmins: 0,
@@ -141,6 +142,21 @@ const AdminDashboard: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
               </svg>
               <span>User Management</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('leads')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
+              activeTab === 'leads'
+                ? 'bg-[#E1262D] text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M5 7v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-8 4h8m-8 4h5" />
+              </svg>
+              <span>Lead Captures</span>
             </div>
           </button>
         </div>
@@ -285,6 +301,7 @@ const AdminDashboard: React.FC = () => {
         )}
 
         {activeTab === 'users' && <UserManagement />}
+        {activeTab === 'leads' && <LeadCaptures />}
       </main>
     </div>
   );

@@ -34,7 +34,30 @@ CREATE TABLE IF NOT EXISTS public.users (
 -- Create index for faster email lookups
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 
--- 2. GENERATIONS TABLE
+-- 2. LEAD CAPTURES TABLE
+-- Stores initial public/internal user data captured before app access
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.lead_captures (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  name TEXT NOT NULL,
+  country_code TEXT NOT NULL,
+  phone_number TEXT NOT NULL,
+  full_mobile_number TEXT NOT NULL,
+  location TEXT NOT NULL,
+  session_id TEXT,
+  device_id TEXT,
+  user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  source_path TEXT,
+  user_agent TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_lead_captures_created_at ON public.lead_captures(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_lead_captures_phone ON public.lead_captures(full_mobile_number);
+CREATE INDEX IF NOT EXISTS idx_lead_captures_session_id ON public.lead_captures(session_id);
+CREATE INDEX IF NOT EXISTS idx_lead_captures_user_id ON public.lead_captures(user_id);
+
+-- 3. GENERATIONS TABLE
 -- Stores all hairstyle generation records
 -- ============================================
 CREATE TABLE IF NOT EXISTS public.generations (
@@ -67,7 +90,7 @@ CREATE INDEX IF NOT EXISTS idx_generations_user_id ON public.generations(user_id
 CREATE INDEX IF NOT EXISTS idx_generations_session_id ON public.generations(session_id);
 CREATE INDEX IF NOT EXISTS idx_generations_created_at ON public.generations(created_at DESC);
 
--- 3. OTP_CODES TABLE
+-- 4. OTP_CODES TABLE
 -- Stores one-time passwords for email verification
 -- ============================================
 CREATE TABLE IF NOT EXISTS public.otp_codes (
@@ -77,14 +100,14 @@ CREATE TABLE IF NOT EXISTS public.otp_codes (
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
--- 4. STORAGE BUCKET
+-- 5. STORAGE BUCKET
 -- Create bucket for storing generated images
 -- ============================================
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('generated-images', 'generated-images', true)
 ON CONFLICT (id) DO NOTHING;
 
--- 5. STORAGE POLICIES
+-- 6. STORAGE POLICIES
 -- Allow public access to generated images bucket
 -- ============================================
 
@@ -103,7 +126,7 @@ CREATE POLICY "Public Delete" ON storage.objects
 FOR DELETE
 USING (bucket_id = 'generated-images');
 
--- 6. ROW LEVEL SECURITY (RLS)
+-- 7. ROW LEVEL SECURITY (RLS)
 -- Enable RLS on tables (optional but recommended)
 -- ============================================
 
@@ -128,6 +151,19 @@ WITH CHECK (true);
 -- Policy: Allow deleting users (for admin reject)
 CREATE POLICY "Allow delete users" ON public.users
 FOR DELETE
+USING (true);
+
+-- Enable RLS on lead captures table
+ALTER TABLE public.lead_captures ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Anyone can submit initial app access details
+CREATE POLICY "Public insert lead captures" ON public.lead_captures
+FOR INSERT
+WITH CHECK (true);
+
+-- Policy: Dashboard can read captured leads
+CREATE POLICY "Public read lead captures" ON public.lead_captures
+FOR SELECT
 USING (true);
 
 -- Enable RLS on generations table
@@ -157,7 +193,7 @@ FOR ALL
 USING (true)
 WITH CHECK (true);
 
--- 7. CREATE ADMIN USER (OPTIONAL)
+-- 8. CREATE ADMIN USER (OPTIONAL)
 -- Uncomment and modify to create an admin user
 -- ============================================
 -- INSERT INTO public.users (email, password_hash, first_name, last_name, full_name, is_admin, email_verified)
@@ -169,6 +205,7 @@ WITH CHECK (true);
 --
 -- Tables created:
 --   - public.users
+--   - public.lead_captures
 --   - public.generations
 --   - public.otp_codes
 --

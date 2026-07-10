@@ -26,3 +26,5 @@ export type { CustomPromptsTabProps, UserWithCustomPrompts, CustomPrompt } from 
 
 export { default as ApproveRequestsTab } from './ApproveRequestsTab';
 export type { ApproveRequestsTabProps } from './ApproveRequestsTab';
+
+export { default as LeadCaptures } from '../LeadCaptures';

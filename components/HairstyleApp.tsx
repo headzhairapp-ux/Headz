@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import Uploader from './Uploader';
 import TabSelector, { TabType } from './TabSelector';
@@ -8,16 +9,20 @@ import Gallery from './Gallery';
 import AuthWrapper from './AuthWrapper';
 import AuthModal from './AuthModal';
 import ProfileForm from './ProfileForm';
+import LeadCaptureModal from './LeadCaptureModal';
 import { AVAILABLE_HAIRSTYLES } from '../constants';
 import { Hairstyle, HistoryItem } from '../types';
 import { editImageWithGemini, preloadImageData } from '../services/geminiService';
 import { uploadImage, saveGeneration, dataURLtoFile, trackDownload, trackShare, trackGeneration, trackCustomPrompt } from '../services/supabaseService';
 import { deviceUsageTracker } from '../services/deviceUsageTracker';
+import { hasCompletedLeadCapture } from '../services/leadCaptureService';
 import { useAuth } from '../contexts/AuthContext';
 import { addStylishWatermark } from '../utils/watermark';
 import { useDocumentMeta } from '../utils/useDocumentMeta';
 
 const HairstyleApp: React.FC = () => {
+  const navigate = useNavigate();
+
   useDocumentMeta({
     title: 'Try On Hairstyles with AI - HEADZ Hair Fixing App',
     description:
@@ -66,6 +71,7 @@ const HairstyleApp: React.FC = () => {
   const [lastUsedStyleName, setLastUsedStyleName] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('virtual-mirror');
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+  const [isLeadCaptureComplete, setIsLeadCaptureComplete] = useState<boolean>(() => hasCompletedLeadCapture());
 
   // Handler for tab changes - locks AI Generator and Gallery for non-logged-in users
   const handleTabChange = (tab: TabType) => {
@@ -602,6 +608,14 @@ REQUIREMENTS:
     setError(null);
   }, []);
 
+  const leadCaptureGate = !isLeadCaptureComplete ? (
+    <LeadCaptureModal
+      userId={user?.id ?? null}
+      onCancel={() => navigate('/', { replace: true })}
+      onComplete={() => setIsLeadCaptureComplete(true)}
+    />
+  ) : null;
+
   if (!userImageFile) {
     return (
       <AuthWrapper>
@@ -611,6 +625,7 @@ REQUIREMENTS:
                 <Uploader onImageUpload={handleImageUpload} />
             </main>
         </div>
+        {leadCaptureGate}
 
         {/* OAuth Profile Modal */}
         {showOAuthProfileModal && oauthUserData && (
@@ -693,6 +708,7 @@ REQUIREMENTS:
         reason={authModalReason}
         onAuthSuccess={handleAuthSuccess}
       />
+      {leadCaptureGate}
 
       {/* OAuth Profile Modal */}
       {showOAuthProfileModal && oauthUserData && (

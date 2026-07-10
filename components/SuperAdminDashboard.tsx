@@ -9,6 +9,7 @@ import {
   UsersTab,
   CustomPromptsTab,
   ApproveRequestsTab,
+  LeadCaptures,
   type TabType,
   type SuperAdminStats as StatsType,
   type UserWithAnalytics,
@@ -141,12 +142,14 @@ const SuperAdminDashboard: React.FC = () => {
               {activeTab === 'users' && 'Approved Users'}
               {activeTab === 'approve-requests' && 'Pending Requests'}
               {activeTab === 'custom-prompts' && 'Custom Prompts'}
+              {activeTab === 'leads' && 'Lead Captures'}
             </h1>
             <p className="text-gray-500">
               {activeTab === 'home' && 'Analytics overview across all users'}
               {activeTab === 'users' && 'View and manage approved user data'}
               {activeTab === 'approve-requests' && 'Review and approve pending user registrations'}
               {activeTab === 'custom-prompts' && 'View custom AI prompts created by users'}
+              {activeTab === 'leads' && 'View and export contact details submitted through the app'}
             </p>
           </div>
 
@@ -170,6 +173,7 @@ const SuperAdminDashboard: React.FC = () => {
           {activeTab === 'custom-prompts' && (
             <CustomPromptsTab loading={loading} />
           )}
+          {activeTab === 'leads' && <LeadCaptures />}
         </main>
       </div>
     </div>

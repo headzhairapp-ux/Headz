@@ -25,9 +25,9 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
-    "@vercel/node": "^5.1.0",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/node": "^22.14.0",
+    "@vercel/node": "^5.1.0",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",

@@ -444,6 +444,47 @@ export const getAdminStats = async (): Promise<{
     };
 };
 
+export interface AdminLeadCapture {
+    name: string;
+    phoneNumber: string;
+    location: string;
+}
+
+// Get the lead fields needed by the admin dashboard (admin only).
+export const getAdminLeadCaptures = async (): Promise<AdminLeadCapture[]> => {
+    const supabase = getSupabaseClient();
+
+    let currentUser = null;
+    try {
+        const storedUser = localStorage.getItem('styleMyHair_user');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.error('Error getting user from localStorage:', error);
+    }
+
+    if (!currentUser || (!currentUser.is_admin && !currentUser.is_super_admin)) {
+        throw new Error('Unauthorized: Admin privileges required');
+    }
+
+    const { data, error } = await supabase
+        .from('lead_captures')
+        .select('name, full_mobile_number, location')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching lead captures:', error);
+        throw new Error(error.message);
+    }
+
+    return (data || []).map((lead) => ({
+        name: lead.name,
+        phoneNumber: lead.full_mobile_number,
+        location: lead.location,
+    }));
+};
+
 // ============================================
 // User Analytics Tracking Functions
 // ============================================
@@ -636,8 +677,31 @@ export const checkUserByEmail = async (email: string): Promise<{ exists: boolean
                 return { exists: true, user: null, error: { message: 'Your account has been blocked. Please contact support.' } };
             }
 
-            // Check if user is pending approval
+            // Reopen expired requests when the user attempts signup again.
             if (!existingUser.is_approved) {
+                const isExpired =
+                    existingUser.request_status === 'expired' ||
+                    (existingUser.request_expires_at &&
+                        new Date(existingUser.request_expires_at).getTime() < Date.now());
+
+                if (isExpired) {
+                    const newExpiry = new Date(
+                        Date.now() + REQUEST_TTL_DAYS * 24 * 60 * 60 * 1000
+                    ).toISOString();
+                    const { error: reopenError } = await supabase
+                        .from('users')
+                        .update({
+                            request_status: 'pending',
+                            request_expires_at: newExpiry,
+                            updated_at: new Date().toISOString(),
+                        })
+                        .eq('id', existingUser.id);
+
+                    if (reopenError) {
+                        console.error('Error reopening expired approval request:', reopenError);
+                    }
+                }
+
                 return { exists: true, user: null, error: { message: 'Your account is pending admin approval. Please wait for approval before logging in.' } };
             }
 
